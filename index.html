@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متجري الإلكتروني</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="logo">متجري</div>
+        <div>
+            <span>🛒 السلة</span>
+            <a href="admin.html" style="margin-right: 15px; color: #666; text-decoration: none;">⚙️ لوحة التحكم</a>
+        </div>
+    </header>
+    <div class="container">
+        <div style="background: #eee; height: 200px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+            <h2>بانر العروض الرئيسي</h2>
+        </div>
+        <h2 class="section-title">أحدث المنتجات المخفضة</h2>
+        <div class="scrolling-wrapper" id="products-container">
+            <p style="padding: 20px;">جاري تحميل المنتجات...</p>
+        </div>
+        <h2 class="section-title">التصنيفات</h2>
+        <div class="categories-grid">
+            <div class="category-item">📱 جوالات</div>
+            <div class="category-item">🎧 سماعات</div>
+            <div class="category-item">⌚ ساعات ذكية</div>
+            <div class="category-item">🔋 شواحن</div>
+        </div>
+    </div>
+    <script type="module" src="app.js"></script>
+</body>
+</html>
