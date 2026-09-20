@@ -1,4 +1,4 @@
-import { db, collection, getDocs } from './firebase-config.js';
+9import { db, collection, getDocs } from './firebase-config.js';
 import { auth, signOut, onAuthStateChanged } from './firebase-config.js';
 
 const sidebarCategories = document.getElementById('sidebarCategories');
@@ -190,14 +190,8 @@ window.addToCart = function(productId, event) {
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 2500);
     
-    // فتح السلة تلقائياً
-    setTimeout(() => {
-        if (cartDrawer) {
-            cartDrawer.classList.add('open');
-            renderCartDrawer();
-        }
-    }, 500);
-};
+    // إشعار فقط - لا تفتح السلة تلقائياً
+// المستخدم يفتح السلة بنفسه عند الانتهاء
 
 // تغيير الكمية في بطاقة المنتج
 window.changeQty = function(productId, delta) {
