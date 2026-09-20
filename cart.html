@@ -5,39 +5,118 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>سلة المشتريات</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .cart-container { max-width: 900px; margin: 30px auto; padding: 20px; }
-        .cart-item { display: flex; align-items: center; gap: 15px; background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .cart-item img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; }
-        .cart-item-info { flex: 1; }
-        .cart-item-info h3 { margin: 0 0 5px 0; font-size: 16px; }
-        .cart-item-info .price { color: var(--primary-color); font-weight: bold; }
-        .quantity-controls { display: flex; align-items: center; gap: 10px; }
-        .quantity-controls button { background: #eee; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 18px; }
-        .btn-remove { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; }
-        .cart-summary { background: white; padding: 20px; border-radius: 10px; margin-top: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .cart-summary .total { font-size: 24px; font-weight: bold; color: var(--primary-color); text-align: left; }
-        .btn-checkout { background: var(--primary-color); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 15px; font-family: 'Tajawal'; }
-        .btn-checkout:hover { background: #c1121f; }
-        .empty-cart { text-align: center; padding: 50px; color: #999; }
+        .cart-page { max-width: 900px; margin: 20px auto; padding: 20px; }
+        .cart-item-full { background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; display: flex; gap: 15px; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .cart-item-full img { width: 100px; height: 100px; object-fit: cover; border-radius: 10px; }
+        .cart-item-full-info { flex: 1; }
+        .cart-item-full-info h3 { margin: 0 0 5px 0; color: var(--primary-color); }
+        .cart-item-full-info .color-tag { background: var(--accent-color); color: var(--primary-color); padding: 3px 10px; border-radius: 15px; font-size: 12px; display: inline-block; margin: 5px 0; }
+        .cart-item-full-info .price { font-size: 20px; font-weight: 800; color: var(--primary-color); }
+        .qty-controls-full { display: flex; align-items: center; gap: 10px; background: var(--accent-color); padding: 8px; border-radius: 25px; }
+        .qty-controls-full button { width: 35px; height: 35px; border: none; background: var(--primary-color); color: white; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 18px; }
+        .remove-btn-full { background: var(--danger-color); color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-family: 'Tajawal'; }
+        .cart-summary-box { background: white; border-radius: 12px; padding: 25px; margin: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .cart-summary-box h3 { color: var(--primary-color); margin-bottom: 20px; border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; }
+        .form-row { margin-bottom: 15px; }
+        .form-row label { display: block; margin-bottom: 8px; font-weight: 700; }
+        .form-row input { width: 100%; padding: 12px; border: 2px solid #E1BEE7; border-radius: 10px; font-family: 'Tajawal'; font-size: 15px; }
+        .form-row input:focus { outline: none; border-color: var(--primary-color); }
+        .payment-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+        .payment-method { padding: 20px; border: 2px solid #E1BEE7; border-radius: 12px; text-align: center; cursor: pointer; transition: 0.3s; background: white; }
+        .payment-method:hover { border-color: var(--primary-color); }
+        .payment-method.selected { border-color: var(--primary-color); background: var(--accent-color); }
+        .payment-method input { display: none; }
+        .payment-method .icon { font-size: 30px; margin-bottom: 10px; }
+        .installment-options { background: var(--accent-color); padding: 20px; border-radius: 12px; margin: 20px 0; display: none; }
+        .installment-options.show { display: block; }
+        .installment-options h4 { color: var(--primary-color); margin-bottom: 15px; }
+        .down-payment-options { display: flex; gap: 10px; flex-wrap: wrap; margin: 15px 0; }
+        .down-payment-btn { padding: 12px 25px; border: 2px solid var(--primary-color); background: white; color: var(--primary-color); border-radius: 25px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; transition: 0.3s; }
+        .down-payment-btn.selected { background: var(--primary-color); color: white; }
+        .monthly-payment-btn { padding: 12px 25px; border: 2px solid var(--primary-color); background: white; color: var(--primary-color); border-radius: 25px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; transition: 0.3s; margin: 5px; }
+        .monthly-payment-btn:hover { background: var(--accent-color); }
+        .monthly-payment-btn.selected { background: var(--primary-color); color: white; }
+        .months-select { width: 100%; padding: 12px; border: 2px solid var(--primary-color); border-radius: 10px; font-family: 'Tajawal'; font-size: 16px; margin: 15px 0; }
+        .installment-table { width: 100%; border-collapse: collapse; margin: 20px 0; background: white; border-radius: 10px; overflow: hidden; }
+        .installment-table th { background: var(--primary-color); color: white; padding: 12px; text-align: right; }
+        .installment-table td { padding: 12px; border-bottom: 1px solid #eee; }
+        .installment-table tr:last-child td { border-bottom: none; }
+        .total-box { background: var(--primary-color); color: white; padding: 20px; border-radius: 12px; text-align: center; margin: 20px 0; }
+        .total-box .amount { font-size: 32px; font-weight: 800; }
+        .btn-proceed { background: var(--primary-color); color: white; border: none; padding: 18px; width: 100%; border-radius: 25px; font-size: 18px; font-weight: 700; cursor: pointer; font-family: 'Tajawal'; margin-top: 20px; }
+        .btn-proceed:hover { background: var(--primary-dark); }
+        .btn-continue { background: white; color: var(--primary-color); border: 2px solid var(--primary-color); padding: 15px; width: 100%; border-radius: 25px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: 'Tajawal'; margin-top: 10px; }
     </style>
 </head>
 <body>
     <header>
-        <div class="logo">متجري</div>
-        <div>
-            <span id="cartCount">🛒 السلة (0)</span>
-            <a href="index.html" style="margin-right: 15px; color: #666; text-decoration: none;">← المتجر</a>
+        <div style="display:flex; align-items:center; gap:15px;">
+            <a href="index.html" style="color:var(--primary-color); font-size:24px; text-decoration:none;">→</a>
+            <div class="logo"><div class="logo-icon">️</div><span>متجري</span></div>
+        </div>
+        <div class="header-actions">
+            <span class="cart-icon" style="position:relative;"><span class="cart-badge" id="cartCount">0</span></span>
         </div>
     </header>
-    <div class="cart-container">
-        <h2 class="section-title">سلة المشتريات</h2>
+
+    <div class="cart-page" id="cartPage">
+        <h2 style="color:var(--primary-color); margin-bottom:20px;">🛒 سلة المشتريات</h2>
         <div id="cartItems"></div>
-        <div class="cart-summary" id="cartSummary" style="display:none;">
-            <div class="total">المجموع: <span id="totalPrice">0</span> ر.س</div>
-            <button class="btn-checkout" onclick="goToCheckout()">إتمام الشراء</button>
+        
+        <div id="checkoutSection" style="display:none;">
+            <div class="cart-summary-box">
+                <h3>📋 معلومات التوصيل</h3>
+                <div class="form-row"><label>الاسم كاملاً *</label><input type="text" id="custName" placeholder="الاسم كاملاً"></div>
+                <div class="form-row"><label>رقم الواتس *</label><input type="tel" id="custPhone" placeholder="رقم الواتس"></div>
+                <div class="form-row"><label>المدينة *</label><input type="text" id="custCity" placeholder="المدينة"></div>
+                <div class="form-row"><label>الحي *</label><input type="text" id="custDistrict" placeholder="الحي"></div>
+            </div>
+
+            <div class="cart-summary-box">
+                <h3>💳 نظام الدفع</h3>
+                <div class="payment-methods">
+                    <label class="payment-method selected" onclick="selectPayment('full')">
+                        <input type="radio" name="payment" value="full" checked>
+                        <div class="icon">💰</div>
+                        <div>الدفع كامل</div>
+                    </label>
+                    <label class="payment-method" onclick="selectPayment('installment')">
+                        <input type="radio" name="payment" value="installment">
+                        <div class="icon">📅</div>
+                        <div>الدفع بالأقساط</div>
+                    </label>
+                </div>
+
+                <div class="installment-options" id="installmentOptions">
+                    <h4>اختر قيمة الدفعة الأولى *</h4>
+                    <div class="down-payment-options" id="downPaymentOptions"></div>
+                    
+                    <h4 style="margin-top:20px;">اختر القسط الشهري *</h4>
+                    <div class="down-payment-options" id="monthlyPaymentOptions"></div>
+                    
+                    <h4 style="margin-top:20px;">عدد الشهور (يُحسب تلقائياً)</h4>
+                    <select class="months-select" id="monthsSelect" onchange="calculateInstallments()">
+                        <option value="">-- يُحسب تلقائياً --</option>
+                    </select>
+
+                    <div id="installmentTable"></div>
+                </div>
+            </div>
+
+            <div class="total-box">
+                <div>المجموع الكلي</div>
+                <div class="amount" id="totalAmount">0 ر.س</div>
+            </div>
+
+            <button class="btn-proceed" onclick="proceedToPayment()">متابعة الشراء →</button>
+            <button class="btn-continue" onclick="window.location.href='index.html'">العودة للتسوق</button>
         </div>
     </div>
+
+    <a href="https://wa.me/972592152484" class="whatsapp-float" target="_blank"><i class="fab fa-whatsapp"></i></a>
+
     <script type="module" src="cart.js"></script>
 </body>
 </html>
