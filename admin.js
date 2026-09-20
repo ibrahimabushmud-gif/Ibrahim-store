@@ -239,13 +239,29 @@ document.addEventListener('click', async (e) => {
         const id = e.target.getAttribute('data-id');
         const name = type === 'product' ? 'المنتج' : 'القسم';
         
+        console.log('🗑️ محاولة حذف:', { type, id });
+        
         if (confirm(`هل أنت متأكد من حذف ${name}؟`)) {
             try {
-                await deleteDoc(doc(db, type, id));
+                // التأكد من صحة النوع
+                const collectionName = type === 'product' ? 'products' : 'categories';
+                const docRef = doc(db, collectionName, id);
+                
+                console.log('جاري الحذف من:', collectionName, 'المعرف:', id);
+                await deleteDoc(docRef);
+                
                 alert('✅ تم الحذف بنجاح');
-                if (type === 'product') await loadProducts();
-                else await loadCategories();
+                
+                // إعادة تحميل البيانات
+                if (type === 'product') {
+                    console.log('إعادة تحميل المنتجات...');
+                    await loadProducts();
+                } else {
+                    console.log('إعادة تحميل الأقسام...');
+                    await loadCategories();
+                }
             } catch (error) {
+                console.error('❌ خطأ في الحذف:', error);
                 alert('خطأ في الحذف: ' + error.message);
             }
         }
