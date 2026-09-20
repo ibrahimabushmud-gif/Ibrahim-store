@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تفاصيل المنتج</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .product-detail-container { max-width: 900px; margin: 20px auto; padding: 20px; }
+        .product-detail-image { width: 100%; max-height: 500px; object-fit: contain; background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+        .product-detail-title { font-size: 24px; font-weight: 700; color: var(--primary-color); margin-bottom: 10px; }
+        .product-detail-price { font-size: 32px; font-weight: 800; color: var(--primary-color); margin: 15px 0; }
+        .product-detail-price .old { text-decoration: line-through; color: #999; font-size: 18px; margin-right: 10px; }
+        .product-features { background: white; border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .feature-item { display: flex; align-items: center; gap: 15px; padding: 15px; border-bottom: 1px solid #eee; }
+        .feature-item:last-child { border-bottom: none; }
+        .feature-icon { width: 40px; height: 40px; background: var(--accent-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .feature-text { flex: 1; font-weight: 500; }
+        .specs-box { background: white; border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .specs-box h3 { color: var(--primary-color); margin-bottom: 15px; }
+        .spec-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .spec-row:last-child { border-bottom: none; }
+        .spec-label { color: var(--text-light); }
+        .spec-value { font-weight: 700; }
+        .add-to-cart-large { background: var(--primary-color); color: white; border: none; padding: 18px; width: 100%; border-radius: 25px; font-size: 18px; font-weight: 700; cursor: pointer; font-family: 'Tajawal'; margin-top: 20px; }
+        .add-to-cart-large:hover { background: var(--primary-dark); }
+    </style>
+</head>
+<body>
+    <header>
+        <div style="display:flex; align-items:center; gap:15px;">
+            <a href="index.html" style="color:var(--primary-color); font-size:24px; text-decoration:none;">→</a>
+            <div class="logo">
+                <div class="logo-icon">🛍️</div>
+                <span>متجري</span>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a href="cart.html" class="cart-icon">
+                
+                <span class="cart-badge" id="cartCount">0</span>
+            </a>
+        </div>
+    </header>
+
+    <div class="product-detail-container" id="productDetail">
+        <div class="loading">جاري تحميل المنتج...</div>
+    </div>
+
+    <a href="https://wa.me/972592152484" class="whatsapp-float" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <script type="module" src="product.js"></script>
+</body>
+</html>
