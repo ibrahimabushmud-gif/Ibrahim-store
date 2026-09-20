@@ -10,24 +10,23 @@
     <header>
         <div class="logo">متجري</div>
         <div>
-            <span>🛒 السلة</span>
-            <a href="admin.html" style="margin-right: 15px; color: #666; text-decoration: none;">⚙️ لوحة التحكم</a>
+            <a href="cart.html" id="cartCount" style="margin-left:15px; color:#333; text-decoration:none;">🛒 السلة (0)</a>
+            <span id="userMenu"></span>
         </div>
     </header>
     <div class="container">
-        <div style="background: #eee; height: 200px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
-            <h2>بانر العروض الرئيسي</h2>
+        <div style="background: linear-gradient(135deg, #e63946, #f77f00); height: 200px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; color: white;">
+            <h2>🔥 عروض حصرية على جميع المنتجات</h2>
         </div>
-        <h2 class="section-title">أحدث المنتجات المخفضة</h2>
-        <div class="scrolling-wrapper" id="products-container">
-            <p style="padding: 20px;">جاري تحميل المنتجات...</p>
-        </div>
+
         <h2 class="section-title">التصنيفات</h2>
-        <div class="categories-grid">
-            <div class="category-item">📱 جوالات</div>
-            <div class="category-item">🎧 سماعات</div>
-            <div class="category-item">⌚ ساعات ذكية</div>
-            <div class="category-item">🔋 شواحن</div>
+        <div class="categories-grid" id="categoriesContainer">
+            <div class="category-item active" data-category="all">الكل</div>
+        </div>
+
+        <h2 class="section-title">المنتجات</h2>
+        <div class="scrolling-wrapper" id="products-container" style="flex-wrap: wrap; overflow-x: visible;">
+            <p style="padding: 20px;">جاري تحميل المنتجات...</p>
         </div>
     </div>
     <script type="module" src="app.js"></script>
