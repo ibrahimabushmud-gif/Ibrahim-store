@@ -231,42 +231,35 @@ async function loadOrders() {
     }
 }
 
-// ============ حذف وتعديل ============
+
+    // ============ حذف ============
 document.addEventListener('click', async (e) => {
-    // حذف
     if (e.target.classList.contains('btn-delete')) {
         const type = e.target.getAttribute('data-type');
         const id = e.target.getAttribute('data-id');
-        const name = type === 'product' ? 'المنتج' : 'القسم';
         
-        console.log('🗑️ محاولة حذف:', { type, id });
+        console.log('️ حذف:', { type, id });
         
-        if (confirm(`هل أنت متأكد من حذف ${name}؟`)) {
-            try {
-                // التأكد من صحة النوع
-                const collectionName = type === 'product' ? 'products' : 'categories';
-                const docRef = doc(db, collectionName, id);
-                
-                console.log('جاري الحذف من:', collectionName, 'المعرف:', id);
-                await deleteDoc(docRef);
-                
-                alert('✅ تم الحذف بنجاح');
-                
-                // إعادة تحميل البيانات
-                if (type === 'product') {
-                    console.log('إعادة تحميل المنتجات...');
-                    await loadProducts();
-                } else {
-                    console.log('إعادة تحميل الأقسام...');
-                    await loadCategories();
-                }
-            } catch (error) {
-                console.error('❌ خطأ في الحذف:', error);
-                alert('خطأ في الحذف: ' + error.message);
+        if (!confirm('هل أنت متأكد من الحذف؟')) return;
+        
+        try {
+            const collectionName = type === 'product' ? 'products' : 'categories';
+            await deleteDoc(doc(db, collectionName, id));
+            
+            alert('✅ تم الحذف بنجاح');
+            
+            // إعادة تحميل البيانات فوراً
+            if (type === 'product') {
+                await loadProducts();
+            } else {
+                await loadCategories();
             }
+        } catch (error) {
+            console.error('❌ خطأ:', error);
+            alert('خطأ: ' + error.message);
         }
     }
-    
+});
     // تعديل
     if (e.target.classList.contains('btn-edit')) {
         const id = e.target.getAttribute('data-id');
