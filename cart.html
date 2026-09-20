@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سلة المشتريات</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .cart-container { max-width: 900px; margin: 30px auto; padding: 20px; }
+        .cart-item { display: flex; align-items: center; gap: 15px; background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .cart-item img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; }
+        .cart-item-info { flex: 1; }
+        .cart-item-info h3 { margin: 0 0 5px 0; font-size: 16px; }
+        .cart-item-info .price { color: var(--primary-color); font-weight: bold; }
+        .quantity-controls { display: flex; align-items: center; gap: 10px; }
+        .quantity-controls button { background: #eee; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 18px; }
+        .btn-remove { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; }
+        .cart-summary { background: white; padding: 20px; border-radius: 10px; margin-top: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .cart-summary .total { font-size: 24px; font-weight: bold; color: var(--primary-color); text-align: left; }
+        .btn-checkout { background: var(--primary-color); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 15px; font-family: 'Tajawal'; }
+        .btn-checkout:hover { background: #c1121f; }
+        .empty-cart { text-align: center; padding: 50px; color: #999; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">متجري</div>
+        <div>
+            <span id="cartCount">🛒 السلة (0)</span>
+            <a href="index.html" style="margin-right: 15px; color: #666; text-decoration: none;">← المتجر</a>
+        </div>
+    </header>
+    <div class="cart-container">
+        <h2 class="section-title">سلة المشتريات</h2>
+        <div id="cartItems"></div>
+        <div class="cart-summary" id="cartSummary" style="display:none;">
+            <div class="total">المجموع: <span id="totalPrice">0</span> ر.س</div>
+            <button class="btn-checkout" onclick="goToCheckout()">إتمام الشراء</button>
+        </div>
+    </div>
+    <script type="module" src="cart.js"></script>
+</body>
+</html>
