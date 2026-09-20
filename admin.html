@@ -6,102 +6,67 @@
     <title>لوحة التحكم</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        .admin-container { max-width: 900px; margin: 30px auto; padding: 25px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
-        .btn-submit { background: #28a745; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; font-family: 'Tajawal', sans-serif; }
-        .btn-submit:hover { background: #218838; }
-        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; background: #f9f9f9; margin-bottom: 8px; border-radius: 6px; }
-        .btn-delete { background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-family: 'Tajawal'; }
-        .btn-edit { background: #ffc107; color: #000; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-family: 'Tajawal'; margin-left: 5px; }
+        body { font-family: 'Tajawal', sans-serif; background: #f5f5f5; margin: 0; }
+        header { background: white; padding: 15px 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: bold; color: #e63946; }
+        .container { max-width: 900px; margin: 30px auto; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab { padding: 10px 20px; background: #eee; border: none; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; }
-        .tab.active { background: var(--primary-color); color: white; }
+        .tab { padding: 10px 20px; background: #eee; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .tab.active { background: #e63946; color: white; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .login-required { text-align: center; padding: 50px; }
-        .empty-msg { text-align: center; padding: 20px; color: #999; }
-        .order-card { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        .btn { background: #28a745; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        .btn:hover { background: #218838; }
+        .btn-danger { background: #dc3545; }
+        .btn-warning { background: #ffc107; color: #000; }
+        .item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f9f9f9; margin-bottom: 8px; border-radius: 6px; }
+        .login-msg { text-align: center; padding: 50px; }
     </style>
 </head>
 <body>
     <header>
         <div class="logo">لوحة التحكم</div>
-        <a href="index.html" style="color: var(--primary-color); text-decoration: none; font-weight: bold;">← العودة للمتجر</a>
+        <a href="index.html" style="color: #666; text-decoration: none;">← المتجر</a>
     </header>
 
-    <div id="loginMessage" class="admin-container login-required" style="display:none;">
+    <div id="loginMsg" class="container login-msg" style="display:none;">
         <h2>⚠️ يجب تسجيل الدخول</h2>
-        <p>هذه الصفحة للمديرين فقط</p>
-        <a href="login.html" style="background:var(--primary-color); color:white; padding:12px 30px; border-radius:6px; text-decoration:none; display:inline-block; margin-top:20px;">تسجيل الدخول</a>
+        <a href="login.html" class="btn" style="display:inline-block; width:auto; margin-top:20px;">دخول</a>
     </div>
 
-    <div id="adminContent" class="admin-container" style="display:none;">
+    <div id="adminContent" class="container" style="display:none;">
         <div class="tabs">
-            <button class="tab active" data-tab="products">📦 المنتجات</button>
-            <button class="tab" data-tab="categories">📁 الأقسام</button>
-            <button class="tab" data-tab="orders">🛍️ الطلبات</button>
+            <button class="tab active" onclick="switchTab('products')">📦 المنتجات</button>
+            <button class="tab" onclick="switchTab('categories')">📁 الأقسام</button>
         </div>
 
-        <!-- تبويب المنتجات -->
+        <!-- المنتجات -->
         <div id="products-tab" class="tab-content active">
-            <h2 id="productFormTitle">إضافة منتج جديد</h2>
+            <h2>إضافة منتج</h2>
             <form id="productForm">
-                <input type="hidden" id="editProductId">
-                <div class="form-group">
-                    <label>اسم المنتج *</label>
-                    <input type="text" id="pName" placeholder="مثال: كفر ايفون 15" required>
-                </div>
-                <div class="form-group">
-                    <label>رابط الصورة (URL) *</label>
-                    <input type="url" id="pImage" placeholder="https://example.com/image.jpg" required>
-                </div>
-                <div class="form-group">
-                    <label>القسم / التصنيف *</label>
-                    <select id="pCategory" required>
-                        <option value="">-- اختر القسم --</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>السعر الجديد (ريال) *</label>
-                    <input type="number" id="pPrice" placeholder="49" required>
-                </div>
-                <div class="form-group">
-                    <label>السعر القديم قبل الخصم (اختياري)</label>
-                    <input type="number" id="pOldPrice" placeholder="99">
-                </div>
-                <button type="submit" class="btn-submit" id="productSubmitBtn">حفظ المنتج</button>
-                <button type="button" class="btn-submit" id="cancelEditBtn" style="background:#6c757d; display:none; margin-top:10px;" onclick="cancelEdit()">إلغاء التعديل</button>
+                <div class="form-group"><label>الاسم</label><input type="text" id="pName" required></div>
+                <div class="form-group"><label>رابط الصورة</label><input type="url" id="pImage" required></div>
+                <div class="form-group"><label>القسم</label><select id="pCategory" required><option value="">اختر</option></select></div>
+                <div class="form-group"><label>السعر</label><input type="number" id="pPrice" required></div>
+                <div class="form-group"><label>السعر القديم</label><input type="number" id="pOldPrice"></div>
+                <button type="submit" class="btn">حفظ</button>
             </form>
-
-            <div style="margin-top:30px; border-top:2px solid #eee; padding-top:20px;">
-                <h3>المنتجات الحالية (<span id="productsCount">0</span>)</h3>
-                <div id="adminProductsList"></div>
-            </div>
+            <h3 style="margin-top:30px;">المنتجات</h3>
+            <div id="productsList"></div>
         </div>
 
-        <!-- تبويب الأقسام -->
+        <!-- الأقسام -->
         <div id="categories-tab" class="tab-content">
-            <h2>إضافة قسم جديد</h2>
+            <h2>إضافة قسم</h2>
             <form id="categoryForm">
-                <div class="form-group">
-                    <label>اسم القسم *</label>
-                    <input type="text" id="cName" placeholder="مثال: كفرات الجوال" required>
-                </div>
-                <button type="submit" class="btn-submit">إضافة القسم</button>
+                <div class="form-group"><label>اسم القسم</label><input type="text" id="cName" required></div>
+                <button type="submit" class="btn">إضافة</button>
             </form>
-
-            <div style="margin-top:30px; border-top:2px solid #eee; padding-top:20px;">
-                <h3>الأقسام الحالية (<span id="categoriesCount">0</span>)</h3>
-                <div id="adminCategoriesList"></div>
-            </div>
-        </div>
-
-        <!-- تبويب الطلبات -->
-        <div id="orders-tab" class="tab-content">
-            <h2>الطلبات الواردة (<span id="ordersCount">0</span>)</h2>
-            <div id="ordersList"></div>
+            <h3 style="margin-top:30px;">الأقسام</h3>
+            <div id="categoriesList"></div>
         </div>
     </div>
 
