@@ -1,126 +1,149 @@
 import { db, collection, addDoc, getDocs, deleteDoc, doc } from './firebase-config.js';
 import { auth, onAuthStateChanged } from './firebase-config.js';
 
-console.log('✅ admin.js loaded');
+console.log('✅ JavaScript loaded');
 
-// التحقق من الدخول
+// التحقق من تسجيل الدخول
 onAuthStateChanged(auth, (user) => {
-    console.log('User:', user);
+    console.log('User status:', user ? 'logged in' : 'not logged in');
+    
     if (user) {
-        document.getElementById('loginMsg').style.display = 'none';
-        document.getElementById('adminContent').style.display = 'block';
-        loadData();
+        document.getElementById('status').textContent = 'مرحباً! تم تسجيل الدخول';
+        document.getElementById('content').style.display = 'block';
+        loadCategories();
+        loadProducts();
     } else {
-        document.getElementById('loginMsg').style.display = 'block';
-        document.getElementById('adminContent').style.display = 'none';
+        document.getElementById('status').textContent = '️ يجب تسجيل الدخول أولاً. اذهب إلى صفحة login.html';
     }
 });
 
-// تحميل البيانات
-async function loadData() {
-    await loadCategories();
-    await loadProducts();
-}
-
 // تحميل الأقسام
 async function loadCategories() {
-    const select = document.getElementById('pCategory');
-    const list = document.getElementById('categoriesList');
-    select.innerHTML = '<option value="">اختر</option>';
+    console.log('Loading categories...');
+    const list = document.getElementById('catList');
+    const select = document.getElementById('prodCategory');
+    
     list.innerHTML = 'جاري التحميل...';
+    select.innerHTML = '<option value="">اختر القسم</option>';
     
-    const snapshot = await getDocs(collection(db, "categories"));
-    list.innerHTML = '';
-    
-    if (snapshot.empty) {
-        list.innerHTML = '<p>لا توجد أقسام</p>';
-        return;
-    }
-    
-    snapshot.forEach((docSnap) => {
-        const cat = docSnap.data();
-        // إضافة للقائمة المنسدلة
-        const opt = document.createElement('option');
-        opt.value = cat.name;
-        opt.textContent = cat.name;
-        select.appendChild(opt);
+    try {
+        const snapshot = await getDocs(collection(db, "categories"));
+        console.log('Categories count:', snapshot.size);
         
-        // إضافة للقائمة
-        const div = document.createElement('div');
-        div.className = 'item';
-        div.innerHTML = `<strong>${cat.name}</strong><button class="btn btn-danger" onclick="deleteItem('categories', '${docSnap.id}')">حذف</button>`;
-        list.appendChild(div);
-    });
+        if (snapshot.empty) {
+            list.innerHTML = '<p>لا توجد أقسام</p>';
+            return;
+        }
+        
+        list.innerHTML = '';
+        snapshot.forEach((docSnap) => {
+            const cat = docSnap.data();
+            console.log('Category:', cat.name);
+            
+            // إضافة للقائمة المنسدلة
+            const option = document.createElement('option');
+            option.value = cat.name;
+            option.textContent = cat.name;
+            select.appendChild(option);
+            
+            // إضافة للقائمة
+            const div = document.createElement('div');
+            div.innerHTML = `${cat.name} <button onclick="deleteCategory('${docSnap.id}')">حذف</button>`;
+            list.appendChild(div);
+        });
+    } catch (error) {
+        console.error('Error loading categories:', error);
+        list.innerHTML = `<p style="color:red;">خطأ: ${error.message}</p>`;
+    }
 }
 
 // تحميل المنتجات
 async function loadProducts() {
-    const list = document.getElementById('productsList');
+    console.log('Loading products...');
+    const list = document.getElementById('prodList');
     list.innerHTML = 'جاري التحميل...';
     
-    const snapshot = await getDocs(collection(db, "products"));
-    list.innerHTML = '';
-    
-    if (snapshot.empty) {
-        list.innerHTML = '<p>لا توجد منتجات</p>';
-        return;
+    try {
+        const snapshot = await getDocs(collection(db, "products"));
+        console.log('Products count:', snapshot.size);
+        
+        if (snapshot.empty) {
+            list.innerHTML = '<p>لا توجد منتجات</p>';
+            return;
+        }
+        
+        list.innerHTML = '';
+        snapshot.forEach((docSnap) => {
+            const prod = docSnap.data();
+            console.log('Product:', prod.name);
+            
+            const div = document.createElement('div');
+            div.innerHTML = `${prod.name} - ${prod.price} ر.س <button onclick="deleteProduct('${docSnap.id}')">حذف</button>`;
+            list.appendChild(div);
+        });
+    } catch (error) {
+        console.error('Error loading products:', error);
+        list.innerHTML = `<p style="color:red;">خطأ: ${error.message}</p>`;
     }
-    
-    snapshot.forEach((docSnap) => {
-        const p = docSnap.data();
-        const div = document.createElement('div');
-        div.className = 'item';
-        div.innerHTML = `
-            <div style="display:flex;align-items:center;gap:10px;">
-                <img src="${p.image}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;">
-                <div><strong>${p.name}</strong><br><small>${p.category} - ${p.price} ر.س</small></div>
-            </div>
-            <button class="btn btn-danger" onclick="deleteItem('products', '${docSnap.id}')">حذف</button>
-        `;
-        list.appendChild(div);
-    });
 }
 
 // إضافة قسم
-document.getElementById('categoryForm').addEventListener('submit', async (e) => {
+document.getElementById('catForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const name = document.getElementById('cName').value;
-    await addDoc(collection(db, "categories"), { name, createdAt: new Date() });
-    alert('✅ تم الإضافة');
-    document.getElementById('cName').value = '';
-    await loadCategories();
+    const name = document.getElementById('catName').value;
+    
+    try {
+        await addDoc(collection(db, "categories"), { name, createdAt: new Date() });
+        alert('✅ تم إضافة القسم');
+        document.getElementById('catName').value = '';
+        loadCategories();
+    } catch (error) {
+        alert('خطأ: ' + error.message);
+    }
 });
 
 // إضافة منتج
-document.getElementById('productForm').addEventListener('submit', async (e) => {
+document.getElementById('prodForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    
     const data = {
-        name: document.getElementById('pName').value,
-        image: document.getElementById('pImage').value,
-        category: document.getElementById('pCategory').value,
-        price: Number(document.getElementById('pPrice').value),
-        oldPrice: document.getElementById('pOldPrice').value ? Number(document.getElementById('pOldPrice').value) : null,
+        name: document.getElementById('prodName').value,
+        image: document.getElementById('prodImage').value,
+        category: document.getElementById('prodCategory').value,
+        price: Number(document.getElementById('prodPrice').value),
         createdAt: new Date()
     };
-    await addDoc(collection(db, "products"), data);
-    alert('✅ تم الإضافة');
-    document.getElementById('productForm').reset();
-    await loadProducts();
+    
+    try {
+        await addDoc(collection(db, "products"), data);
+        alert('✅ تم إضافة المنتج');
+        document.getElementById('prodForm').reset();
+        loadProducts();
+    } catch (error) {
+        alert('خطأ: ' + error.message);
+    }
 });
 
-// حذف
-window.deleteItem = async function(collectionName, id) {
-    if (!confirm('حذف؟')) return;
-    await deleteDoc(doc(db, collectionName, id));
-    alert('✅ تم الحذف');
-    if (collectionName === 'categories') await loadCategories();
-    else await loadProducts();
+// حذف قسم
+window.deleteCategory = async function(id) {
+    if (!confirm('حذف القسم؟')) return;
+    try {
+        await deleteDoc(doc(db, "categories", id));
+        alert('✅ تم الحذف');
+        loadCategories();
+    } catch (error) {
+        alert('خطأ: ' + error.message);
+    }
 };
 
-// التبديل بين التبويبات
-window.switchTab = function(tab) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    event.target.classList.add('active');
-    document.getElementById(tab + '-tab').classList.add('active');
+// حذف منتج
+window.deleteProduct = async function(id) {
+    if (!confirm('حذف المنتج؟')) return;
+    try {
+        await deleteDoc(doc(db, "products", id));
+        alert('✅ تم الحذف');
+        loadProducts();
+    } catch (error) {
+        alert('خطأ: ' + error.message);
+    }
 };
