@@ -5,7 +5,6 @@ const cartCountEl = document.getElementById('cartCount');
 
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
-// تحديث عداد السلة
 function updateCartCount() {
     const count = cart.reduce((sum, item) => sum + item.quantity, 0);
     if (cartCountEl) {
@@ -13,27 +12,18 @@ function updateCartCount() {
     }
 }
 
-// الحصول على معرف المنتج من URL
 const urlParams = new URLSearchParams(window.location.search);
 const productId = urlParams.get('id');
 
-console.log('🔍 معرف المنتج من URL:', productId);
+console.log('🔍 معرف المنتج:', productId);
 
-// دالة تحميل المنتج
 async function loadProduct() {
-    // التحقق من وجود العنصر
-    if (!productDetail) {
-        console.error('❌ عنصر productDetail غير موجود');
-        return;
-    }
+    if (!productDetail) return;
 
-    // التحقق من وجود معرف المنتج
     if (!productId) {
-        console.error('❌ لا يوجد معرف منتج في URL');
         productDetail.innerHTML = `
             <div class="error-box">
                 <h2>⚠️ المنتج غير موجود</h2>
-                <p>لم يتم تحديد المنتج</p>
                 <a href="index.html">← العودة للمتجر</a>
             </div>
         `;
@@ -41,20 +31,13 @@ async function loadProduct() {
     }
 
     try {
-        console.log(' جاري جلب المنتج من Firebase...');
-        console.log('📍 Collection: products, ID:', productId);
-        
         const productRef = doc(db, "products", productId);
         const docSnap = await getDoc(productRef);
         
-        console.log('📄 نتيجة الاستعلام:', docSnap.exists() ? 'موجود' : 'غير موجود');
-        
         if (!docSnap.exists()) {
-            console.error('❌ المنتج غير موجود في قاعدة البيانات');
             productDetail.innerHTML = `
                 <div class="error-box">
                     <h2>⚠️ المنتج غير موجود</h2>
-                    <p>هذا المنتج غير متوفر حالياً</p>
                     <a href="index.html">← العودة للمتجر</a>
                 </div>
             `;
@@ -62,14 +45,10 @@ async function loadProduct() {
         }
 
         const product = docSnap.data();
-        console.log('✅ تم تحميل المنتج:', product);
-        console.log('📦 اسم المنتج:', product.name);
-        console.log(' السعر:', product.price);
+        console.log('✅ تم تحميل المنتج:', product.name);
         
-        // حساب نسبة الخصم
         const discount = product.oldPrice ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100) : 0;
 
-        // بناء خيارات الألوان
         let colorsHtml = '';
         if (product.hasColors && product.colors) {
             const colorsArray = product.colors.split(',').map(c => c.trim());
@@ -92,7 +71,6 @@ async function loadProduct() {
             colorsHtml += '</div>';
         }
 
-        // عرض المنتج
         productDetail.innerHTML = `
             <img src="${product.image}" class="product-detail-image" onerror="this.src='https://via.placeholder.com/500?text=No+Image'">
             
@@ -145,30 +123,30 @@ async function loadProduct() {
                 </div>` : ''}
             </div>
 
-            <button class="add-to-cart-large" onclick="addToCartFromDetail()">
-                🛒 أضف إلى السلة
-            </button>
+            <div style="display:flex; gap:15px; margin-top:25px; flex-wrap:wrap;">
+                <button class="add-to-cart-large" onclick="addToCartFromDetail()" style="flex:1; min-width:200px;">
+                    🛒 أضف إلى السلة
+                </button>
+                <button class="continue-shopping-btn" onclick="window.location.href='index.html'" style="flex:1; min-width:200px; background:white; color:var(--primary-color); border:2px solid var(--primary-color); padding:20px; border-radius:30px; font-size:20px; font-weight:700; cursor:pointer; font-family:'Tajawal'; transition:0.3s;">
+                    ← إكمال التسوق
+                </button>
+            </div>
         `;
         
         console.log('✅ تم عرض المنتج بنجاح');
         
     } catch (error) {
-        console.error('❌ خطأ في تحميل المنتج:', error);
-        console.error('تفاصيل الخطأ:', error.message);
-        console.error('كود الخطأ:', error.code);
-        
+        console.error('❌ خطأ:', error);
         productDetail.innerHTML = `
             <div class="error-box">
                 <h2>❌ حدث خطأ</h2>
-                <p style="color:var(--danger-color);">${error.message}</p>
-                <p>تأكد من اتصالك بالإنترنت</p>
+                <p>${error.message}</p>
                 <a href="index.html">← العودة للمتجر</a>
             </div>
         `;
     }
 }
 
-// تغيير الكمية
 window.changeDetailQty = function(delta) {
     const input = document.getElementById('detailQty');
     if (input) {
@@ -180,14 +158,11 @@ window.changeDetailQty = function(delta) {
     }
 };
 
-// اختيار اللون
 window.selectDetailColor = function(color, btn) {
     document.querySelectorAll('.color-btn-detail').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
-    console.log('🎨 تم اختيار اللون:', color);
 };
 
-// إضافة للسلة
 window.addToCartFromDetail = function() {
     const qtyInput = document.getElementById('detailQty');
     const qty = parseInt(qtyInput?.value) || 1;
@@ -200,7 +175,6 @@ window.addToCartFromDetail = function() {
         }
     });
 
-    // الحصول على بيانات المنتج من الـ DOM
     const titleEl = document.querySelector('.product-detail-title');
     const priceEl = document.querySelector('.product-detail-price span:not(.old):not(.discount-badge-large)');
     const imageEl = document.querySelector('.product-detail-image');
@@ -235,11 +209,32 @@ window.addToCartFromDetail = function() {
     localStorage.setItem('cart', JSON.stringify(cart));
     updateCartCount();
     
-    alert(`✅ تمت إضافة ${name} للسلة\nاللون: ${selectedColor}\nالكمية: ${qty}`);
-    window.location.href = 'cart.html';
+    // إشعار صغير فقط - بدون فتح السلة
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        position: fixed; top: 100px; left: 50%; transform: translateX(-50%);
+        background: var(--success-color); color: white; padding: 15px 30px;
+        border-radius: 25px; z-index: 1000; font-weight: bold;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2); font-family: 'Tajawal';
+        animation: slideDown 0.3s;
+    `;
+    toast.textContent = `✅ تمت إضافة ${name} للسلة`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2500);
 };
 
-// تشغيل الدوال
-console.log(' صفحة المنتج تم تحميلها');
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideDown {
+        from { transform: translate(-50%, -20px); opacity: 0; }
+        to { transform: translate(-50%, 0); opacity: 1; }
+    }
+    .continue-shopping-btn:hover {
+        background: var(--primary-color) !important;
+        color: white !important;
+    }
+`;
+document.head.appendChild(style);
+
 updateCartCount();
 loadProduct();
