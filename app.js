@@ -10,18 +10,34 @@ const userMenuEl = document.getElementById('userMenu');
 let allProducts = [];
 let allCategories = [];
 let currentCategory = 'all';
+const ADMIN_EMAIL = 'ibrahimabushmud@gmail.com';
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        userMenuEl.innerHTML = `<a href="admin.html" style="margin-right:15px; color:#666; text-decoration:none;">⚙️ الإدارة</a> <button onclick="logout()" style="background:none; border:none; color:var(--primary-color); cursor:pointer; font-family:'Tajawal'; font-weight:bold;">خروج</button>`;
+        // التحقق من أن المستخدم هو المدير فقط
+        if (user.email === ADMIN_EMAIL) {
+            userMenuEl.innerHTML = `
+                <a href="admin.html" style="margin-right:15px; color:#666; text-decoration:none;">⚙️ الإدارة</a>
+                <button onclick="logout()" style="background:none; border:none; color:var(--primary-color); cursor:pointer; font-family:'Tajawal'; font-weight:bold;">خروج</button>
+            `;
+        } else {
+            // مستخدم عادي - لا يظهر له رابط الإدارة
+            userMenuEl.innerHTML = `
+                <span style="margin-right:15px; color:#666;">مرحباً، ${user.email}</span>
+                <button onclick="logout()" style="background:none; border:none; color:var(--primary-color); cursor:pointer; font-family:'Tajawal'; font-weight:bold;">خروج</button>
+            `;
+        }
     } else {
-        userMenuEl.innerHTML = `<a href="login.html" style="margin-right:15px; color:#666; text-decoration:none;">دخول</a> <a href="register.html" style="color:var(--primary-color); text-decoration:none;">تسجيل</a>`;
+        userMenuEl.innerHTML = `
+            <a href="login.html" style="margin-right:15px; color:#666; text-decoration:none;">دخول</a>
+            <a href="register.html" style="color:var(--primary-color); text-decoration:none;">تسجيل</a>
+        `;
     }
 });
 
+
 window.logout = async function() { await signOut(auth); window.location.reload(); };
 
-// فتح/إغلاق القائمة الجانبية
 window.toggleCategories = function() {
     document.getElementById('categoriesSidebar').classList.toggle('open');
     document.getElementById('sidebarOverlay').classList.toggle('show');
@@ -105,7 +121,6 @@ window.filterCategory = function(category) {
     document.querySelectorAll('.category-item').forEach(el => el.classList.remove('active'));
     document.querySelector(`[data-category="${category}"]`).classList.add('active');
     renderProducts();
-    // إغلاق القائمة بعد الاختيار
     toggleCategories();
 };
 
@@ -121,7 +136,7 @@ function renderProducts() {
     productsContainer.innerHTML = '';
     
     if (filtered.length === 0) {
-        productsContainer.innerHTML = '<p style="padding:20px">لا توجد منتجات في هذا القسم.</p>';
+        productsContainer.innerHTML = '<p style="padding:20px; grid-column: 1/-1;">لا توجد منتجات في هذا القسم.</p>';
         return;
     }
     
