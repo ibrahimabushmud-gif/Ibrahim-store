@@ -44,6 +44,7 @@
         <div class="tabs">
             <button class="tab active" onclick="switchTab('products')">📦 المنتجات</button>
             <button class="tab" onclick="switchTab('categories')">📁 الأقسام</button>
+            <button class="tab" onclick="switchTab('orders')">🛍️ الطلبات</button>
         </div>
 
         <!-- تبويب المنتجات -->
@@ -98,6 +99,12 @@
                 <h3>الأقسام الحالية (<span id="catCount">0</span>)</h3>
             </div>
             <div id="categoriesList"></div>
+        </div>
+
+        <!-- تبويب الطلبات -->
+        <div id="orders-tab" class="tab-content">
+            <h2>الطلبات الواردة (<span id="ordersCount">0</span>)</h2>
+            <div id="ordersList"></div>
         </div>
     </div>
 
