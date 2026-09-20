@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حساب جديد</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .auth-container { max-width: 400px; margin: 50px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .auth-container h2 { text-align: center; margin-bottom: 20px; color: var(--primary-color); }
+        .auth-container input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: 'Tajawal'; }
+        .auth-container button { width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; font-size: 16px; }
+        .auth-container button:hover { background: #c1121f; }
+        .auth-switch { text-align: center; margin-top: 15px; }
+        .auth-switch a { color: var(--primary-color); text-decoration: none; }
+        .error-msg { background: #fee; color: #c33; padding: 10px; border-radius: 6px; margin-bottom: 15px; display: none; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">متجري</div>
+        <a href="index.html" style="color: #666; text-decoration: none;">← المتجر</a>
+    </header>
+
+    <div class="auth-container">
+        <h2>إنشاء حساب جديد</h2>
+        <div class="error-msg" id="errorMsg"></div>
+        <input type="text" id="name" placeholder="الاسم الكامل" required>
+        <input type="tel" id="phone" placeholder="رقم الهاتف" required>
+        <input type="email" id="email" placeholder="البريد الإلكتروني" required>
+        <input type="password" id="password" placeholder="كلمة المرور (6 أحرف على الأقل)" required>
+        <button onclick="register()">تسجيل</button>
+        <div class="auth-switch">
+            لديك حساب بالفعل؟ <a href="login.html">سجل دخول</a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, createUserWithEmailAndPassword } from './firebase-config.js';
+        import { db, collection, addDoc } from './firebase-config.js';
+        
+        window.register = async function() {
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMsg');
+            
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                await addDoc(collection(db, "users"), {
+                    uid: userCredential.user.uid,
+                    name,
+                    phone,
+                    email,
+                    createdAt: new Date()
+                });
+                alert('✅ تم إنشاء الحساب بنجاح!');
+                window.location.href = 'index.html';
+            } catch (error) {
+                errorMsg.textContent = 'خطأ: ' + error.message;
+                errorMsg.style.display = 'block';
+            }
+        };
+    </script>
+</body>
+</html>
