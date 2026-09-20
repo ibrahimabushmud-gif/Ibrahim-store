@@ -10,14 +10,16 @@
         header { background: white; padding: 15px 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
         .logo { font-size: 24px; font-weight: bold; color: #e63946; }
         .container { max-width: 900px; margin: 30px auto; padding: 25px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         .tab { padding: 10px 20px; background: #eee; border: none; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; }
         .tab.active { background: #e63946; color: white; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: 'Tajawal'; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: 'Tajawal'; }
+        .checkbox-group { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+        .checkbox-group input { width: auto; }
         .btn { background: #28a745; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; font-family: 'Tajawal'; }
         .btn:hover { background: #218838; }
         .btn-edit { background: #ffc107; color: #000; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-family: 'Tajawal'; margin-left: 5px; }
@@ -26,6 +28,7 @@
         .login-msg { text-align: center; padding: 50px; }
         h2 { margin-top: 0; color: #333; }
         .section-title { font-size: 18px; margin-top: 30px; padding-top: 20px; border-top: 2px solid #eee; }
+        .banner-preview { width: 100px; height: 50px; object-fit: cover; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -44,6 +47,7 @@
         <div class="tabs">
             <button class="tab active" onclick="switchTab('products')">📦 المنتجات</button>
             <button class="tab" onclick="switchTab('categories')">📁 الأقسام</button>
+            <button class="tab" onclick="switchTab('banners')">🖼️ البنرات</button>
             <button class="tab" onclick="switchTab('orders')">🛍️ الطلبات</button>
         </div>
 
@@ -52,35 +56,25 @@
             <h2 id="formTitle">إضافة منتج جديد</h2>
             <form id="productForm">
                 <input type="hidden" id="editId">
-                <div class="form-group">
-                    <label>اسم المنتج *</label>
-                    <input type="text" id="pName" placeholder="مثال: كفر ايفون 15" required>
+                <div class="form-group"><label>اسم المنتج *</label><input type="text" id="pName" required></div>
+                <div class="form-group"><label>رابط الصورة (URL) *</label><input type="url" id="pImage" required></div>
+                <div class="form-group"><label>القسم / التصنيف *</label><select id="pCategory" required><option value="">-- اختر القسم --</option></select></div>
+                <div class="form-group"><label>السعر الجديد (ريال) *</label><input type="number" id="pPrice" required></div>
+                <div class="form-group"><label>السعر القديم قبل الخصم (اختياري)</label><input type="number" id="pOldPrice"></div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="pHasColors">
+                    <label for="pHasColors">تفعيل اختيار الألوان لهذا المنتج؟</label>
                 </div>
-                <div class="form-group">
-                    <label>رابط الصورة (URL) *</label>
-                    <input type="url" id="pImage" placeholder="https://example.com/image.jpg" required>
+                <div class="form-group" id="colorsInputGroup" style="display:none;">
+                    <label>الألوان المتاحة (افصل بينها بفاصلة، مثال: أحمر, أسود, أبيض)</label>
+                    <input type="text" id="pColors" placeholder="أحمر, أسود, أبيض">
                 </div>
-                <div class="form-group">
-                    <label>القسم / التصنيف *</label>
-                    <select id="pCategory" required>
-                        <option value="">-- اختر القسم --</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>السعر الجديد (ريال) *</label>
-                    <input type="number" id="pPrice" placeholder="49" required>
-                </div>
-                <div class="form-group">
-                    <label>السعر القديم قبل الخصم (اختياري)</label>
-                    <input type="number" id="pOldPrice" placeholder="99">
-                </div>
+
                 <button type="submit" class="btn" id="submitBtn">حفظ المنتج</button>
                 <button type="button" class="btn" id="cancelBtn" style="background:#6c757d; display:none; margin-top:10px;" onclick="cancelEdit()">إلغاء التعديل</button>
             </form>
-
-            <div class="section-title">
-                <h3>المنتجات الحالية (<span id="prodCount">0</span>)</h3>
-            </div>
+            <div class="section-title"><h3>المنتجات الحالية (<span id="prodCount">0</span>)</h3></div>
             <div id="productsList"></div>
         </div>
 
@@ -88,17 +82,26 @@
         <div id="categories-tab" class="tab-content">
             <h2>إضافة قسم جديد</h2>
             <form id="categoryForm">
-                <div class="form-group">
-                    <label>اسم القسم *</label>
-                    <input type="text" id="cName" placeholder="مثال: كفرات الجوال" required>
-                </div>
+                <div class="form-group"><label>اسم القسم *</label><input type="text" id="cName" required></div>
                 <button type="submit" class="btn">إضافة القسم</button>
             </form>
-
-            <div class="section-title">
-                <h3>الأقسام الحالية (<span id="catCount">0</span>)</h3>
-            </div>
+            <div class="section-title"><h3>الأقسام الحالية (<span id="catCount">0</span>)</h3></div>
             <div id="categoriesList"></div>
+        </div>
+
+        <!-- تبويب البنرات -->
+        <div id="banners-tab" class="tab-content">
+            <h2>إضافة بنر جديد</h2>
+            <form id="bannerForm">
+                <div class="form-group"><label>رابط صورة البنر (URL) *</label><input type="url" id="bImageUrl" required></div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="bIsActive" checked>
+                    <label for="bIsActive">تفعيل البنر (إظهاره في المتجر)</label>
+                </div>
+                <button type="submit" class="btn">إضافة البنر</button>
+            </form>
+            <div class="section-title"><h3>البنرات الحالية</h3></div>
+            <div id="bannersList"></div>
         </div>
 
         <!-- تبويب الطلبات -->
@@ -107,7 +110,6 @@
             <div id="ordersList"></div>
         </div>
     </div>
-
     <script type="module" src="admin.js"></script>
 </body>
 </html>
