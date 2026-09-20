@@ -1,78 +1,190 @@
-import { db, collection, addDoc } from './firebase-config.js';
+import { db, collection, getDocs, doc, getDoc } from './firebase-config.js';
 
-const orderData = JSON.parse(localStorage.getItem('pendingOrder'));
+const productDetail = document.getElementById('productDetail');
+const cartCountEl = document.getElementById('cartCount');
 
-if (!orderData) {
-    document.body.innerHTML = '<div style="text-align:center; padding:50px;"><h2>لا يوجد طلب</h2><a href="index.html" style="color:var(--primary-color);">العودة للمتجر</a></div>';
-} else {
-    const summaryEl = document.getElementById('orderSummary');
-    let itemsHtml = orderData.items.map(item => `
-        <div class="summary-row">
-            <span>${item.name} (${item.color}) × ${item.quantity}</span>
-            <span>${(item.price * item.quantity).toFixed(2)} ر.س</span>
-        </div>
-    `).join('');
+let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
-    let paymentInfo = '';
-    if (orderData.paymentMethod === 'installment') {
-        const remaining = orderData.total - orderData.downPayment;
-        const monthly = remaining / orderData.months;
-        paymentInfo = `
-            <div class="summary-row"><span>الدفعة الأولى</span><span>${orderData.downPayment.toFixed(2)} ر.س</span></div>
-            <div class="summary-row"><span>عدد الأقساط</span><span>${orderData.months} شهر</span></div>
-            <div class="summary-row"><span>القسط الشهري</span><span>${monthly.toFixed(2)} ر.س</span></div>
-        `;
-    } else {
-        paymentInfo = `<div class="summary-row"><span>الدفع كامل</span><span>${orderData.total.toFixed(2)} ر.س</span></div>`;
+function updateCartCount() {
+    const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+    if (cartCountEl) {
+        cartCountEl.textContent = count;
     }
-
-    summaryEl.innerHTML = `
-        <h3> ملخص الطلب</h3>
-        ${itemsHtml}
-        ${paymentInfo}
-        <div class="summary-row"><span>المجموع الكلي</span><span>${orderData.total.toFixed(2)} ر.س</span></div>
-    `;
-
-    document.getElementById('cardNumber').addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\s/g, '');
-        let formatted = value.match(/.{1,4}/g)?.join(' ') || value;
-        e.target.value = formatted;
-    });
-
-    document.getElementById('cardExpiry').addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, '');
-        if (value.length >= 2) value = value.slice(0, 2) + '/' + value.slice(2);
-        e.target.value = value;
-    });
 }
 
-window.processPayment = function() {
-    const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
-    const cardExpiry = document.getElementById('cardExpiry').value;
-    const cardCVV = document.getElementById('cardCVV').value;
-    const cardName = document.getElementById('cardName').value;
+// الحصول على معرف المنتج من URL
+const urlParams = new URLSearchParams(window.location.search);
+const productId = urlParams.get('id');
 
-    if (!cardNumber || !cardExpiry || !cardCVV || !cardName) {
-        alert('⚠️ الرجاء ملء جميع بيانات البطاقة');
+console.log(' معرف المنتج:', productId);
+
+async function loadProduct() {
+    if (!productDetail) {
+        console.error('❌ لم يتم العثور على عنصر productDetail');
         return;
     }
 
-    if (cardNumber.length < 13) {
-        alert('️ رقم البطاقة غير صحيح');
+    if (!productId) {
+        productDetail.innerHTML = '<h2 style="text-align:center; color:var(--danger-color);">المنتج غير موجود</h2><p style="text-align:center;"><a href="index.html" style="color:var(--primary-color);">العودة للمتجر</a></p>';
         return;
     }
 
-    addDoc(collection(db, "orders"), {
-        ...orderData,
-        cardLast4: cardNumber.slice(-4),
-        paymentStatus: 'completed',
-        paidAt: new Date()
-    }).then(() => {
-        localStorage.removeItem('pendingOrder');
-        localStorage.removeItem('cart');
-        alert('✅ تم الدفع بنجاح! شكراً لطلبك.');
-        window.location.href = 'index.html';
-    }).catch(err => {
-        alert('حدث خطأ: ' + err.message);
-    });
+    try {
+        console.log('🔄 جاري تحميل المنتج من Firebase...');
+        const docSnap = await getDoc(doc(db, "products", productId));
+        
+        if (!docSnap.exists()) {
+            console.error('❌ المنتج غير موجود في قاعدة البيانات');
+            productDetail.innerHTML = '<h2 style="text-align:center; color:var(--danger-color);">المنتج غير موجود</h2><p style="text-align:center;"><a href="index.html" style="color:var(--primary-color);">العودة للمتجر</a></p>';
+            return;
+        }
+
+        const product = docSnap.data();
+        console.log('✅ تم تحميل المنتج:', product.name);
+        
+        const discount = product.oldPrice ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100) : 0;
+
+        let colorsHtml = '';
+        if (product.hasColors && product.colors) {
+            const colorsArray = product.colors.split(',').map(c => c.trim());
+            const colorValues = {
+                'أحمر': '#E74C3C', 'أسود': '#2C3E50', 'أبيض': '#ECF0F1',
+                'أزرق': '#3498DB', 'أخضر': '#27AE60', 'ذهبي': '#F39C12',
+                'فضي': '#BDC3C7', 'وردي': '#E91E63', 'بنفسجي': '#9B59B6'
+            };
+            colorsHtml = '<div class="color-options" style="margin:20px 0;">';
+            colorsHtml += '<h4 style="margin-bottom:10px;">اختر اللون:</h4>';
+            colorsArray.forEach((color, index) => {
+                const bgColor = colorValues[color] || '#999';
+                const isSelected = index === 0 ? 'selected' : '';
+                colorsHtml += `<button class="color-btn color-btn-detail ${isSelected}" 
+                    style="background:${bgColor}; width:40px; height:40px; cursor:pointer;" 
+                    data-color="${color}" 
+                    onclick="selectDetailColor('${color}', this)" 
+                    title="${color}"></button>`;
+            });
+            colorsHtml += '</div>';
+        }
+
+        productDetail.innerHTML = `
+            <img src="${product.image}" class="product-detail-image" onerror="this.src='https://via.placeholder.com/500'">
+            
+            <h1 class="product-detail-title">${product.name}</h1>
+            
+            <div class="product-detail-price">
+                ${product.oldPrice ? `<span class="old">${product.oldPrice} ر.س</span>` : ''}
+                ${product.price} ر.س
+                ${discount > 0 ? `<span style="background:var(--danger-color); color:white; padding:5px 15px; border-radius:20px; font-size:14px; margin-right:10px;">خصم ${discount}%</span>` : ''}
+            </div>
+
+            ${colorsHtml}
+
+            <div class="qty-selector" style="background:var(--accent-color); padding:15px; border-radius:25px; display:inline-flex; align-items:center; gap:15px; margin:20px 0;">
+                <span style="font-weight:bold;">الكمية:</span>
+                <button class="qty-btn" onclick="changeDetailQty(-1)" style="width:35px; height:35px; cursor:pointer;">−</button>
+                <input type="number" id="detailQty" class="qty-input" value="1" min="1" max="10" readonly style="width:50px; font-size:18px; text-align:center;">
+                <button class="qty-btn" onclick="changeDetailQty(1)" style="width:35px; height:35px; cursor:pointer;">+</button>
+            </div>
+
+            <div class="product-features">
+                <div class="feature-item">
+                    <div class="feature-icon"></div>
+                    <div class="feature-text">توصيل مجاني خلال 24 ساعة</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🛡️</div>
+                    <div class="feature-text">ضمان لمدة عامين</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">💳</div>
+                    <div class="feature-text">إمكانية التقسيط</div>
+                </div>
+            </div>
+
+            <div class="specs-box">
+                <h3>المواصفات</h3>
+                <div class="spec-row">
+                    <span class="spec-label">القسم</span>
+                    <span class="spec-value">${product.category || 'غير محدد'}</span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-label">السعر</span>
+                    <span class="spec-value">${product.price} ر.س</span>
+                </div>
+                ${product.oldPrice ? `
+                <div class="spec-row">
+                    <span class="spec-label">السعر قبل الخصم</span>
+                    <span class="spec-value">${product.oldPrice} ر.س</span>
+                </div>` : ''}
+            </div>
+
+            <button class="add-to-cart-large" onclick="addToCartFromDetail('${product.id}', '${product.name}', ${product.price}, '${product.image}')" style="cursor:pointer;">
+                 أضف إلى السلة
+            </button>
+        `;
+    } catch (error) {
+        console.error('❌ خطأ في تحميل المنتج:', error);
+        productDetail.innerHTML = `
+            <h2 style="text-align:center; color:var(--danger-color);">حدث خطأ في تحميل المنتج</h2>
+            <p style="text-align:center; color:var(--text-light);">${error.message}</p>
+            <p style="text-align:center;"><a href="index.html" style="color:var(--primary-color);">العودة للمتجر</a></p>
+        `;
+    }
+}
+
+window.changeDetailQty = function(delta) {
+    const input = document.getElementById('detailQty');
+    if (input) {
+        let val = parseInt(input.value) || 1;
+        val += delta;
+        if (val < 1) val = 1;
+        if (val > 10) val = 10;
+        input.value = val;
+    }
 };
+
+window.selectDetailColor = function(color, btn) {
+    document.querySelectorAll('.color-btn-detail').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+};
+
+window.addToCartFromDetail = function(id, name, price, image) {
+    const qtyInput = document.getElementById('detailQty');
+    const qty = parseInt(qtyInput?.value) || 1;
+    
+    let selectedColor = 'افتراضي';
+    const colorBtns = document.querySelectorAll('.color-btn-detail');
+    colorBtns.forEach(btn => {
+        if (btn.classList.contains('selected')) {
+            selectedColor = btn.getAttribute('data-color');
+        }
+    });
+
+    const cartItemId = `${id}_${selectedColor}`;
+    const existing = cart.find(item => item.id === cartItemId);
+    
+    if (existing) {
+        existing.quantity += qty;
+    } else {
+        cart.push({ 
+            id: cartItemId, 
+            productId: id, 
+            name: name, 
+            price: price, 
+            image: image, 
+            color: selectedColor, 
+            quantity: qty 
+        });
+    }
+    
+    localStorage.setItem('cart', JSON.stringify(cart));
+    updateCartCount();
+    
+    alert('✅ تمت إضافة المنتج للسلة');
+    window.location.href = 'cart.html';
+};
+
+// تشغيل الدوال عند تحميل الصفحة
+console.log(' صفحة المنتج تم تحميلها');
+updateCartCount();
+loadProduct();
