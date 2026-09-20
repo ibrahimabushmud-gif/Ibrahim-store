@@ -45,8 +45,8 @@ async function loadCategories() {
         }
         
         adminCategoriesList.innerHTML = '';
-        snapshot.forEach((document) => {
-            const cat = document.data();
+        snapshot.forEach((docSnap) => {
+            const cat = docSnap.data();
             console.log('قسم:', cat.name);
             
             // إضافة للقائمة المنسدلة
@@ -60,7 +60,7 @@ async function loadCategories() {
             item.className = 'item-row';
             item.innerHTML = `
                 <strong>${cat.name}</strong>
-                <button class="btn-delete" data-type="category" data-id="${document.id}">حذف</button>
+                <button class="btn-delete" data-type="category" data-id="${docSnap.id}">حذف</button>
             `;
             adminCategoriesList.appendChild(item);
         });
@@ -109,8 +109,8 @@ async function loadProducts() {
         }
         
         adminProductsList.innerHTML = '';
-        snapshot.forEach((document) => {
-            const product = document.data();
+        snapshot.forEach((docSnap) => {
+            const product = docSnap.data();
             console.log('منتج:', product.name);
             
             const item = document.createElement('div');
@@ -124,8 +124,8 @@ async function loadProducts() {
                     </div>
                 </div>
                 <div>
-                    <button class="btn-edit" data-id="${document.id}">تعديل</button>
-                    <button class="btn-delete" data-type="product" data-id="${document.id}">حذف</button>
+                    <button class="btn-edit" data-id="${docSnap.id}">تعديل</button>
+                    <button class="btn-delete" data-type="product" data-id="${docSnap.id}">حذف</button>
                 </div>
             `;
             adminProductsList.appendChild(item);
@@ -151,7 +151,7 @@ document.getElementById('productForm').addEventListener('submit', async (e) => {
     };
     
     if (!productData.name || !productData.image || !productData.category || !productData.price) {
-        alert('⚠️ الرجاء ملء جميع الحقول المطلوبة');
+        alert('️ الرجاء ملء جميع الحقول المطلوبة');
         return;
     }
     
@@ -191,8 +191,8 @@ async function loadOrders() {
         }
         
         ordersList.innerHTML = '';
-        snapshot.forEach((document) => {
-            const order = document.data();
+        snapshot.forEach((docSnap) => {
+            const order = docSnap.data();
             const date = order.createdAt?.toDate ? order.createdAt.toDate().toLocaleString('ar') : 'غير محدد';
             
             let itemsHtml = (order.items || []).map(item => `
@@ -211,7 +211,7 @@ async function loadOrders() {
             item.className = 'order-card';
             item.innerHTML = `
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                    <strong>طلب #${document.id.slice(0, 8)}</strong>
+                    <strong>طلب #${docSnap.id.slice(0, 8)}</strong>
                     <small>${date}</small>
                 </div>
                 <div><strong>العميل:</strong> ${order.customerName} - ${order.phone}</div>
@@ -256,9 +256,9 @@ document.addEventListener('click', async (e) => {
         const id = e.target.getAttribute('data-id');
         try {
             const snapshot = await getDocs(collection(db, "products"));
-            snapshot.forEach((document) => {
-                if (document.id === id) {
-                    const product = document.data();
+            snapshot.forEach((docSnap) => {
+                if (docSnap.id === id) {
+                    const product = docSnap.data();
                     document.getElementById('editProductId').value = id;
                     document.getElementById('pName').value = product.name;
                     document.getElementById('pImage').value = product.image;
