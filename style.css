@@ -95,34 +95,41 @@ header { background: white; padding: 15px 20px; box-shadow: 0 2px 5px rgba(0,0,0
 .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
 .section-title { font-size: 22px; font-weight: 700; margin: 30px 0 15px 0; border-right: 4px solid var(--primary-color); padding-right: 10px; }
 
-/* التمرير الأفقي */
-.scrolling-wrapper {
-    display: flex;
-    overflow-x: auto;
+/* شبكة المنتجات - 5 منتجات في كل صف */
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* 5 منتجات في الصف */
     gap: 15px;
-    padding: 10px 5px 20px 5px;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
+    padding: 10px 0;
 }
-.scrolling-wrapper::-webkit-scrollbar { height: 6px; }
-.scrolling-wrapper::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+/* على التابلت: 3 منتجات */
+@media (max-width: 1024px) {
+    .products-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* على الموبايل: منتجين */
+@media (max-width: 768px) {
+    .products-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+}
+
+/* على شاشات صغيرة جداً: منتج واحد */
+@media (max-width: 480px) {
+    .products-grid { grid-template-columns: 1fr; }
+}
 
 .product-card {
     background: white;
     border-radius: 12px;
     padding: 15px;
-    flex: 0 0 calc(100% / 7);
-    min-width: 150px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     text-align: center;
     position: relative;
-    scroll-snap-align: start;
     transition: transform 0.2s;
+    display: flex;
+    flex-direction: column;
 }
-@media (max-width: 768px) {
-    .product-card { flex: 0 0 calc(100% / 2.5); }
-}
-.product-card:hover { transform: translateY(-3px); }
+.product-card:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 
 .discount-badge { position: absolute; top: 10px; right: 10px; background: var(--primary-color); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
 .product-image { width: 100%; height: 140px; object-fit: contain; margin-bottom: 10px; }
@@ -138,7 +145,7 @@ header { background: white; padding: 15px 20px; box-shadow: 0 2px 5px rgba(0,0,0
 .qty-btn { width: 28px; height: 28px; border: 1px solid #ddd; background: #f9f9f9; border-radius: 4px; cursor: pointer; font-weight: bold; }
 .qty-input { width: 40px; text-align: center; border: 1px solid #ddd; border-radius: 4px; padding: 4px; }
 
-.add-to-cart { background: var(--primary-color); color: white; border: none; width: 100%; padding: 10px; border-radius: 6px; font-family: 'Tajawal', sans-serif; font-weight: bold; cursor: pointer; margin-top: 5px; }
+.add-to-cart { background: var(--primary-color); color: white; border: none; width: 100%; padding: 10px; border-radius: 6px; font-family: 'Tajawal', sans-serif; font-weight: bold; cursor: pointer; margin-top: auto; }
 .add-to-cart:hover { background: #c1121f; }
 
 .banner-container { display: flex; overflow-x: auto; gap: 15px; padding: 10px 0; scroll-snap-type: x mandatory; margin-bottom: 20px; }
