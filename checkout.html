@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إتمام الشراء</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .checkout-container { max-width: 800px; margin: 30px auto; padding: 20px; }
+        .checkout-section { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .checkout-section h3 { margin-top: 0; color: var(--primary-color); border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .order-item { display: flex; align-items: center; gap: 15px; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .order-item img { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; }
+        .order-item-info { flex: 1; }
+        .order-item-info h4 { margin: 0 0 5px 0; font-size: 14px; }
+        .order-item-info .price { color: var(--primary-color); font-weight: bold; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: 'Tajawal'; }
+        .payment-options { display: flex; gap: 10px; flex-wrap: wrap; }
+        .payment-option { flex: 1; min-width: 150px; padding: 15px; border: 2px solid #ddd; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.3s; }
+        .payment-option:hover { border-color: var(--primary-color); }
+        .payment-option.selected { border-color: var(--primary-color); background: #fff5f5; }
+        .payment-option input { display: none; }
+        .btn-submit { background: var(--primary-color); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; font-family: 'Tajawal'; margin-top: 20px; }
+        .btn-submit:hover { background: #c1121f; }
+        .total-box { background: #f9f9f9; padding: 20px; border-radius: 8px; text-align: center; }
+        .total-box .total { font-size: 28px; font-weight: bold; color: var(--primary-color); }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">متجري</div>
+        <a href="cart.html" style="color: #666; text-decoration: none;">← السلة</a>
+    </header>
+
+    <div class="checkout-container">
+        <h2 class="section-title">إتمام الطلب</h2>
+
+        <form id="checkoutForm">
+            <!-- ملخص الطلب -->
+            <div class="checkout-section">
+                <h3> ملخص الطلب</h3>
+                <div id="orderItems"></div>
+                <div class="total-box">
+                    <div>المجموع الكلي:</div>
+                    <div class="total"><span id="totalPrice">0</span> ر.س</div>
+                </div>
+            </div>
+
+            <!-- معلومات التوصيل -->
+            <div class="checkout-section">
+                <h3>📍 معلومات التوصيل</h3>
+                <div class="form-group">
+                    <label>الاسم الكامل *</label>
+                    <input type="text" id="fullName" required>
+                </div>
+                <div class="form-group">
+                    <label>رقم الهاتف *</label>
+                    <input type="tel" id="phone" required>
+                </div>
+                <div class="form-group">
+                    <label>المدينة *</label>
+                    <input type="text" id="city" required>
+                </div>
+                <div class="form-group">
+                    <label>العنوان التفصيلي *</label>
+                    <textarea id="address" rows="3" required></textarea>
+                </div>
+            </div>
+
+            <!-- طريقة الدفع -->
+            <div class="checkout-section">
+                <h3>💳 طريقة الدفع</h3>
+                <div class="payment-options">
+                    <label class="payment-option">
+                        <input type="radio" name="payment" value="cash" checked>
+                        <div>💵</div>
+                        <div>الدفع عند الاستلام</div>
+                    </label>
+                    <label class="payment-option">
+                        <input type="radio" name="payment" value="card">
+                        <div>💳</div>
+                        <div>بطاقة ائتمان</div>
+                    </label>
+                    <label class="payment-option">
+                        <input type="radio" name="payment" value="transfer">
+                        <div>🏦</div>
+                        <div>تحويل بنكي</div>
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">تأكيد الطلب</button>
+        </form>
+    </div>
+
+    <script type="module" src="checkout.js"></script>
+</body>
+</html>
