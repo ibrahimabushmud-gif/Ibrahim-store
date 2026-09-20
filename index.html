@@ -9,7 +9,6 @@
 <body>
     <header>
         <div style="display:flex; align-items:center; gap:15px;">
-            <!-- أيقونة القائمة (ثلاث خطوط) -->
             <button class="menu-toggle" onclick="toggleCategories()">
                 <span></span>
                 <span></span>
@@ -18,12 +17,11 @@
             <div class="logo">متجري</div>
         </div>
         <div>
-            <a href="cart.html" id="cartCount" style="margin-left:15px; color:#333; text-decoration:none;">🛒 السلة (0)</a>
+            <a href="cart.html" id="cartCount" style="margin-left:15px; color:#333; text-decoration:none;"> السلة (0)</a>
             <span id="userMenu"></span>
         </div>
     </header>
 
-    <!-- القائمة الجانبية للتصنيفات -->
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleCategories()"></div>
     <div class="sidebar" id="categoriesSidebar">
         <div class="sidebar-header">
@@ -36,12 +34,10 @@
     </div>
 
     <div class="container">
-        <!-- قسم البنرات -->
         <div class="banner-container" id="bannersContainer"></div>
-
         <h2 class="section-title">المنتجات</h2>
-        <div class="scrolling-wrapper" id="products-container">
-            <p style="padding: 20px;">جاري تحميل المنتجات...</p>
+        <div class="products-grid" id="products-container">
+            <p style="padding: 20px; grid-column: 1/-1;">جاري تحميل المنتجات...</p>
         </div>
     </div>
     <script type="module" src="app.js"></script>
