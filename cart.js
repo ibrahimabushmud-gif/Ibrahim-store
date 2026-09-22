@@ -296,11 +296,11 @@ window.proceedToPayment = async function() {
     message += `\n💰 <b>المجموع الكلي:</b> ${totalAmount.toFixed(2)} ر.س\n\n`;
     
   message += `<b>الروابط:</b>\n`;
-message += `📄 <b>الفاتورة:</b> ${baseUrl}/invoice.html\n`;
-message += `💵 <b>سند قبض:</b> ${baseUrl}/receipt.html\n`;
+message += `📄 <b>الفاتورة:</b> ${baseUrl}/invoice.html?id=${orderId}\n`;
+message += `💵 <b>سند قبض:</b> ${baseUrl}/receipt.html?id=${orderId}\n`;
 
 if (selectedPayment === 'installment') {
-    message += `📝 <b>عقد التقسيط:</b> ${baseUrl}/contract.html\n`;
+    message += `📝 <b>عقد التقسيط:</b> ${baseUrl}/contract.html?id=${orderId}\n`;
 }
 
     console.log('📤 الرسالة:', message);
