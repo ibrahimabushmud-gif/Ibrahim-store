@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فاتورة شراء</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Tajawal', Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .invoice-container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #6B2D8B; padding-bottom: 20px; margin-bottom: 30px; }
+        .logo { font-size: 32px; font-weight: bold; color: #6B2D8B; }
+        .invoice-title { text-align: left; }
+        .invoice-title h1 { color: #6B2D8B; font-size: 28px; }
+        .invoice-title p { color: #666; margin-top: 5px; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
+        .info-box { background: #f9f9f9; padding: 20px; border-radius: 8px; }
+        .info-box h3 { color: #6B2D8B; margin-bottom: 15px; border-bottom: 2px solid #6B2D8B; padding-bottom: 10px; }
+        .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { color: #666; font-weight: 500; }
+        .info-value { font-weight: bold; color: #333; }
+        .products-table { width: 100%; border-collapse: collapse; margin: 30px 0; }
+        .products-table th { background: #6B2D8B; color: white; padding: 15px; text-align: right; }
+        .products-table td { padding: 15px; border-bottom: 1px solid #eee; }
+        .products-table tr:last-child td { border-bottom: none; }
+        .total-section { background: #f9f9f9; padding: 20px; border-radius: 8px; margin-top: 30px; }
+        .total-row { display: flex; justify-content: space-between; padding: 10px 0; font-size: 16px; }
+        .total-row.final { font-size: 20px; font-weight: bold; color: #6B2D8B; border-top: 2px solid #6B2D8B; padding-top: 15px; margin-top: 10px; }
+        .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; color: #666; }
+        @media print {
+            body { background: white; padding: 0; }
+            .invoice-container { box-shadow: none; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container" id="invoice">
+        <div class="header">
+            <div class="logo">🛍️ متجري</div>
+            <div class="invoice-title">
+                <h1>فاتورة شراء</h1>
+                <p>شكراً لثقتك بنا</p>
+            </div>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-box">
+                <h3>معلومات الفاتورة</h3>
+                <div class="info-row">
+                    <span class="info-label">رقم الفاتورة:</span>
+                    <span class="info-value" id="invoiceNumber">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">تاريخ الإصدار:</span>
+                    <span class="info-value" id="invoiceDate">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">حالة الدفع:</span>
+                    <span class="info-value" id="paymentStatus">-</span>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <h3>معلومات العميل</h3>
+                <div class="info-row">
+                    <span class="info-label">الاسم:</span>
+                    <span class="info-value" id="customerName">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">رقم الهاتف:</span>
+                    <span class="info-value" id="customerPhone">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">العنوان:</span>
+                    <span class="info-value" id="customerAddress">-</span>
+                </div>
+            </div>
+        </div>
+
+        <table class="products-table">
+            <thead>
+                <tr>
+                    <th>المنتج</th>
+                    <th>الكمية</th>
+                    <th>السعر</th>
+                    <th>الإجمالي</th>
+                </tr>
+            </thead>
+            <tbody id="productsList">
+            </tbody>
+        </table>
+
+        <div class="total-section">
+            <div class="total-row">
+                <span>المجموع الفرعي:</span>
+                <span id="subtotal">0 د.إ</span>
+            </div>
+            <div class="total-row">
+                <span>الضريبة (0%):</span>
+                <span>0 د.إ</span>
+            </div>
+            <div class="total-row final">
+                <span>المجموع الكلي:</span>
+                <span id="totalAmount">0 د.إ</span>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>شكراً لتسوقك معنا! نتمنى لك يوماً سعيداً.</p>
+            <p> واتساب: +971592152484</p>
+        </div>
+    </div>
+
+    <button class="no-print" onclick="window.print()" style="position:fixed; bottom:20px; left:20px; background:#6B2D8B; color:white; border:none; padding:15px 30px; border-radius:25px; font-size:16px; cursor:pointer; font-family:'Tajawal';">🖨️ طباعة الفاتورة</button>
+
+    <script>
+        const orderData = JSON.parse(localStorage.getItem('pendingOrder'));
+        
+        if (!orderData) {
+            document.body.innerHTML = '<div style="text-align:center; padding:50px;"><h2>لا توجد فاتورة</h2><a href="index.html">العودة للمتجر</a></div>';
+        } else {
+            document.getElementById('invoiceNumber').textContent = '#' + orderData.orderId;
+            document.getElementById('invoiceDate').textContent = new Date().toLocaleDateString('ar-AE');
+            document.getElementById('paymentStatus').textContent = orderData.paymentMethod === 'installment' ? 'تقسيط' : 'دفع كامل';
+            document.getElementById('customerName').textContent = orderData.customerName;
+            document.getElementById('customerPhone').textContent = orderData.phone;
+            document.getElementById('customerAddress').textContent = `${orderData.city} - ${orderData.district}`;
+
+            const productsList = document.getElementById('productsList');
+            let subtotal = 0;
+
+            orderData.items.forEach(item => {
+                const total = item.price * item.quantity;
+                subtotal += total;
+                productsList.innerHTML += `
+                    <tr>
+                        <td>${item.name} (${item.color})</td>
+                        <td>${item.quantity}</td>
+                        <td>${item.price.toFixed(2)} د.إ</td>
+                        <td>${total.toFixed(2)} د.إ</td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('subtotal').textContent = subtotal.toFixed(2) + ' د.إ';
+            document.getElementById('totalAmount').textContent = orderData.total.toFixed(2) + ' د.إ';
+        }
+    </script>
+</body>
+</html>
