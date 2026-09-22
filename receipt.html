@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سند قبض</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Tajawal', Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .receipt-container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { text-align: center; border-bottom: 3px solid #6B2D8B; padding-bottom: 20px; margin-bottom: 30px; }
+        .header h1 { color: #6B2D8B; font-size: 32px; margin-bottom: 10px; }
+        .header p { color: #666; }
+        .receipt-info { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+        .info-item { background: #f9f9f9; padding: 15px; border-radius: 8px; }
+        .info-item label { display: block; color: #666; font-size: 14px; margin-bottom: 5px; }
+        .info-item span { font-weight: bold; color: #333; font-size: 16px; }
+        .amount-box { background: #6B2D8B; color: white; padding: 30px; border-radius: 12px; text-align: center; margin: 30px 0; }
+        .amount-box h2 { font-size: 48px; margin: 10px 0; }
+        .amount-box p { font-size: 18px; }
+        .payment-details { background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 30px 0; }
+        .payment-details h3 { color: #6B2D8B; margin-bottom: 15px; }
+        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #ddd; }
+        .detail-row:last-child { border-bottom: none; }
+        .signature-section { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 50px; }
+        .signature-box { text-align: center; }
+        .signature-box p { margin-bottom: 50px; color: #666; }
+        .signature-line { border-top: 2px solid #333; padding-top: 10px; }
+        @media print {
+            body { background: white; padding: 0; }
+            .receipt-container { box-shadow: none; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt-container">
+        <div class="header">
+            <h1>سند قبض</h1>
+            <p>متجري الإلكتروني</p>
+        </div>
+
+        <div class="receipt-info">
+            <div class="info-item">
+                <label>رقم السند:</label>
+                <span id="receiptNumber">-</span>
+            </div>
+            <div class="info-item">
+                <label>التاريخ:</label>
+                <span id="receiptDate">-</span>
+            </div>
+            <div class="info-item">
+                <label>استلمنا من السيد/ة:</label>
+                <span id="customerName">-</span>
+            </div>
+            <div class="info-item">
+                <label>رقم الهاتف:</label>
+                <span id="customerPhone">-</span>
+            </div>
+        </div>
+
+        <div class="amount-box">
+            <p>المبلغ المقبوض</p>
+            <h2 id="amountReceived">0 د.إ</h2>
+            <p id="amountInWords">-</p>
+        </div>
+
+        <div class="payment-details">
+            <h3>تفاصيل الدفع</h3>
+            <div class="detail-row">
+                <span>طريقة الدفع:</span>
+                <span id="paymentMethod">-</span>
+            </div>
+            <div class="detail-row" id="downPaymentRow" style="display:none;">
+                <span>الدفعة الأولى:</span>
+                <span id="downPayment">-</span>
+            </div>
+            <div class="detail-row" id="installmentRow" style="display:none;">
+                <span>عدد الأقساط:</span>
+                <span id="installments">-</span>
+            </div>
+            <div class="detail-row">
+                <span>المبلغ المتبقي:</span>
+                <span id="remainingAmount">-</span>
+            </div>
+        </div>
+
+        <div class="signature-section">
+            <div class="signature-box">
+                <p>توقيع المستلم</p>
+                <div class="signature-line">
+                    <span>المحاسب</span>
+                </div>
+            </div>
+            <div class="signature-box">
+                <p>توقيع العميل</p>
+                <div class="signature-line">
+                    <span id="customerSignature">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="no-print" onclick="window.print()" style="position:fixed; bottom:20px; left:20px; background:#6B2D8B; color:white; border:none; padding:15px 30px; border-radius:25px; font-size:16px; cursor:pointer; font-family:'Tajawal';">️ طباعة السند</button>
+
+    <script>
+        const orderData = JSON.parse(localStorage.getItem('pendingOrder'));
+        
+        if (!orderData) {
+            document.body.innerHTML = '<div style="text-align:center; padding:50px;"><h2>لا يوجد سند</h2><a href="index.html">العودة للمتجر</a></div>';
+        } else {
+            document.getElementById('receiptNumber').textContent = '#' + orderData.orderId;
+            document.getElementById('receiptDate').textContent = new Date().toLocaleDateString('ar-AE');
+            document.getElementById('customerName').textContent = orderData.customerName;
+            document.getElementById('customerPhone').textContent = orderData.phone;
+            document.getElementById('customerSignature').textContent = orderData.customerName;
+
+            const amount = orderData.paymentMethod === 'installment' ? orderData.downPayment : orderData.total;
+            document.getElementById('amountReceived').textContent = amount.toFixed(2) + ' د.إ';
+            document.getElementById('amountInWords').textContent = amount.toFixed(2) + ' درهم إماراتي فقط';
+
+            document.getElementById('paymentMethod').textContent = orderData.paymentMethod === 'installment' ? 'تقسيط' : 'دفع كامل';
+            
+            if (orderData.paymentMethod === 'installment') {
+                document.getElementById('downPaymentRow').style.display = 'flex';
+                document.getElementById('installmentRow').style.display = 'flex';
+                document.getElementById('downPayment').textContent = orderData.downPayment.toFixed(2) + ' د.إ';
+                document.getElementById('installments').textContent = orderData.months + ' شهر';
+                document.getElementById('remainingAmount').textContent = (orderData.total - orderData.downPayment).toFixed(2) + ' د.إ';
+            } else {
+                document.getElementById('remainingAmount').textContent = '0 د.إ';
+            }
+        }
+    </script>
+</body>
+</html>
