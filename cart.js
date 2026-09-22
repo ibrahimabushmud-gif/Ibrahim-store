@@ -1,3 +1,6 @@
+import { sendToTelegram, generateOTP } from './telegram-config.js';
+import { countries } from './countries.js';
+
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 let cartCountEl = document.getElementById('cartCount');
 let cartItemsEl = document.getElementById('cartItems');
@@ -7,10 +10,40 @@ let selectedPayment = 'full';
 let selectedDownPayment = 0;
 let selectedMonths = 0;
 let selectedMonthlyPayment = 0;
+let selectedCountry = null;
+
+// ملء قائمة الدول
+function populateCountries() {
+    const select = document.getElementById('custCountry');
+    if (!select) return;
+    
+    countries.forEach(country => {
+        const option = document.createElement('option');
+        option.value = country.code;
+        option.textContent = `${country.flag} ${country.name} (${country.dial})`;
+        option.dataset.dial = country.dial;
+        select.appendChild(option);
+    });
+    
+    // اختيار فلسطين كافتراضي
+    select.value = 'PS';
+    updatePhonePrefix();
+}
+
+window.updatePhonePrefix = function() {
+    const select = document.getElementById('custCountry');
+    const prefixInput = document.getElementById('phonePrefix');
+    const selectedOption = select.options[select.selectedIndex];
+    
+    if (selectedOption && selectedOption.dataset.dial) {
+        prefixInput.value = selectedOption.dataset.dial;
+        selectedCountry = countries.find(c => c.code === select.value);
+    }
+};
 
 function updateCartCount() {
     const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-    cartCountEl.textContent = count;
+    if (cartCountEl) cartCountEl.textContent = count;
 }
 
 function renderCart() {
@@ -80,6 +113,7 @@ window.selectPayment = function(type) {
 function createDownPaymentOptions() {
     const options = [1000, 1500, 2000];
     const container = document.getElementById('downPaymentOptions');
+    if (!container) return;
     container.innerHTML = '';
     options.forEach(amount => {
         if (amount < totalAmount) {
@@ -99,6 +133,7 @@ function createDownPaymentOptions() {
 
 function createMonthsOptions() {
     const select = document.getElementById('monthsSelect');
+    if (!select) return;
     select.innerHTML = '<option value="">-- يُحسب تلقائياً --</option>';
     for (let i = 1; i <= 24; i++) {
         select.innerHTML += `<option value="${i}">${i} شهر</option>`;
@@ -107,19 +142,14 @@ function createMonthsOptions() {
 
 function createMonthlyPaymentOptions() {
     const container = document.getElementById('monthlyPaymentOptions');
+    if (!container) return;
     container.innerHTML = '';
     
     const remaining = totalAmount - selectedDownPayment;
     if (remaining <= 0) return;
     
     const baseMonthly = remaining / 12;
-    const options = [
-        baseMonthly * 0.5,
-        baseMonthly * 0.75,
-        baseMonthly,
-        baseMonthly * 1.5,
-        baseMonthly * 2
-    ];
+    const options = [baseMonthly * 0.5, baseMonthly * 0.75, baseMonthly, baseMonthly * 1.5, baseMonthly * 2];
     
     options.forEach(amount => {
         if (amount > 0 && amount < remaining) {
@@ -190,12 +220,18 @@ function getFutureDate(monthsFromNow) {
     return date.toLocaleDateString('ar-SA');
 }
 
-window.proceedToPayment = function() {
+window.proceedToPayment = async function() {
     const name = document.getElementById('custName').value.trim();
     const phone = document.getElementById('custPhone').value.trim();
     const city = document.getElementById('custCity').value.trim();
     const district = document.getElementById('custDistrict').value.trim();
+    const countrySelect = document.getElementById('custCountry');
+    const phonePrefix = document.getElementById('phonePrefix').value;
 
+    if (!countrySelect.value) {
+        alert('⚠️ الرجاء اختيار الدولة');
+        return;
+    }
     if (!name || !phone || !city || !district) {
         alert('⚠️ الرجاء ملء جميع البيانات المطلوبة');
         return;
@@ -206,9 +242,62 @@ window.proceedToPayment = function() {
         return;
     }
 
+    const fullPhone = phonePrefix + phone;
+    const countryName = countrySelect.options[countrySelect.selectedIndex].text;
+    const orderId = Date.now().toString().slice(-8);
+    const baseUrl = window.location.origin;
+
+    // بناء رسالة التلجرام بشكل منسق
+    let message = `🛍️ <b>طلب جديد من المتجر</b>\n\n`;
+    message += `📋 <b>رقم الطلب:</b> #${orderId}\n\n`;
+    message += `<b>بيانات الزبون</b>\n`;
+    message += `👤 <b>الاسم:</b> ${name}\n`;
+    message += `🌍 <b>الدولة/العملة:</b> ${countryName} (SAR)\n`;
+    message += `📱 <b>واتساب:</b> ${fullPhone}\n`;
+    message += `📍 <b>المدينة:</b> ${city}\n`;
+    message += `🏘️ <b>الحي:</b> ${district}\n\n`;
+    
+    message += `<b>إجمالي:</b> ${totalAmount.toFixed(2)} ر.س\n`;
+    
+    if (selectedPayment === 'installment') {
+        message += `💳 <b>طريقة الدفع:</b> تقسيط المتجر\n`;
+        message += `💰 <b>الدفعة الأولى:</b> ${selectedDownPayment} ر.س\n`;
+        message += ` <b>التقسيط على:</b> [${selectedMonths}] شهر [${selectedMonthlyPayment}] ر.س\n`;
+    } else {
+        message += `💳 <b>طريقة الدفع:</b> دفع كامل\n`;
+    }
+    
+    message += `\n📦 <b>المنتجات:</b>\n`;
+    cart.forEach((item, index) => {
+        message += `${index + 1}. ${item.name} (${item.color})\n`;
+        message += `   الكمية: ${item.quantity} × ${item.price} = ${(item.price * item.quantity).toFixed(2)} ر.س\n`;
+    });
+    
+    message += `\n💰 <b>المجموع الكلي:</b> ${totalAmount.toFixed(2)} ر.س\n\n`;
+    
+    // روابط الفواتير
+    message += `<b>الروابط:</b>\n`;
+    message += `📄 <b>الفاتورة:</b> ${baseUrl}/order/print/${orderId}?currency=SAR\n`;
+    message += `💵 <b>سند قبض:</b> ${baseUrl}/RecepitVoucher/print/${orderId}?currency=SAR\n`;
+    
+    if (selectedPayment === 'installment') {
+        message += `📝 <b>عقد التقسيط:</b> ${baseUrl}/contract-of-sale/print/${orderId}?currency=SAR\n`;
+    }
+
+    // إرسال للتلجرام
+    const sent = await sendToTelegram(message);
+    
+    if (!sent) {
+        alert('⚠️ فشل إرسال البيانات. تأكد من إعدادات التلجرام.');
+        return;
+    }
+
     const orderData = {
+        orderId,
         customerName: name,
-        phone, city, district,
+        phone: fullPhone,
+        country: countryName,
+        city, district,
         items: cart,
         total: totalAmount,
         paymentMethod: selectedPayment,
@@ -220,8 +309,12 @@ window.proceedToPayment = function() {
     };
 
     localStorage.setItem('pendingOrder', JSON.stringify(orderData));
+    
+    alert('✅ تم إرسال طلبك بنجاح! سيتم تحويلك لصفحة الدفع.');
     window.location.href = 'payment.html';
 };
 
+// تشغيل
 updateCartCount();
+populateCountries();
 renderCart();
