@@ -8,7 +8,7 @@ let selectedDownPayment = 0;
 let selectedMonths = 0;
 let selectedMonthlyPayment = 0;
 
-// قائمة الدول المبسطة
+// قائمة الدول
 const countriesList = [
     { name: 'فلسطين', dial: '+970' },
     { name: 'السعودية', dial: '+966' },
@@ -79,7 +79,7 @@ function renderCart() {
                 <div class="cart-item-full-info">
                     <h3>${item.name}</h3>
                     <span class="color-tag">${item.color}</span>
-                    <div class="price">${item.price} ر.س</div>
+                    <div class="price">${item.price} د.إ</div>
                 </div>
                 <div class="qty-controls-full">
                     <button onclick="updateQty(${index}, 1)">+</button>
@@ -92,7 +92,7 @@ function renderCart() {
     });
 
     cartItemsEl.innerHTML = html;
-    document.getElementById('totalAmount').textContent = totalAmount.toFixed(2) + ' ر.س';
+    document.getElementById('totalAmount').textContent = totalAmount.toFixed(2) + ' د.إ';
     checkoutSection.style.display = 'block';
     
     createDownPaymentOptions();
@@ -134,7 +134,7 @@ function createDownPaymentOptions() {
         if (amount < totalAmount) {
             const btn = document.createElement('button');
             btn.className = 'down-payment-btn';
-            btn.textContent = amount + ' ر.س';
+            btn.textContent = amount + ' د.إ';
             btn.onclick = function() {
                 document.querySelectorAll('.down-payment-btn').forEach(b => b.classList.remove('selected'));
                 this.classList.add('selected');
@@ -170,7 +170,7 @@ function createMonthlyPaymentOptions() {
         if (amount > 0 && amount < remaining) {
             const btn = document.createElement('button');
             btn.className = 'monthly-payment-btn';
-            btn.textContent = Math.round(amount) + ' ر.س/شهر';
+            btn.textContent = Math.round(amount) + ' د.إ/شهر';
             btn.onclick = function() {
                 document.querySelectorAll('.monthly-payment-btn').forEach(b => b.classList.remove('selected'));
                 this.classList.add('selected');
@@ -217,7 +217,7 @@ window.calculateInstallments = function() {
     
     const monthlyPayment = selectedMonthlyPayment || (remaining / selectedMonths);
     
-    let tableHtml = '<table class="installment-table"><thead><tr><th>#</th><th>تاريخ الدفعة</th><th>الدفعة (ر.س)</th></tr></thead><tbody>';
+    let tableHtml = '<table class="installment-table"><thead><tr><th>#</th><th>تاريخ الدفعة</th><th>الدفعة (د.إ)</th></tr></thead><tbody>';
     tableHtml += `<tr><td>1</td><td>${getFutureDate(0)}</td><td>${selectedDownPayment.toFixed(2)}</td></tr>`;
     
     for (let i = 1; i <= selectedMonths; i++) {
@@ -232,10 +232,10 @@ window.calculateInstallments = function() {
 function getFutureDate(monthsFromNow) {
     const date = new Date();
     date.setMonth(date.getMonth() + monthsFromNow);
-    return date.toLocaleDateString('ar-SA');
+    return date.toLocaleDateString('ar-AE');
 }
 
-// ============ دالة متابعة الشراء (المعدلة) ============
+// ============ دالة متابعة الشراء (الإصدار النهائي) ============
 window.proceedToPayment = async function() {
     console.log('🔄 بدء proceedToPayment...');
     
@@ -265,45 +265,46 @@ window.proceedToPayment = async function() {
     const fullPhone = phonePrefix + phone;
     const countryName = countrySelect.options[countrySelect.selectedIndex].text;
     const orderId = Date.now().toString().slice(-8);
-    const baseUrl = window.location.origin;
+    
+    // ✅ تعريف baseUrl مرة واحدة فقط هنا
+    const baseUrl = window.location.origin + '/Ibrahim-store';
 
     // بناء رسالة التلجرام
     let message = `🛍️ <b>طلب جديد من المتجر</b>\n\n`;
     message += `📋 <b>رقم الطلب:</b> #${orderId}\n\n`;
     message += `<b>بيانات الزبون</b>\n`;
     message += `👤 <b>الاسم:</b> ${name}\n`;
-    message += ` <b>الدولة:</b> ${countryName}\n`;
+    message += `🌍 <b>الدولة:</b> ${countryName}\n`;
     message += `📱 <b>واتساب:</b> ${fullPhone}\n`;
-    message += `📍 <b>المدينة:</b> ${city}\n`;
+    message += ` <b>المدينة:</b> ${city}\n`;
     message += `🏘️ <b>الحي:</b> ${district}\n\n`;
     
-    message += `<b>إجمالي:</b> ${totalAmount.toFixed(2)} ر.س\n`;
+    message += `<b>إجمالي:</b> ${totalAmount.toFixed(2)} د.إ\n`;
     
     if (selectedPayment === 'installment') {
         message += `💳 <b>طريقة الدفع:</b> تقسيط المتجر\n`;
-        message += `💰 <b>الدفعة الأولى:</b> ${selectedDownPayment} ر.س\n`;
-        message += `📅 <b>التقسيط على:</b> [${selectedMonths}] شهر [${selectedMonthlyPayment}] ر.س\n`;
+        message += `💰 <b>الدفعة الأولى:</b> ${selectedDownPayment} د.إ\n`;
+        message += ` <b>التقسيط على:</b> [${selectedMonths}] شهر [${selectedMonthlyPayment}] د.إ\n`;
     } else {
-        message += ` <b>طريقة الدفع:</b> دفع كامل\n`;
+        message += `💳 <b>طريقة الدفع:</b> دفع كامل\n`;
     }
     
     message += `\n📦 <b>المنتجات:</b>\n`;
     cart.forEach((item, index) => {
         message += `${index + 1}. ${item.name} (${item.color})\n`;
-        message += `   الكمية: ${item.quantity} × ${item.price} = ${(item.price * item.quantity).toFixed(2)} ر.س\n`;
+        message += `   الكمية: ${item.quantity} × ${item.price} = ${(item.price * item.quantity).toFixed(2)} د.إ\n`;
     });
     
-    message += `\n💰 <b>المجموع الكلي:</b> ${totalAmount.toFixed(2)} ر.س\n\n`;
-  const baseUrl = window.location.origin + '/Ibrahim-store';
-
-message += `<b>الروابط:</b>\n`;
-message += `📄 <b>الفاتورة:</b> ${baseUrl}/invoice.html?id=${orderId}\n`;
-message += `💵 <b>سند قبض:</b> ${baseUrl}/receipt.html?id=${orderId}\n`;
-
-if (selectedPayment === 'installment') {
-    message += `📝 <b>عقد التقسيط:</b> ${baseUrl}/contract.html?id=${orderId}\n`;
-}  
- 
+    message += `\n💰 <b>المجموع الكلي:</b> ${totalAmount.toFixed(2)} د.إ\n\n`;
+    
+    // ✅ الروابط الصحيحة مع اسم المستودع
+    message += `<b>الروابط:</b>\n`;
+    message += `📄 <b>الفاتورة:</b> ${baseUrl}/invoice.html?id=${orderId}\n`;
+    message += `💵 <b>سند قبض:</b> ${baseUrl}/receipt.html?id=${orderId}\n`;
+    
+    if (selectedPayment === 'installment') {
+        message += `📝 <b>عقد التقسيط:</b> ${baseUrl}/contract.html?id=${orderId}\n`;
+    }
 
     console.log('📤 الرسالة:', message);
 
@@ -329,7 +330,7 @@ if (selectedPayment === 'installment') {
         }
     } catch (error) {
         console.error('❌ خطأ في الإرسال:', error);
-        alert('⚠️ حدث خطأ في الاتصال: ' + error.message);
+        alert('️ حدث خطأ في الاتصال: ' + error.message);
         return;
     }
 
@@ -356,7 +357,7 @@ if (selectedPayment === 'installment') {
 };
 
 // تشغيل
-console.log('✅ cart.js تم تحميله');
+console.log('✅ cart.js تم تحميله بنجاح');
 updateCartCount();
 populateCountries();
 renderCart();
