@@ -180,7 +180,7 @@ window.addToCartFromDetail = function() {
     const imageEl = document.querySelector('.product-detail-image');
     
     if (!titleEl || !priceEl || !imageEl) {
-        alert('⚠️ لم يتم العثور على بيانات المنتج');
+        alert('️ لم يتم العثور على بيانات المنتج');
         return;
     }
     
@@ -209,14 +209,13 @@ window.addToCartFromDetail = function() {
     localStorage.setItem('cart', JSON.stringify(cart));
     updateCartCount();
     
-    // إشعار صغير فقط - بدون فتح السلة
+    // إشعار صغير فقط
     const toast = document.createElement('div');
     toast.style.cssText = `
         position: fixed; top: 100px; left: 50%; transform: translateX(-50%);
-        background: var(--success-color); color: white; padding: 15px 30px;
+        background: #27AE60; color: white; padding: 15px 30px;
         border-radius: 25px; z-index: 1000; font-weight: bold;
         box-shadow: 0 4px 15px rgba(0,0,0,0.2); font-family: 'Tajawal';
-        animation: slideDown 0.3s;
     `;
     toast.textContent = `✅ تمت إضافة ${name} للسلة`;
     document.body.appendChild(toast);
@@ -225,10 +224,6 @@ window.addToCartFromDetail = function() {
 
 const style = document.createElement('style');
 style.textContent = `
-    @keyframes slideDown {
-        from { transform: translate(-50%, -20px); opacity: 0; }
-        to { transform: translate(-50%, 0); opacity: 1; }
-    }
     .continue-shopping-btn:hover {
         background: var(--primary-color) !important;
         color: white !important;
