@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عقد بيع بالتقسيط</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Tajawal', Arial, sans-serif; padding: 20px; background: #f5f5f5; line-height: 1.8; }
+        .contract-container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { text-align: center; border-bottom: 3px solid #6B2D8B; padding-bottom: 20px; margin-bottom: 30px; }
+        .header h1 { color: #6B2D8B; font-size: 32px; margin-bottom: 10px; }
+        .header p { color: #666; font-size: 16px; }
+        .contract-title { text-align: center; background: #6B2D8B; color: white; padding: 15px; border-radius: 8px; margin: 30px 0; font-size: 24px; font-weight: bold; }
+        .section { margin: 30px 0; }
+        .section h3 { color: #6B2D8B; border-bottom: 2px solid #6B2D8B; padding-bottom: 10px; margin-bottom: 15px; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .info-item { background: #f9f9f9; padding: 15px; border-radius: 8px; }
+        .info-item label { display: block; color: #666; font-size: 14px; margin-bottom: 5px; }
+        .info-item span { font-weight: bold; color: #333; font-size: 16px; }
+        .terms { background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 30px 0; }
+        .terms h3 { color: #6B2D8B; margin-bottom: 15px; }
+        .terms ol { padding-right: 25px; }
+        .terms li { margin: 10px 0; color: #333; }
+        .products-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .products-table th { background: #6B2D8B; color: white; padding: 12px; text-align: right; }
+        .products-table td { padding: 12px; border-bottom: 1px solid #eee; }
+        .payment-schedule { background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 30px 0; }
+        .payment-schedule h3 { color: #6B2D8B; margin-bottom: 15px; }
+        .schedule-table { width: 100%; border-collapse: collapse; }
+        .schedule-table th { background: #6B2D8B; color: white; padding: 10px; }
+        .schedule-table td { padding: 10px; border-bottom: 1px solid #ddd; text-align: center; }
+        .signature-section { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 50px; }
+        .signature-box { text-align: center; }
+        .signature-box p { margin-bottom: 60px; color: #666; }
+        .signature-line { border-top: 2px solid #333; padding-top: 10px; }
+        @media print {
+            body { background: white; padding: 0; }
+            .contract-container { box-shadow: none; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="contract-container">
+        <div class="header">
+            <h1>متجري الإلكتروني</h1>
+            <p>عقد بيع بالتقسيط</p>
+        </div>
+
+        <div class="contract-title">عقد بيع بالتقسيط</div>
+
+        <div class="section">
+            <h3>أطراف العقد</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>البائع:</label>
+                    <span>متجري الإلكتروني</span>
+                </div>
+                <div class="info-item">
+                    <label>المشتري:</label>
+                    <span id="customerName">-</span>
+                </div>
+                <div class="info-item">
+                    <label>رقم الهاتف:</label>
+                    <span id="customerPhone">-</span>
+                </div>
+                <div class="info-item">
+                    <label>العنوان:</label>
+                    <span id="customerAddress">-</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>المنتجات المباعة</h3>
+            <table class="products-table">
+                <thead>
+                    <tr>
+                        <th>المنتج</th>
+                        <th>الكمية</th>
+                        <th>السعر</th>
+                        <th>الإجمالي</th>
+                    </tr>
+                </thead>
+                <tbody id="productsList">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h3>تفاصيل الدفع</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>المبلغ الإجمالي:</label>
+                    <span id="totalAmount">-</span>
+                </div>
+                <div class="info-item">
+                    <label>الدفعة الأولى:</label>
+                    <span id="downPayment">-</span>
+                </div>
+                <div class="info-item">
+                    <label>المبلغ المتبقي:</label>
+                    <span id="remainingAmount">-</span>
+                </div>
+                <div class="info-item">
+                    <label>عدد الأقساط:</label>
+                    <span id="installments">-</span>
+                </div>
+                <div class="info-item">
+                    <label>القسط الشهري:</label>
+                    <span id="monthlyPayment">-</span>
+                </div>
+                <div class="info-item">
+                    <label>تاريخ العقد:</label>
+                    <span id="contractDate">-</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="payment-schedule">
+            <h3>جدول الأقساط</h3>
+            <table class="schedule-table">
+                <thead>
+                    <tr>
+                        <th>رقم القسط</th>
+                        <th>تاريخ الاستحقاق</th>
+                        <th>المبلغ</th>
+                    </tr>
+                </thead>
+                <tbody id="scheduleList">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="terms">
+            <h3>الشروط والأحكام</h3>
+            <ol>
+                <li>يلتزم المشتري بسداد الأقساط في مواعيدها المحددة.</li>
+                <li>في حالة التأخر عن سداد أي قسط، يحق للبائع اتخاذ الإجراءات القانونية اللازمة.</li>
+                <li>المنتجات المباعة تبقى ملكاً للبائع حتى سداد كامل المبلغ.</li>
+                <li>لا يمكن إرجاع المنتجات بعد توقيع العقد إلا بموافقة خطية من البائع.</li>
+                <li>أي نزاع ينشأ عن هذا العقد يخضع للقوانين المعمول بها في الدولة.</li>
+            </ol>
+        </div>
+
+        <div class="signature-section">
+            <div class="signature-box">
+                <p>توقيع البائع</p>
+                <div class="signature-line">
+                    <span>متجري الإلكتروني</span>
+                </div>
+            </div>
+            <div class="signature-box">
+                <p>توقيع المشتري</p>
+                <div class="signature-line">
+                    <span id="customerSignature">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="no-print" onclick="window.print()" style="position:fixed; bottom:20px; left:20px; background:#6B2D8B; color:white; border:none; padding:15px 30px; border-radius:25px; font-size:16px; cursor:pointer; font-family:'Tajawal';">️ طباعة العقد</button>
+
+    <script>
+        const orderData = JSON.parse(localStorage.getItem('pendingOrder'));
+        
+        if (!orderData || orderData.paymentMethod !== 'installment') {
+            document.body.innerHTML = '<div style="text-align:center; padding:50px;"><h2>لا يوجد عقد تقسيط</h2><p>هذا العقد خاص بطلبات التقسيط فقط</p><a href="index.html">العودة للمتجر</a></div>';
+        } else {
+            document.getElementById('customerName').textContent = orderData.customerName;
+            document.getElementById('customerPhone').textContent = orderData.phone;
+            document.getElementById('customerAddress').textContent = `${orderData.city} - ${orderData.district}`;
+            document.getElementById('customerSignature').textContent = orderData.customerName;
+            document.getElementById('contractDate').textContent = new Date().toLocaleDateString('ar-AE');
+
+            const productsList = document.getElementById('productsList');
+            let total = 0;
+
+            orderData.items.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+                productsList.innerHTML += `
+                    <tr>
+                        <td>${item.name} (${item.color})</td>
+                        <td>${item.quantity}</td>
+                        <td>${item.price.toFixed(2)} د.إ</td>
+                        <td>${itemTotal.toFixed(2)} د.إ</td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('totalAmount').textContent = total.toFixed(2) + ' د.إ';
+            document.getElementById('downPayment').textContent = orderData.downPayment.toFixed(2) + ' د.إ';
+            document.getElementById('remainingAmount').textContent = (total - orderData.downPayment).toFixed(2) + ' د.إ';
+            document.getElementById('installments').textContent = orderData.months + ' شهر';
+            document.getElementById('monthlyPayment').textContent = orderData.monthlyPayment.toFixed(2) + ' د.إ';
+
+            const scheduleList = document.getElementById('scheduleList');
+            const monthlyAmount = orderData.monthlyPayment;
+            const startDate = new Date();
+
+            for (let i = 1; i <= orderData.months; i++) {
+                const dueDate = new Date(startDate);
+                dueDate.setMonth(dueDate.getMonth() + i);
+                scheduleList.innerHTML += `
+                    <tr>
+                        <td>${i}</td>
+                        <td>${dueDate.toLocaleDateString('ar-AE')}</td>
+                        <td>${monthlyAmount.toFixed(2)} د.إ</td>
+                    </tr>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
