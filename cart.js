@@ -1,6 +1,3 @@
-import { sendToTelegram, generateOTP } from './telegram-config.js';
-import { countries } from './countries.js';
-
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 let cartCountEl = document.getElementById('cartCount');
 let cartItemsEl = document.getElementById('cartItems');
@@ -10,34 +7,52 @@ let selectedPayment = 'full';
 let selectedDownPayment = 0;
 let selectedMonths = 0;
 let selectedMonthlyPayment = 0;
-let selectedCountry = null;
+
+// قائمة الدول المبسطة
+const countriesList = [
+    { name: 'فلسطين', dial: '+970' },
+    { name: 'السعودية', dial: '+966' },
+    { name: 'الإمارات', dial: '+971' },
+    { name: 'الكويت', dial: '+965' },
+    { name: 'قطر', dial: '+974' },
+    { name: 'البحرين', dial: '+973' },
+    { name: 'عُمان', dial: '+968' },
+    { name: 'الأردن', dial: '+962' },
+    { name: 'مصر', dial: '+20' },
+    { name: 'العراق', dial: '+964' },
+    { name: 'لبنان', dial: '+961' },
+    { name: 'سوريا', dial: '+963' },
+    { name: 'اليمن', dial: '+967' },
+    { name: 'ليبيا', dial: '+218' },
+    { name: 'تونس', dial: '+216' },
+    { name: 'الجزائر', dial: '+213' },
+    { name: 'المغرب', dial: '+212' },
+    { name: 'السودان', dial: '+249' },
+    { name: 'الولايات المتحدة', dial: '+1' },
+    { name: 'بريطانيا', dial: '+44' },
+    { name: 'تركيا', dial: '+90' }
+];
 
 // ملء قائمة الدول
 function populateCountries() {
     const select = document.getElementById('custCountry');
     if (!select) return;
     
-    countries.forEach(country => {
+    countriesList.forEach(country => {
         const option = document.createElement('option');
-        option.value = country.code;
-        option.textContent = `${country.flag} ${country.name} (${country.dial})`;
-        option.dataset.dial = country.dial;
+        option.value = country.dial;
+        option.textContent = `${country.name} (${country.dial})`;
         select.appendChild(option);
     });
     
-    // اختيار فلسطين كافتراضي
-    select.value = 'PS';
-    updatePhonePrefix();
+    select.value = '+970';
 }
 
 window.updatePhonePrefix = function() {
     const select = document.getElementById('custCountry');
     const prefixInput = document.getElementById('phonePrefix');
-    const selectedOption = select.options[select.selectedIndex];
-    
-    if (selectedOption && selectedOption.dataset.dial) {
-        prefixInput.value = selectedOption.dataset.dial;
-        selectedCountry = countries.find(c => c.code === select.value);
+    if (select && prefixInput) {
+        prefixInput.value = select.value;
     }
 };
 
@@ -220,13 +235,18 @@ function getFutureDate(monthsFromNow) {
     return date.toLocaleDateString('ar-SA');
 }
 
+// ============ دالة متابعة الشراء (المعدلة) ============
 window.proceedToPayment = async function() {
+    console.log('🔄 بدء proceedToPayment...');
+    
     const name = document.getElementById('custName').value.trim();
     const phone = document.getElementById('custPhone').value.trim();
     const city = document.getElementById('custCity').value.trim();
     const district = document.getElementById('custDistrict').value.trim();
     const countrySelect = document.getElementById('custCountry');
     const phonePrefix = document.getElementById('phonePrefix').value;
+
+    console.log('البيانات:', { name, phone, city, district, countrySelect: countrySelect?.value });
 
     if (!countrySelect.value) {
         alert('⚠️ الرجاء اختيار الدولة');
@@ -247,12 +267,12 @@ window.proceedToPayment = async function() {
     const orderId = Date.now().toString().slice(-8);
     const baseUrl = window.location.origin;
 
-    // بناء رسالة التلجرام بشكل منسق
+    // بناء رسالة التلجرام
     let message = `🛍️ <b>طلب جديد من المتجر</b>\n\n`;
     message += `📋 <b>رقم الطلب:</b> #${orderId}\n\n`;
     message += `<b>بيانات الزبون</b>\n`;
     message += `👤 <b>الاسم:</b> ${name}\n`;
-    message += `🌍 <b>الدولة/العملة:</b> ${countryName} (SAR)\n`;
+    message += ` <b>الدولة:</b> ${countryName}\n`;
     message += `📱 <b>واتساب:</b> ${fullPhone}\n`;
     message += `📍 <b>المدينة:</b> ${city}\n`;
     message += `🏘️ <b>الحي:</b> ${district}\n\n`;
@@ -262,9 +282,9 @@ window.proceedToPayment = async function() {
     if (selectedPayment === 'installment') {
         message += `💳 <b>طريقة الدفع:</b> تقسيط المتجر\n`;
         message += `💰 <b>الدفعة الأولى:</b> ${selectedDownPayment} ر.س\n`;
-        message += ` <b>التقسيط على:</b> [${selectedMonths}] شهر [${selectedMonthlyPayment}] ر.س\n`;
+        message += `📅 <b>التقسيط على:</b> [${selectedMonths}] شهر [${selectedMonthlyPayment}] ر.س\n`;
     } else {
-        message += `💳 <b>طريقة الدفع:</b> دفع كامل\n`;
+        message += ` <b>طريقة الدفع:</b> دفع كامل\n`;
     }
     
     message += `\n📦 <b>المنتجات:</b>\n`;
@@ -275,7 +295,6 @@ window.proceedToPayment = async function() {
     
     message += `\n💰 <b>المجموع الكلي:</b> ${totalAmount.toFixed(2)} ر.س\n\n`;
     
-    // روابط الفواتير
     message += `<b>الروابط:</b>\n`;
     message += `📄 <b>الفاتورة:</b> ${baseUrl}/order/print/${orderId}?currency=SAR\n`;
     message += `💵 <b>سند قبض:</b> ${baseUrl}/RecepitVoucher/print/${orderId}?currency=SAR\n`;
@@ -284,11 +303,31 @@ window.proceedToPayment = async function() {
         message += `📝 <b>عقد التقسيط:</b> ${baseUrl}/contract-of-sale/print/${orderId}?currency=SAR\n`;
     }
 
+    console.log('📤 الرسالة:', message);
+
     // إرسال للتلجرام
-    const sent = await sendToTelegram(message);
-    
-    if (!sent) {
-        alert('⚠️ فشل إرسال البيانات. تأكد من إعدادات التلجرام.');
+    try {
+        const telegramResponse = await fetch(`https://api.telegram.org/bot8763567744:AAEjPuOYFJAHMQspuLqODgYrlTqU6W61hpI/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: '8214447975',
+                text: message,
+                parse_mode: 'HTML'
+            })
+        });
+        
+        const telegramData = await telegramResponse.json();
+        console.log('📤 نتيجة الإرسال:', telegramData);
+        
+        if (!telegramData.ok) {
+            console.error('❌ فشل الإرسال:', telegramData.description);
+            alert('⚠️ فشل إرسال البيانات للتلجرام: ' + telegramData.description);
+            return;
+        }
+    } catch (error) {
+        console.error('❌ خطأ في الإرسال:', error);
+        alert('⚠️ حدث خطأ في الاتصال: ' + error.message);
         return;
     }
 
@@ -315,6 +354,7 @@ window.proceedToPayment = async function() {
 };
 
 // تشغيل
+console.log('✅ cart.js تم تحميله');
 updateCartCount();
 populateCountries();
 renderCart();
