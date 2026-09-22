@@ -54,7 +54,7 @@
     <header>
         <div style="display:flex; align-items:center; gap:15px;">
             <a href="index.html" style="color:var(--primary-color); font-size:24px; text-decoration:none;">→</a>
-            <div class="logo"><div class="logo-icon">️</div><span>متجري</span></div>
+            <div class="logo"><div class="logo-icon">🛍️</div><span>متجري</span></div>
         </div>
         <div class="header-actions">
             <span class="cart-icon" style="position:relative;"><span class="cart-badge" id="cartCount">0</span></span>
@@ -68,10 +68,36 @@
         <div id="checkoutSection" style="display:none;">
             <div class="cart-summary-box">
                 <h3>📋 معلومات التوصيل</h3>
-                <div class="form-row"><label>الاسم كاملاً *</label><input type="text" id="custName" placeholder="الاسم كاملاً"></div>
-                <div class="form-row"><label>رقم الواتس *</label><input type="tel" id="custPhone" placeholder="رقم الواتس"></div>
-                <div class="form-row"><label>المدينة *</label><input type="text" id="custCity" placeholder="المدينة"></div>
-                <div class="form-row"><label>الحي *</label><input type="text" id="custDistrict" placeholder="الحي"></div>
+                
+                <div class="form-row">
+                    <label>🌍 الدولة *</label>
+                    <select id="custCountry" onchange="updatePhonePrefix()" style="width:100%; padding:12px; border:2px solid #E1BEE7; border-radius:10px; font-family:Tajawal; font-size:15px;">
+                        <option value="">-- اختر الدولة --</option>
+                    </select>
+                </div>
+                
+                <div class="form-row">
+                    <label>الاسم كاملاً *</label>
+                    <input type="text" id="custName" placeholder="الاسم كاملاً">
+                </div>
+                
+                <div class="form-row">
+                    <label>رقم الواتس *</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="phonePrefix" readonly style="width:80px; padding:12px; border:2px solid #E1BEE7; border-radius:10px; background:#f5f5f5; font-weight:bold;" value="+970">
+                        <input type="tel" id="custPhone" placeholder="رقم الواتس" style="flex:1;">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <label>المدينة *</label>
+                    <input type="text" id="custCity" placeholder="المدينة">
+                </div>
+                
+                <div class="form-row">
+                    <label>الحي *</label>
+                    <input type="text" id="custDistrict" placeholder="الحي">
+                </div>
             </div>
 
             <div class="cart-summary-box">
@@ -84,7 +110,7 @@
                     </label>
                     <label class="payment-method" onclick="selectPayment('installment')">
                         <input type="radio" name="payment" value="installment">
-                        <div class="icon">📅</div>
+                        <div class="icon"></div>
                         <div>الدفع بالأقساط</div>
                     </label>
                 </div>
