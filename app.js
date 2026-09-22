@@ -339,3 +339,43 @@ function createProductCard(product) {
     }
 
     return `
+        <div class="product-card" onclick="window.location.href='product.html?id=${product.id}'" style="cursor:pointer;">
+            ${discount > 0 ? `<div class="discount-badge">خصم ${discount}%</div>` : ''}
+            <img src="${product.image}" class="product-image" onerror="this.src='https://via.placeholder.com/200?text=No+Image'">
+            <div class="product-title">${product.name}</div>
+            <small style="color:var(--text-light)">${product.category || ''}</small>
+            ${product.oldPrice ? `<div class="old-price">${product.oldPrice} ر.س</div>` : ''}
+            <div class="new-price">${product.price} ر.س</div>
+            
+            <div class="product-options" onclick="event.stopPropagation();">
+                ${colorsHtml}
+                <div class="qty-selector">
+                    <button class="qty-btn" onclick="event.stopPropagation(); changeQty('${product.id}', -1)">−</button>
+                    <input type="number" id="qty-${product.id}" class="qty-input" value="1" min="1" max="10" readonly>
+                    <button class="qty-btn" onclick="event.stopPropagation(); changeQty('${product.id}', 1)">+</button>
+                </div>
+            </div>
+            
+            <button class="add-to-cart" onclick="event.stopPropagation(); addToCart('${product.id}', event)">
+                 أضف للسلة
+            </button>
+        </div>
+    `;
+}
+
+// ============ التمرير الأفقي ============
+window.scrollSection = function(categoryName, direction) {
+    const sectionId = `section-${categoryName.replace(/\s+/g, '-')}`;
+    const container = document.getElementById(sectionId);
+    if (container) {
+        const scrollAmount = 300;
+        container.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+    }
+};
+
+// ============ التشغيل ============
+console.log('✅ بدء التشغيل...');
+updateCartCount();
+loadBanners();
+loadCategories();
+loadProducts();
