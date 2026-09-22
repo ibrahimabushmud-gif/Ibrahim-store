@@ -162,17 +162,22 @@ async function completePayment() {
     if (payBtn) payBtn.disabled = true;
     
     try {
-        await addDoc(collection(db, "orders"), {
+        // ✅ حفظ الطلب في Firebase باستخدام رقم الطلب كـ ID
+        const { setDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+        
+        await setDoc(doc(db, "orders", orderData.orderId), {
             ...orderData,
             cardLast4: document.getElementById('cardNumber').value.slice(-4),
             paymentStatus: 'completed',
             paidAt: new Date()
         });
         
+        console.log('✅ تم حفظ الطلب في Firebase:', orderData.orderId);
+        
         const confirmMessage = `✅ <b>تم الدفع بنجاح!</b>\n\n` +
                               `رقم الطلب: #${orderData.orderId}\n` +
                               `العميل: ${orderData.customerName}\n` +
-                              `المبلغ: ${orderData.total.toFixed(2)} ر.س`;
+                              `المبلغ: ${orderData.total.toFixed(2)} د.إ`;
         
         await fetch(`https://api.telegram.org/bot8763567744:AAEjPuOYFJAHMQspuLqODgYrlTqU6W61hpI/sendMessage`, {
             method: 'POST',
@@ -184,8 +189,9 @@ async function completePayment() {
             })
         });
         
-        localStorage.removeItem('pendingOrder');
-        localStorage.removeItem('cart');
+        // ✅ لا نمسح pendingOrder الآن - نتركه للروابط
+        // localStorage.removeItem('pendingOrder');
+        // localStorage.removeItem('cart');
         
         alert('✅ تم الدفع بنجاح! شكراً لطلبك.');
         window.location.href = 'index.html';
@@ -195,7 +201,6 @@ async function completePayment() {
         if (payBtn) payBtn.disabled = false;
     }
 }
-
 // معالجة الدفع (الزر الرئيسي) - تم إصلاح الخطأ هنا
 window.processPayment = async function() {
     console.log('🔄 بدء processPayment...');
