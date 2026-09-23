@@ -18,20 +18,18 @@
         .qty-controls-full button { width: 35px; height: 35px; border: none; background: var(--primary-color); color: white; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 18px; }
         .remove-btn-full { background: var(--danger-color); color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-family: 'Tajawal'; }
         .cart-summary-box { background: white; border-radius: 12px; padding: 25px; margin: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .cart-summary-box h3 { color: var(--primary-color); margin-bottom: 20px; border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; }
+        .cart-summary-box h3 { color: var(--primary-color); margin-bottom: 20px; border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; display:flex; align-items:center; gap:10px; }
         .form-row { margin-bottom: 15px; }
         .form-row label { display: block; margin-bottom: 8px; font-weight: 700; }
         .form-row input, .form-row select { width: 100%; padding: 12px; border: 2px solid #E1BEE7; border-radius: 10px; font-family: 'Tajawal'; font-size: 15px; }
         .form-row input:focus, .form-row select:focus { outline: none; border-color: var(--primary-color); }
-        .payment-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
-        .payment-method { padding: 20px; border: 2px solid #E1BEE7; border-radius: 12px; text-align: center; cursor: pointer; transition: 0.3s; background: white; }
-        .payment-method:hover { border-color: var(--primary-color); }
-        .payment-method.selected { border-color: var(--primary-color); background: var(--accent-color); }
-        .payment-method input { display: none; }
-        .payment-method .icon { font-size: 30px; margin-bottom: 10px; }
-        .payment-method .logo-img { height: 40px; margin-bottom: 10px; }
-        .installment-options { background: var(--accent-color); padding: 20px; border-radius: 12px; margin: 20px 0; display: none; }
-        .installment-options.show { display: block; }
+        .payment-method-row { display:flex; align-items:center; gap:15px; padding:18px; border:2px solid #E1BEE7; border-radius:12px; cursor:pointer; transition:0.3s; background:white; margin-bottom:12px; }
+        .payment-method-row:hover { border-color: var(--primary-color); transform: translateX(-5px); }
+        .payment-method-row.selected { border-color: var(--primary-color); background: var(--accent-color); }
+        .payment-method-row input[type="radio"] { width:22px; height:22px; accent-color: var(--primary-color); cursor:pointer; }
+        .payment-method-row span { font-size:17px; font-weight:500; flex:1; }
+        .payment-method-row img { max-height:35px; object-fit:contain; }
+        .installment-options { background: var(--accent-color); padding: 20px; border-radius: 12px; margin: 20px 0; }
         .installment-options h4 { color: var(--primary-color); margin-bottom: 15px; }
         .down-payment-options { display: flex; gap: 10px; flex-wrap: wrap; margin: 15px 0; }
         .down-payment-btn { padding: 12px 25px; border: 2px solid var(--primary-color); background: white; color: var(--primary-color); border-radius: 25px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; transition: 0.3s; }
@@ -67,7 +65,7 @@
         
         <div id="checkoutSection" style="display:none;">
             <div class="cart-summary-box">
-                <h3>📋 معلومات العميل</h3>
+                <h3><span style="font-size:24px;">📋</span><span>معلومات العميل</span></h3>
                 
                 <div class="form-row">
                     <label>الاسم كاملاً *</label>
@@ -104,31 +102,31 @@
             </div>
 
             <div class="cart-summary-box">
-                <h3>🧾 نظام الدفع</h3>
-                <div class="payment-methods">
-                    <label class="payment-method selected" onclick="selectPayment('full')">
+                <h3><span style="font-size:24px;">🧾</span><span>نظام الدفع</span></h3>
+                
+                <div style="margin:20px 0;">
+                    <label class="payment-method-row selected" onclick="selectPayment('full')">
                         <input type="radio" name="payment" value="full" checked>
-                        <div class="icon">💰</div>
-                        <div>الدفع كامل</div>
+                        <span>الدفع كامل</span>
                     </label>
-                    <label class="payment-method" onclick="selectPayment('installment')">
+                    
+                    <label class="payment-method-row" onclick="selectPayment('installment')">
                         <input type="radio" name="payment" value="installment">
-                        <div class="icon">📅</div>
-                        <div>الدفع بالأقساط</div>
+                        <span>الدفع بالأقساط عبر نظام المتجر</span>
                     </label>
-                    <label class="payment-method" onclick="selectPayment('tabby')">
+                    
+                    <label class="payment-method-row" onclick="selectPayment('tabby')">
                         <input type="radio" name="payment" value="tabby">
-                        <img src="https://cdn.tabby.ai/branding/tabby-logo.svg" class="logo-img" alt="tabby">
-                        <div>Tabby</div>
+                        <img src="https://cdn.tabby.ai/branding/tabby-logo.svg" alt="tabby">
                     </label>
-                    <label class="payment-method" onclick="selectPayment('tamara')">
+                    
+                    <label class="payment-method-row" onclick="selectPayment('tamara')">
                         <input type="radio" name="payment" value="tamara">
-                        <img src="https://cdn.tamara.co/logo.svg" class="logo-img" alt="tamara">
-                        <div>Tamara</div>
+                        <img src="https://cdn.tamara.co/logo.svg" alt="tamara">
                     </label>
                 </div>
 
-                <div class="installment-options" id="installmentOptions">
+                <div class="installment-options" id="installmentOptions" style="display:none;">
                     <h4 id="installmentTitle">اختر قيمة الدفعة الأولى *</h4>
                     <div class="down-payment-options" id="downPaymentOptions"></div>
                     
