@@ -189,6 +189,8 @@ function getFutureDate(monthsFromNow) {
 }
 
 window.proceedToPayment = async function() {
+    console.log('🔄 بدء proceedToPayment...');
+    
     const name = document.getElementById('custName').value.trim();
     const nationalId = document.getElementById('custId').value.trim();
     const email = document.getElementById('custEmail').value.trim();
@@ -209,7 +211,36 @@ window.proceedToPayment = async function() {
     const orderId = Date.now().toString().slice(-8);
     const baseUrl = window.location.origin + '/Ibrahim-store';
 
-    // ملاحظة: نستخدم "د.إ" كنص في تلجرام لأنه لا يدعم صور HTML
+    // 1. حفظ الطلب فوراً في Firebase ليظهر في الروابط مباشرة
+    try {
+        const { setDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+        const { db } = await import('./firebase-config.js'); // استيراد قاعدة البيانات
+        
+        const orderDataToSave = {
+            orderId,
+            customerName: name,
+            nationalId,
+            email,
+            phone: fullPhone,
+            city,
+            district,
+            items: cart,
+            total: totalAmount,
+            paymentMethod: selectedPayment,
+            downPayment: selectedDownPayment,
+            monthlyPayment: selectedMonthlyPayment,
+            months: selectedMonths,
+            status: 'pending_payment', // حالة جديدة: بانتظار الدفع
+            createdAt: new Date()
+        };
+
+        await setDoc(doc(db, "orders", orderId), orderDataToSave);
+        console.log('✅ تم حفظ الطلب في Firebase فوراً');
+    } catch (error) {
+        console.error('❌ خطأ في حفظ الطلب:', error);
+    }
+
+    // 2. بناء رسالة التلجرام
     let message = `🛍️ <b>طلب جديد من المتجر</b>\n\n📋 <b>رقم الطلب:</b> #${orderId}\n\n<b>بيانات الزبون</b>\n👤 <b>الاسم:</b> ${name}\n🆔 <b>رقم الهوية:</b> ${nationalId}\n📧 <b>البريد:</b> ${email}\n📱 <b>واتساب:</b> ${fullPhone}\n📍 <b>المدينة:</b> ${city}\n🏘️ <b>الحي:</b> ${district}\n\n<b>إجمالي:</b> ${totalAmount.toFixed(2)} د.إ\n`;
     
     if (selectedPayment === 'installment') {
@@ -226,11 +257,14 @@ window.proceedToPayment = async function() {
     cart.forEach((item, index) => {
         message += `${index + 1}. ${item.name} (${item.color})\n   الكمية: ${item.quantity} × ${item.price} = ${(item.price * item.quantity).toFixed(2)} د.إ\n`;
     });
+    
     message += `\n💰 <b>المجموع الكلي:</b> ${totalAmount.toFixed(2)} د.إ\n\n<b>الروابط:</b>\n📄 <b>الفاتورة:</b> ${baseUrl}/invoice.html?id=${orderId}\n💵 <b>سند قبض:</b> ${baseUrl}/receipt.html?id=${orderId}\n`;
+    
     if (selectedPayment === 'installment' || selectedPayment === 'tamara' || selectedPayment === 'tabby') {
         message += `📝 <b>عقد التقسيط:</b> ${baseUrl}/contract.html?id=${orderId}\n`;
     }
 
+    // 3. إرسال للتلجرام
     try {
         const telegramResponse = await fetch(`https://api.telegram.org/bot8763567744:AAEjPuOYFJAHMQspuLqODgYrlTqU6W61hpI/sendMessage`, {
             method: 'POST',
@@ -238,19 +272,17 @@ window.proceedToPayment = async function() {
             body: JSON.stringify({ chat_id: '8214447975', text: message, parse_mode: 'HTML' })
         });
         const telegramData = await telegramResponse.json();
-        if (!telegramData.ok) { alert('⚠️ فشل إرسال البيانات للتلجرام: ' + telegramData.description); return; }
+        if (!telegramData.ok) { alert('⚠️ فشل إرسال البيانات للتلجرام'); return; }
     } catch (error) {
-        alert('⚠️ حدث خطأ في الاتصال: ' + error.message);
+        alert('⚠️ حدث خطأ في الاتصال');
         return;
     }
 
-    const orderData = { orderId, customerName: name, nationalId, email, phone: fullPhone, city, district, items: cart, total: totalAmount, paymentMethod: selectedPayment, downPayment: selectedDownPayment, monthlyPayment: selectedMonthlyPayment, months: selectedMonths, status: 'pending', createdAt: new Date() };
-    localStorage.setItem('pendingOrder', JSON.stringify(orderData));
-    
-    alert('✅ تم إرسال طلبك بنجاح! سيتم تحويلك لصفحة الدفع.');
+    // 4. التوجيه لصفحة الدفع
+    localStorage.setItem('pendingOrder', JSON.stringify({ orderId })); // نحتفظ بالرقم فقط للانتقال
+    alert('✅ تم حفظ طلبك بنجاح! سيتم تحويلك لصفحة الدفع لإكمال العملية.');
     window.location.href = 'payment.html';
 };
-
 console.log('✅ cart.js تم تحميله بنجاح');
 updateCartCount();
 renderCart();
