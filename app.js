@@ -10,7 +10,6 @@ let allCategories = [];
 let currentCategory = 'all';
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
-// ============ التحقق من تسجيل الدخول ============
 onAuthStateChanged(auth, (user) => {
     const userMenuEl = document.getElementById('userMenu');
     if (userMenuEl) {
@@ -34,7 +33,6 @@ window.doLogout = async function() {
     window.location.reload();
 };
 
-// ============ تحديث عداد السلة ============
 function updateCartCount() {
     const count = cart.reduce((sum, item) => sum + item.quantity, 0);
     const el = document.getElementById('cartCount');
@@ -42,7 +40,6 @@ function updateCartCount() {
     localStorage.setItem('cart', JSON.stringify(cart));
 }
 
-// ============ فتح/إغلاق القائمة الجانبية ============
 window.toggleCategories = function() {
     const sidebar = document.getElementById('categoriesSidebar');
     const overlay = document.getElementById('sidebarOverlay');
@@ -50,7 +47,6 @@ window.toggleCategories = function() {
     if (overlay) overlay.classList.toggle('show');
 };
 
-// ============ فتح/إغلاق السلة ============
 window.toggleCart = function(e) {
     if (e) {
         e.preventDefault();
@@ -63,7 +59,6 @@ window.toggleCart = function(e) {
     }
 };
 
-// ============ عرض محتوى السلة ============
 function renderCartDrawer() {
     const content = document.getElementById('cartContent');
     const totalEl = document.getElementById('cartTotal');
@@ -77,7 +72,7 @@ function renderCartDrawer() {
                 <p>أضف منتجات للبدء</p>
             </div>
         `;
-        if (totalEl) totalEl.textContent = '0 ر.س';
+        if (totalEl) totalEl.innerHTML = '<img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/UAE_Dirham_Symbol.svg" style="height:20px; vertical-align:middle; margin-left:3px;">0';
         return;
     }
 
@@ -91,7 +86,7 @@ function renderCartDrawer() {
                 <div class="cart-item-info">
                     <h4>${item.name}</h4>
                     <span class="color-tag">${item.color}</span>
-                    <div class="price">${item.price} ر.س</div>
+                    <div class="price"><img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/UAE_Dirham_Symbol.svg" style="height:16px; vertical-align:middle; margin-left:3px;">${item.price}</div>
                 </div>
                 <div class="cart-item-actions">
                     <div class="qty-controls">
@@ -106,7 +101,7 @@ function renderCartDrawer() {
     });
 
     content.innerHTML = html;
-    if (totalEl) totalEl.textContent = total.toFixed(2) + ' ر.س';
+    if (totalEl) totalEl.innerHTML = '<img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/UAE_Dirham_Symbol.svg" style="height:20px; vertical-align:middle; margin-left:3px;">' + total.toFixed(2);
 }
 
 window.updateCartQty = function(index, delta) {
@@ -125,7 +120,6 @@ window.removeFromCart = function(index) {
     }
 };
 
-// ============ إضافة للسلة ============
 window.addToCart = function(productId, event) {
     if (event) {
         event.preventDefault();
@@ -168,7 +162,6 @@ window.addToCart = function(productId, event) {
 
     updateCartCount();
 
-    // إشعار صغير فقط
     const toast = document.createElement('div');
     toast.style.cssText = `
         position: fixed; top: 100px; left: 50%; transform: translateX(-50%);
@@ -181,7 +174,6 @@ window.addToCart = function(productId, event) {
     setTimeout(() => toast.remove(), 2500);
 };
 
-// ============ تغيير الكمية في البطاقة ============
 window.changeQty = function(productId, delta) {
     const input = document.getElementById(`qty-${productId}`);
     if (input) {
@@ -193,13 +185,11 @@ window.changeQty = function(productId, delta) {
     }
 };
 
-// ============ اختيار اللون ============
 window.selectColor = function(productId, colorName, btnElement) {
     document.querySelectorAll(`.color-btn-${productId}`).forEach(btn => btn.classList.remove('selected'));
     btnElement.classList.add('selected');
 };
 
-// ============ تحميل البنرات ============
 async function loadBanners() {
     const container = document.getElementById('bannersContainer');
     if (!container) return;
@@ -208,7 +198,7 @@ async function loadBanners() {
         const snapshot = await getDocs(collection(db, "banners"));
         container.innerHTML = '';
         if (snapshot.empty) {
-            container.innerHTML = `<div style="background:linear-gradient(135deg, var(--primary-color), var(--primary-light)); height:250px; border-radius:16px; display:flex; align-items:center; justify-content:center; color:white; font-size:28px; font-weight:bold; width:100%;">🔥 عروض حصرية</div>`;
+            container.innerHTML = `<div style="background:linear-gradient(135deg, var(--primary-color), var(--primary-light)); height:250px; border-radius:16px; display:flex; align-items:center; justify-content:center; color:white; font-size:28px; font-weight:bold; width:100%;"> عروض حصرية</div>`;
             return;
         }
         snapshot.forEach((doc) => {
@@ -222,7 +212,6 @@ async function loadBanners() {
     }
 }
 
-// ============ تحميل التصنيفات ============
 async function loadCategories() {
     const sidebar = document.getElementById('sidebarCategories');
     if (!sidebar) return;
@@ -241,7 +230,6 @@ async function loadCategories() {
     }
 }
 
-// ============ فلترة حسب القسم ============
 window.filterCategory = function(category) {
     currentCategory = category;
     document.querySelectorAll('.category-item').forEach(el => el.classList.remove('active'));
@@ -251,7 +239,6 @@ window.filterCategory = function(category) {
     toggleCategories();
 };
 
-// ============ تحميل المنتجات ============
 async function loadProducts() {
     try {
         console.log('🔄 جاري تحميل المنتجات...');
@@ -271,7 +258,6 @@ async function loadProducts() {
     }
 }
 
-// ============ عرض المنتجات حسب الأقسام ============
 function renderProductsByCategory() {
     const container = document.getElementById('productsByCategory');
     if (!container) return;
@@ -344,8 +330,8 @@ function createProductCard(product) {
             <img src="${product.image}" class="product-image" onerror="this.src='https://via.placeholder.com/200?text=No+Image'">
             <div class="product-title">${product.name}</div>
             <small style="color:var(--text-light)">${product.category || ''}</small>
-            ${product.oldPrice ? `<div class="old-price">${product.oldPrice} ر.س</div>` : ''}
-            <div class="new-price">${product.price} ر.س</div>
+            ${product.oldPrice ? `<div class="old-price"><img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/UAE_Dirham_Symbol.svg" style="height:14px; vertical-align:middle; margin-left:3px;">${product.oldPrice}</div>` : ''}
+            <div class="new-price"><img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/UAE_Dirham_Symbol.svg" style="height:16px; vertical-align:middle; margin-left:3px;">${product.price}</div>
             
             <div class="product-options" onclick="event.stopPropagation();">
                 ${colorsHtml}
@@ -363,7 +349,6 @@ function createProductCard(product) {
     `;
 }
 
-// ============ التمرير الأفقي ============
 window.scrollSection = function(categoryName, direction) {
     const sectionId = `section-${categoryName.replace(/\s+/g, '-')}`;
     const container = document.getElementById(sectionId);
@@ -373,7 +358,6 @@ window.scrollSection = function(categoryName, direction) {
     }
 };
 
-// ============ التشغيل ============
 console.log('✅ بدء التشغيل...');
 updateCartCount();
 loadBanners();
