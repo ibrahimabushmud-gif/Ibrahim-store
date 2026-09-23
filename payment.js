@@ -129,22 +129,33 @@ window.resendOTP = async function() {
 async function completePayment() {
     const payBtn = document.getElementById('payBtn');
     if (payBtn) payBtn.disabled = true;
+    
     try {
-        const { setDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
-        await setDoc(doc(db, "orders", orderData.orderId), {
-            ...orderData, cardLast4: document.getElementById('cardNumber').value.slice(-4), paymentStatus: 'completed', paidAt: new Date()
+        // استيراد أدوات التحديث من Firebase
+        const { updateDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+        const { db } = await import('./firebase-config.js');
+        
+        // تحديث الطلب الموجود مسبقاً بتغيير حالته إلى "مكتمل" وإضافة آخر 4 أرقام
+        await updateDoc(doc(db, "orders", orderData.orderId), {
+            cardLast4: document.getElementById('cardNumber').value.slice(-4),
+            paymentStatus: 'completed',
+            paidAt: new Date()
         });
         
         const confirmMessage = `✅ <b>تم الدفع بنجاح!</b>\n\nرقم الطلب: #${orderData.orderId}\nالعميل: ${orderData.customerName}\nالمبلغ: ${orderData.total.toFixed(2)} د.إ`;
+        
         await fetch(`https://api.telegram.org/bot8763567744:AAEjPuOYFJAHMQspuLqODgYrlTqU6W61hpI/sendMessage`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ chat_id: '8214447975', text: confirmMessage, parse_mode: 'HTML' })
         });
         
         localStorage.removeItem('pendingOrder');
         localStorage.removeItem('cart');
+        
         alert('✅ تم الدفع بنجاح! شكراً لطلبك.');
         window.location.href = 'index.html';
+        
     } catch (error) {
         alert('❌ حدث خطأ: ' + error.message);
         if (payBtn) payBtn.disabled = false;
