@@ -1,349 +1,163 @@
-let cart = JSON.parse(localStorage.getItem('cart')) || [];
-let cartCountEl = document.getElementById('cartCount');
-let cartItemsEl = document.getElementById('cartItems');
-let checkoutSection = document.getElementById('checkoutSection');
-let totalAmount = 0;
-let selectedPayment = 'full';
-let selectedDownPayment = 0;
-let selectedMonths = 0;
-let selectedMonthlyPayment = 0;
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سلة المشتريات</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .cart-page { max-width: 900px; margin: 20px auto; padding: 20px; }
+        .cart-item-full { background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; display: flex; gap: 15px; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .cart-item-full img { width: 100px; height: 100px; object-fit: cover; border-radius: 10px; }
+        .cart-item-full-info { flex: 1; }
+        .cart-item-full-info h3 { margin: 0 0 5px 0; color: var(--primary-color); }
+        .cart-item-full-info .color-tag { background: var(--accent-color); color: var(--primary-color); padding: 3px 10px; border-radius: 15px; font-size: 12px; display: inline-block; margin: 5px 0; }
+        .cart-item-full-info .price { font-size: 20px; font-weight: 800; color: var(--primary-color); }
+        .qty-controls-full { display: flex; align-items: center; gap: 10px; background: var(--accent-color); padding: 8px; border-radius: 25px; }
+        .qty-controls-full button { width: 35px; height: 35px; border: none; background: var(--primary-color); color: white; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 18px; }
+        .remove-btn-full { background: var(--danger-color); color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-family: 'Tajawal'; }
+        .cart-summary-box { background: white; border-radius: 12px; padding: 25px; margin: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .cart-summary-box h3 { color: var(--primary-color); margin-bottom: 20px; border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; display:flex; align-items:center; gap:10px; }
+        .form-row { margin-bottom: 15px; }
+        .form-row label { display: block; margin-bottom: 8px; font-weight: 700; }
+        .form-row input, .form-row select { width: 100%; padding: 12px; border: 2px solid #E1BEE7; border-radius: 10px; font-family: 'Tajawal'; font-size: 15px; }
+        .form-row input:focus, .form-row select:focus { outline: none; border-color: var(--primary-color); }
+        .payment-method-row { display:flex; align-items:center; gap:15px; padding:18px; border:2px solid #E1BEE7; border-radius:12px; cursor:pointer; transition:0.3s; background:white; margin-bottom:12px; }
+        .payment-method-row:hover { border-color: var(--primary-color); transform: translateX(-5px); }
+        .payment-method-row.selected { border-color: var(--primary-color); background: var(--accent-color); }
+        .payment-method-row input[type="radio"] { width:22px; height:22px; accent-color: var(--primary-color); cursor:pointer; }
+        .payment-method-row span { font-size:17px; font-weight:500; flex:1; }
+        .payment-method-row img { max-height:35px; object-fit:contain; }
+        .installment-options { background: var(--accent-color); padding: 20px; border-radius: 12px; margin: 20px 0; }
+        .installment-options h4 { color: var(--primary-color); margin-bottom: 15px; }
+        .down-payment-options { display: flex; gap: 10px; flex-wrap: wrap; margin: 15px 0; }
+        .down-payment-btn { padding: 12px 25px; border: 2px solid var(--primary-color); background: white; color: var(--primary-color); border-radius: 25px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; transition: 0.3s; }
+        .down-payment-btn.selected { background: var(--primary-color); color: white; }
+        .months-select { width: 100%; padding: 12px; border: 2px solid var(--primary-color); border-radius: 10px; font-family: 'Tajawal'; font-size: 16px; margin: 15px 0; }
+        .installment-table { width: 100%; border-collapse: collapse; margin: 20px 0; background: white; border-radius: 10px; overflow: hidden; }
+        .installment-table th { background: var(--primary-color); color: white; padding: 12px; text-align: right; }
+        .installment-table td { padding: 12px; border-bottom: 1px solid #eee; }
+        .installment-table tr:last-child td { border-bottom: none; }
+        .total-box { background: var(--primary-color); color: white; padding: 20px; border-radius: 12px; text-align: center; margin: 20px 0; }
+        .total-box .amount { font-size: 32px; font-weight: 800; }
+        .btn-proceed { background: var(--primary-color); color: white; border: none; padding: 18px; width: 100%; border-radius: 25px; font-size: 18px; font-weight: 700; cursor: pointer; font-family: 'Tajawal'; margin-top: 20px; }
+        .btn-proceed:hover { background: var(--primary-dark); }
+        .btn-continue { background: white; color: var(--primary-color); border: 2px solid var(--primary-color); padding: 15px; width: 100%; border-radius: 25px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: 'Tajawal'; margin-top: 10px; }
+        .monthly-calc { background: white; padding: 15px; border-radius: 10px; margin: 15px 0; text-align: center; }
+        .monthly-calc .amount { font-size: 24px; font-weight: 800; color: var(--primary-color); }
+    </style>
+</head>
+<body>
+    <header>
+        <div style="display:flex; align-items:center; gap:15px;">
+            <a href="index.html" style="color:var(--primary-color); font-size:24px; text-decoration:none;">→</a>
+            <div class="logo"><div class="logo-icon">🛍️</div><span>متجري</span></div>
+        </div>
+        <div class="header-actions">
+            <span class="cart-icon" style="position:relative;"><span class="cart-badge" id="cartCount">0</span></span>
+        </div>
+    </header>
 
-function updateCartCount() {
-    const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-    if (cartCountEl) cartCountEl.textContent = count;
-}
-
-function renderCart() {
-    if (cart.length === 0) {
-        cartItemsEl.innerHTML = '<div style="text-align:center; padding:50px;"><h3>🛒 السلة فارغة</h3><p>أضف منتجات للبدء</p><button onclick="window.location.href=\'index.html\'" style="background:var(--primary-color); color:white; border:none; padding:15px 40px; border-radius:25px; font-family:Tajawal; font-weight:bold; margin-top:20px; cursor:pointer;">تصفح المنتجات</button></div>';
-        checkoutSection.style.display = 'none';
-        return;
-    }
-
-    totalAmount = 0;
-    let html = '';
-    cart.forEach((item, index) => {
-        const itemTotal = item.price * item.quantity;
-        totalAmount += itemTotal;
-        html += `
-            <div class="cart-item-full">
-                <img src="${item.image}" onerror="this.src='https://via.placeholder.com/100'">
-                <div class="cart-item-full-info">
-                    <h3>${item.name}</h3>
-                    <span class="color-tag">${item.color}</span>
-                    <div class="price">${item.price} د.إ</div>
+    <div class="cart-page" id="cartPage">
+        <h2 style="color:var(--primary-color); margin-bottom:20px;">🛒 سلة المشتريات</h2>
+        <div id="cartItems"></div>
+        
+        <div id="checkoutSection" style="display:none;">
+            <div class="cart-summary-box">
+                <h3><span style="font-size:24px;">📋</span><span>معلومات العميل</span></h3>
+                
+                <div class="form-row">
+                    <label>الاسم كاملاً *</label>
+                    <input type="text" id="custName" placeholder="الاسم كاملاً">
                 </div>
-                <div class="qty-controls-full">
-                    <button onclick="updateQty(${index}, 1)">+</button>
-                    <span style="font-weight:bold; min-width:30px; text-align:center;">${item.quantity}</span>
-                    <button onclick="updateQty(${index}, -1)">−</button>
+                
+                <div class="form-row">
+                    <label>رقم الهوية الوطنية *</label>
+                    <input type="text" id="custId" placeholder="رقم الهوية الوطنية">
                 </div>
-                <button class="remove-btn-full" onclick="removeItem(${index})">حذف</button>
+                
+                <div class="form-row">
+                    <label>البريد الإلكتروني *</label>
+                    <input type="email" id="custEmail" placeholder="example@email.com">
+                </div>
+                
+                <div class="form-row">
+                    <label>رقم الواتس *</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="phonePrefix" readonly style="width:80px; padding:12px; border:2px solid #E1BEE7; border-radius:10px; background:#f5f5f5; font-weight:bold;" value="+971">
+                        <input type="tel" id="custPhone" placeholder="رقم الواتس" style="flex:1;">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <label>المدينة *</label>
+                    <input type="text" id="custCity" placeholder="المدينة">
+                </div>
+                
+                <div class="form-row">
+                    <label>الحي *</label>
+                    <input type="text" id="custDistrict" placeholder="الحي">
+                </div>
             </div>
-        `;
-    });
 
-    cartItemsEl.innerHTML = html;
-    document.getElementById('totalAmount').textContent = totalAmount.toFixed(2) + ' د.إ';
-    checkoutSection.style.display = 'block';
-}
+            <div class="cart-summary-box">
+                <h3><span style="font-size:24px;">🧾</span><span>نظام الدفع</span></h3>
+                
+                <div style="margin:20px 0;">
+                    <label class="payment-method-row selected" onclick="selectPayment('full')">
+                        <input type="radio" name="payment" value="full" checked>
+                        <span>الدفع كامل</span>
+                    </label>
+                    
+                    <label class="payment-method-row" onclick="selectPayment('installment')">
+                        <input type="radio" name="payment" value="installment">
+                        <span>الدفع بالأقساط عبر نظام المتجر</span>
+                    </label>
+                    
+                    <label class="payment-method-row" onclick="selectPayment('tabby')">
+                        <input type="radio" name="payment" value="tabby">
+                        <img src="https://cdn.tabby.ai/branding/tabby-logo.svg" alt="tabby">
+                    </label>
+                    
+                    <label class="payment-method-row" onclick="selectPayment('tamara')">
+                        <input type="radio" name="payment" value="tamara">
+                        <img src="https://cdn.tamara.co/logo.svg" alt="tamara">
+                    </label>
+                </div>
 
-window.updateQty = function(index, delta) {
-    cart[index].quantity += delta;
-    if (cart[index].quantity < 1) cart[index].quantity = 1;
-    if (cart[index].quantity > 10) cart[index].quantity = 10;
-    localStorage.setItem('cart', JSON.stringify(cart));
-    updateCartCount();
-    renderCart();
-};
+                <div class="installment-options" id="installmentOptions" style="display:none;">
+                    <h4 id="installmentTitle">اختر قيمة الدفعة الأولى *</h4>
+                    <div class="down-payment-options" id="downPaymentOptions"></div>
+                    
+                    <div id="monthsSection">
+                        <h4 style="margin-top:20px;">اختر عدد الأشهر *</h4>
+                        <select class="months-select" id="monthsSelect" onchange="calculateInstallments()">
+                            <option value="">-- اختر عدد الأشهر --</option>
+                        </select>
+                    </div>
 
-window.removeItem = function(index) {
-    if (confirm('حذف هذا المنتج؟')) {
-        cart.splice(index, 1);
-        localStorage.setItem('cart', JSON.stringify(cart));
-        updateCartCount();
-        renderCart();
-    }
-};
+                    <div class="monthly-calc" id="monthlyCalc" style="display:none;">
+                        <p>القسط الشهري:</p>
+                        <div class="amount" id="monthlyAmount">0 د.إ</div>
+                    </div>
 
-window.selectPayment = function(type) {
-    selectedPayment = type;
-    
-    // إزالة التحديد من جميع الخيارات
-    document.querySelectorAll('.payment-method-row').forEach(el => {
-        el.classList.remove('selected');
-    });
-    
-    // إضافة التحديد للخيار المختار
-    event.currentTarget.classList.add('selected');
-    
-    const installmentOptions = document.getElementById('installmentOptions');
-    const installmentTitle = document.getElementById('installmentTitle');
-    const monthsSection = document.getElementById('monthsSection');
-    
-    if (type === 'installment') {
-        installmentOptions.style.display = 'block';
-        installmentTitle.textContent = 'اختر قيمة الدفعة الأولى *';
-        monthsSection.style.display = 'block';
-        createDownPaymentOptions();
-        createMonthsOptions();
-        document.getElementById('installmentTable').innerHTML = '';
-        document.getElementById('monthlyCalc').style.display = 'none';
-        
-    } else if (type === 'tamara') {
-        installmentOptions.style.display = 'block';
-        installmentTitle.textContent = 'تفاصيل Tamara';
-        monthsSection.style.display = 'none';
-        
-        selectedDownPayment = 1000;
-        selectedMonths = 12;
-        selectedMonthlyPayment = (totalAmount - 1000) / 12;
-        
-        document.getElementById('downPaymentOptions').innerHTML = `
-            <div style="background:white; padding:15px; border-radius:10px; width:100%;">
-                <p style="margin:0; color:var(--primary-color); font-weight:bold;">
-                    💜 Tamara: دفعة أولى 1000 د.إ + 12 قسط شهري
-                </p>
+                    <div id="installmentTable"></div>
+                </div>
             </div>
-        `;
-        
-        document.getElementById('monthlyCalc').style.display = 'block';
-        document.getElementById('monthlyAmount').textContent = selectedMonthlyPayment.toFixed(2) + ' د.إ';
-        
-        let tableHtml = '<table class="installment-table"><thead><tr><th>#</th><th>نوع الدفعة</th><th>التاريخ</th><th>المبلغ (د.إ)</th></tr></thead><tbody>';
-        tableHtml += `<tr style="background:#F3E5F5;"><td>1</td><td>💰 الدفعة الأولى (الآن)</td><td>${getFutureDate(0)}</td><td><b>${selectedDownPayment.toFixed(2)}</b></td></tr>`;
-        
-        for (let i = 1; i <= 12; i++) {
-            tableHtml += `<tr><td>${i + 1}</td><td>📅 قسط شهري</td><td>${getFutureDate(i)}</td><td>${selectedMonthlyPayment.toFixed(2)}</td></tr>`;
-        }
-        
-        tableHtml += '</tbody></table>';
-        document.getElementById('installmentTable').innerHTML = tableHtml;
-        
-    } else if (type === 'tabby') {
-        installmentOptions.style.display = 'block';
-        installmentTitle.textContent = 'تفاصيل Tabby';
-        monthsSection.style.display = 'none';
-        
-        selectedDownPayment = totalAmount / 4;
-        selectedMonths = 4;
-        selectedMonthlyPayment = selectedDownPayment;
-        
-        document.getElementById('downPaymentOptions').innerHTML = `
-            <div style="background:white; padding:15px; border-radius:10px; width:100%;">
-                <p style="margin:0; color:var(--primary-color); font-weight:bold;">
-                    💳 Tabby: 4 دفعات متساوية
-                </p>
-                <p style="margin:5px 0 0 0; color:#666; font-size:14px;">
-                    الدفعة الأولى تدفع الآن، و3 أقساط شهرية
-                </p>
+
+            <div class="total-box">
+                <div>المجموع الكلي</div>
+                <div class="amount" id="totalAmount">0 د.إ</div>
             </div>
-        `;
-        
-        document.getElementById('monthlyCalc').style.display = 'block';
-        document.getElementById('monthlyAmount').textContent = selectedMonthlyPayment.toFixed(2) + ' د.إ';
-        
-        let tableHtml = '<table class="installment-table"><thead><tr><th>#</th><th>نوع الدفعة</th><th>التاريخ</th><th>المبلغ (د.إ)</th></tr></thead><tbody>';
-        tableHtml += `<tr style="background:#F3E5F5;"><td>1</td><td>💰 الدفعة الأولى (الآن)</td><td>${getFutureDate(0)}</td><td><b>${selectedDownPayment.toFixed(2)}</b></td></tr>`;
-        
-        for (let i = 1; i <= 3; i++) {
-            tableHtml += `<tr><td>${i + 1}</td><td>📅 قسط شهري</td><td>${getFutureDate(i)}</td><td>${selectedMonthlyPayment.toFixed(2)}</td></tr>`;
-        }
-        
-        tableHtml += '</tbody></table>';
-        document.getElementById('installmentTable').innerHTML = tableHtml;
-        
-    } else {
-        installmentOptions.style.display = 'none';
-    }
-};
 
-function createDownPaymentOptions() {
-    const options = [1000, 1500, 2000];
-    const container = document.getElementById('downPaymentOptions');
-    if (!container) return;
-    container.innerHTML = '';
-    options.forEach(amount => {
-        if (amount < totalAmount) {
-            const btn = document.createElement('button');
-            btn.className = 'down-payment-btn';
-            btn.textContent = amount + ' د.إ';
-            btn.onclick = function() {
-                document.querySelectorAll('.down-payment-btn').forEach(b => b.classList.remove('selected'));
-                this.classList.add('selected');
-                selectedDownPayment = amount;
-                calculateInstallments();
-            };
-            container.appendChild(btn);
-        }
-    });
-}
+            <button class="btn-proceed" onclick="proceedToPayment()">متابعة الشراء →</button>
+            <button class="btn-continue" onclick="window.location.href='index.html'">العودة للتسوق</button>
+        </div>
+    </div>
 
-function createMonthsOptions() {
-    const select = document.getElementById('monthsSelect');
-    if (!select) return;
-    select.innerHTML = '<option value="">-- اختر عدد الأشهر --</option>';
-    for (let i = 3; i <= 24; i++) {
-        select.innerHTML += `<option value="${i}">${i} شهر</option>`;
-    }
-}
+    <a href="https://wa.me/971592152484" class="whatsapp-float" target="_blank"><i class="fab fa-whatsapp"></i></a>
 
-window.calculateInstallments = function() {
-    selectedMonths = parseInt(document.getElementById('monthsSelect').value) || 0;
-    
-    if (!selectedDownPayment || !selectedMonths) {
-        document.getElementById('installmentTable').innerHTML = '';
-        document.getElementById('monthlyCalc').style.display = 'none';
-        return;
-    }
-
-    const remaining = totalAmount - selectedDownPayment;
-    selectedMonthlyPayment = remaining / selectedMonths;
-    
-    document.getElementById('monthlyCalc').style.display = 'block';
-    document.getElementById('monthlyAmount').textContent = selectedMonthlyPayment.toFixed(2) + ' د.إ';
-    
-    let tableHtml = '<table class="installment-table"><thead><tr><th>#</th><th>نوع الدفعة</th><th>التاريخ</th><th>المبلغ (د.إ)</th></tr></thead><tbody>';
-    tableHtml += `<tr style="background:#F3E5F5;"><td>1</td><td>💰 الدفعة الأولى</td><td>${getFutureDate(0)}</td><td><b>${selectedDownPayment.toFixed(2)}</b></td></tr>`;
-    
-    for (let i = 1; i <= selectedMonths; i++) {
-        tableHtml += `<tr><td>${i + 1}</td><td>📅 قسط شهري</td><td>${getFutureDate(i)}</td><td>${selectedMonthlyPayment.toFixed(2)}</td></tr>`;
-    }
-    
-    tableHtml += '</tbody></table>';
-    document.getElementById('installmentTable').innerHTML = tableHtml;
-};
-
-function getFutureDate(monthsFromNow) {
-    const date = new Date();
-    date.setMonth(date.getMonth() + monthsFromNow);
-    return date.toLocaleDateString('ar-AE');
-}
-
-window.proceedToPayment = async function() {
-    console.log('🔄 بدء proceedToPayment...');
-    
-    const name = document.getElementById('custName').value.trim();
-    const nationalId = document.getElementById('custId').value.trim();
-    const email = document.getElementById('custEmail').value.trim();
-    const phone = document.getElementById('custPhone').value.trim();
-    const city = document.getElementById('custCity').value.trim();
-    const district = document.getElementById('custDistrict').value.trim();
-
-    console.log('البيانات:', { name, nationalId, email, phone, city, district });
-
-    if (!name || !nationalId || !email || !phone || !city || !district) {
-        alert('⚠️ الرجاء ملء جميع البيانات المطلوبة');
-        return;
-    }
-
-    if (selectedPayment === 'installment' && (!selectedDownPayment || !selectedMonths)) {
-        alert('⚠️ الرجاء اختيار الدفعة الأولى وعدد الأشهر');
-        return;
-    }
-
-    const fullPhone = '+971' + phone;
-    const orderId = Date.now().toString().slice(-8);
-    const baseUrl = window.location.origin + '/Ibrahim-store';
-
-    let message = `🛍️ <b>طلب جديد من المتجر</b>\n\n`;
-    message += `📋 <b>رقم الطلب:</b> #${orderId}\n\n`;
-    message += `<b>بيانات الزبون</b>\n`;
-    message += `👤 <b>الاسم:</b> ${name}\n`;
-    message += ` <b>رقم الهوية:</b> ${nationalId}\n`;
-    message += `📧 <b>البريد:</b> ${email}\n`;
-    message += `📱 <b>واتساب:</b> ${fullPhone}\n`;
-    message += `📍 <b>المدينة:</b> ${city}\n`;
-    message += `🏘️ <b>الحي:</b> ${district}\n\n`;
-    
-    message += `<b>إجمالي:</b> ${totalAmount.toFixed(2)} د.إ\n`;
-    
-    if (selectedPayment === 'installment') {
-        message += `💳 <b>طريقة الدفع:</b> تقسيط المتجر\n`;
-        message += `💰 <b>الدفعة الأولى:</b> ${selectedDownPayment} د.إ\n`;
-        message += `📅 <b>عدد الأشهر:</b> ${selectedMonths} شهر\n`;
-        message += `💵 <b>القسط الشهري:</b> ${selectedMonthlyPayment.toFixed(2)} د.إ\n`;
-    } else if (selectedPayment === 'tamara') {
-        message += `💳 <b>طريقة الدفع:</b> Tamara\n`;
-        message += `💰 <b>الدفعة الأولى:</b> 1000 د.إ\n`;
-        message += ` <b>عدد الأشهر:</b> 12 شهر\n`;
-        message += `💵 <b>القسط الشهري:</b> ${selectedMonthlyPayment.toFixed(2)} د.إ\n`;
-    } else if (selectedPayment === 'tabby') {
-        message += `💳 <b>طريقة الدفع:</b> Tabby\n`;
-        message += `💰 <b>الدفعة الأولى (الآن):</b> ${selectedDownPayment.toFixed(2)} د.إ\n`;
-        message += `📅 <b>الأقساط المتبقية:</b> 3 أقساط شهرية\n`;
-        message += `💵 <b>قيمة كل قسط:</b> ${selectedMonthlyPayment.toFixed(2)} د.إ\n`;
-        message += ` <b>إجمالي الدفعات:</b> 4 دفعات متساوية\n`;
-    } else {
-        message += `💳 <b>طريقة الدفع:</b> دفع كامل\n`;
-    }
-    
-    message += `\n📦 <b>المنتجات:</b>\n`;
-    cart.forEach((item, index) => {
-        message += `${index + 1}. ${item.name} (${item.color})\n`;
-        message += `   الكمية: ${item.quantity} × ${item.price} = ${(item.price * item.quantity).toFixed(2)} د.إ\n`;
-    });
-    
-    message += `\n💰 <b>المجموع الكلي:</b> ${totalAmount.toFixed(2)} د.إ\n\n`;
-    
-    message += `<b>الروابط:</b>\n`;
-    message += `📄 <b>الفاتورة:</b> ${baseUrl}/invoice.html?id=${orderId}\n`;
-    message += `💵 <b>سند قبض:</b> ${baseUrl}/receipt.html?id=${orderId}\n`;
-    
-    if (selectedPayment === 'installment' || selectedPayment === 'tamara' || selectedPayment === 'tabby') {
-        message += `📝 <b>عقد التقسيط:</b> ${baseUrl}/contract.html?id=${orderId}\n`;
-    }
-
-    console.log('📤 الرسالة:', message);
-
-    try {
-        const telegramResponse = await fetch(`https://api.telegram.org/bot8763567744:AAEjPuOYFJAHMQspuLqODgYrlTqU6W61hpI/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: '8214447975',
-                text: message,
-                parse_mode: 'HTML'
-            })
-        });
-        
-        const telegramData = await telegramResponse.json();
-        console.log('📤 نتيجة الإرسال:', telegramData);
-        
-        if (!telegramData.ok) {
-            console.error('❌ فشل الإرسال:', telegramData.description);
-            alert('⚠️ فشل إرسال البيانات للتلجرام: ' + telegramData.description);
-            return;
-        }
-    } catch (error) {
-        console.error('❌ خطأ في الإرسال:', error);
-        alert('️ حدث خطأ في الاتصال: ' + error.message);
-        return;
-    }
-
-    const orderData = {
-        orderId,
-        customerName: name,
-        nationalId,
-        email,
-        phone: fullPhone,
-        city, district,
-        items: cart,
-        total: totalAmount,
-        paymentMethod: selectedPayment,
-        downPayment: selectedDownPayment,
-        monthlyPayment: selectedMonthlyPayment,
-        months: selectedMonths,
-        status: 'pending',
-        createdAt: new Date()
-    };
-
-    localStorage.setItem('pendingOrder', JSON.stringify(orderData));
-    
-    alert('✅ تم إرسال طلبك بنجاح! سيتم تحويلك لصفحة الدفع.');
-    window.location.href = 'payment.html';
-};
-
-console.log('✅ cart.js تم تحميله بنجاح');
-updateCartCount();
-renderCart();
+    <script type="module" src="cart.js"></script>
+</body>
+</html>
