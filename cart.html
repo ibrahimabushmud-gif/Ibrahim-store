@@ -21,23 +21,21 @@
         .cart-summary-box h3 { color: var(--primary-color); margin-bottom: 20px; border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; }
         .form-row { margin-bottom: 15px; }
         .form-row label { display: block; margin-bottom: 8px; font-weight: 700; }
-        .form-row input { width: 100%; padding: 12px; border: 2px solid #E1BEE7; border-radius: 10px; font-family: 'Tajawal'; font-size: 15px; }
-        .form-row input:focus { outline: none; border-color: var(--primary-color); }
+        .form-row input, .form-row select { width: 100%; padding: 12px; border: 2px solid #E1BEE7; border-radius: 10px; font-family: 'Tajawal'; font-size: 15px; }
+        .form-row input:focus, .form-row select:focus { outline: none; border-color: var(--primary-color); }
         .payment-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
         .payment-method { padding: 20px; border: 2px solid #E1BEE7; border-radius: 12px; text-align: center; cursor: pointer; transition: 0.3s; background: white; }
         .payment-method:hover { border-color: var(--primary-color); }
         .payment-method.selected { border-color: var(--primary-color); background: var(--accent-color); }
         .payment-method input { display: none; }
         .payment-method .icon { font-size: 30px; margin-bottom: 10px; }
+        .payment-method .logo-img { height: 40px; margin-bottom: 10px; }
         .installment-options { background: var(--accent-color); padding: 20px; border-radius: 12px; margin: 20px 0; display: none; }
         .installment-options.show { display: block; }
         .installment-options h4 { color: var(--primary-color); margin-bottom: 15px; }
         .down-payment-options { display: flex; gap: 10px; flex-wrap: wrap; margin: 15px 0; }
         .down-payment-btn { padding: 12px 25px; border: 2px solid var(--primary-color); background: white; color: var(--primary-color); border-radius: 25px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; transition: 0.3s; }
         .down-payment-btn.selected { background: var(--primary-color); color: white; }
-        .monthly-payment-btn { padding: 12px 25px; border: 2px solid var(--primary-color); background: white; color: var(--primary-color); border-radius: 25px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; transition: 0.3s; margin: 5px; }
-        .monthly-payment-btn:hover { background: var(--accent-color); }
-        .monthly-payment-btn.selected { background: var(--primary-color); color: white; }
         .months-select { width: 100%; padding: 12px; border: 2px solid var(--primary-color); border-radius: 10px; font-family: 'Tajawal'; font-size: 16px; margin: 15px 0; }
         .installment-table { width: 100%; border-collapse: collapse; margin: 20px 0; background: white; border-radius: 10px; overflow: hidden; }
         .installment-table th { background: var(--primary-color); color: white; padding: 12px; text-align: right; }
@@ -48,6 +46,8 @@
         .btn-proceed { background: var(--primary-color); color: white; border: none; padding: 18px; width: 100%; border-radius: 25px; font-size: 18px; font-weight: 700; cursor: pointer; font-family: 'Tajawal'; margin-top: 20px; }
         .btn-proceed:hover { background: var(--primary-dark); }
         .btn-continue { background: white; color: var(--primary-color); border: 2px solid var(--primary-color); padding: 15px; width: 100%; border-radius: 25px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: 'Tajawal'; margin-top: 10px; }
+        .monthly-calc { background: white; padding: 15px; border-radius: 10px; margin: 15px 0; text-align: center; }
+        .monthly-calc .amount { font-size: 24px; font-weight: 800; color: var(--primary-color); }
     </style>
 </head>
 <body>
@@ -67,14 +67,7 @@
         
         <div id="checkoutSection" style="display:none;">
             <div class="cart-summary-box">
-                <h3>📋 معلومات التوصيل</h3>
-                
-                <div class="form-row">
-                    <label>🌍 الدولة *</label>
-                    <select id="custCountry" onchange="updatePhonePrefix()" style="width:100%; padding:12px; border:2px solid #E1BEE7; border-radius:10px; font-family:Tajawal; font-size:15px;">
-                        <option value="">-- اختر الدولة --</option>
-                    </select>
-                </div>
+                <h3>📋 معلومات العميل</h3>
                 
                 <div class="form-row">
                     <label>الاسم كاملاً *</label>
@@ -82,9 +75,19 @@
                 </div>
                 
                 <div class="form-row">
+                    <label>رقم الهوية الوطنية *</label>
+                    <input type="text" id="custId" placeholder="رقم الهوية الوطنية">
+                </div>
+                
+                <div class="form-row">
+                    <label>البريد الإلكتروني *</label>
+                    <input type="email" id="custEmail" placeholder="example@email.com">
+                </div>
+                
+                <div class="form-row">
                     <label>رقم الواتس *</label>
                     <div style="display:flex; gap:10px;">
-                        <input type="text" id="phonePrefix" readonly style="width:80px; padding:12px; border:2px solid #E1BEE7; border-radius:10px; background:#f5f5f5; font-weight:bold;" value="+970">
+                        <input type="text" id="phonePrefix" readonly style="width:80px; padding:12px; border:2px solid #E1BEE7; border-radius:10px; background:#f5f5f5; font-weight:bold;" value="+971">
                         <input type="tel" id="custPhone" placeholder="رقم الواتس" style="flex:1;">
                     </div>
                 </div>
@@ -101,7 +104,7 @@
             </div>
 
             <div class="cart-summary-box">
-                <h3>💳 نظام الدفع</h3>
+                <h3>🧾 نظام الدفع</h3>
                 <div class="payment-methods">
                     <label class="payment-method selected" onclick="selectPayment('full')">
                         <input type="radio" name="payment" value="full" checked>
@@ -110,22 +113,36 @@
                     </label>
                     <label class="payment-method" onclick="selectPayment('installment')">
                         <input type="radio" name="payment" value="installment">
-                        <div class="icon"></div>
+                        <div class="icon">📅</div>
                         <div>الدفع بالأقساط</div>
+                    </label>
+                    <label class="payment-method" onclick="selectPayment('tabby')">
+                        <input type="radio" name="payment" value="tabby">
+                        <img src="https://cdn.tabby.ai/branding/tabby-logo.svg" class="logo-img" alt="tabby">
+                        <div>Tabby</div>
+                    </label>
+                    <label class="payment-method" onclick="selectPayment('tamara')">
+                        <input type="radio" name="payment" value="tamara">
+                        <img src="https://cdn.tamara.co/logo.svg" class="logo-img" alt="tamara">
+                        <div>Tamara</div>
                     </label>
                 </div>
 
                 <div class="installment-options" id="installmentOptions">
-                    <h4>اختر قيمة الدفعة الأولى *</h4>
+                    <h4 id="installmentTitle">اختر قيمة الدفعة الأولى *</h4>
                     <div class="down-payment-options" id="downPaymentOptions"></div>
                     
-                    <h4 style="margin-top:20px;">اختر القسط الشهري *</h4>
-                    <div class="down-payment-options" id="monthlyPaymentOptions"></div>
-                    
-                    <h4 style="margin-top:20px;">عدد الشهور (يُحسب تلقائياً)</h4>
-                    <select class="months-select" id="monthsSelect" onchange="calculateInstallments()">
-                        <option value="">-- يُحسب تلقائياً --</option>
-                    </select>
+                    <div id="monthsSection">
+                        <h4 style="margin-top:20px;">اختر عدد الأشهر *</h4>
+                        <select class="months-select" id="monthsSelect" onchange="calculateInstallments()">
+                            <option value="">-- اختر عدد الأشهر --</option>
+                        </select>
+                    </div>
+
+                    <div class="monthly-calc" id="monthlyCalc" style="display:none;">
+                        <p>القسط الشهري:</p>
+                        <div class="amount" id="monthlyAmount">0 د.إ</div>
+                    </div>
 
                     <div id="installmentTable"></div>
                 </div>
@@ -133,7 +150,7 @@
 
             <div class="total-box">
                 <div>المجموع الكلي</div>
-                <div class="amount" id="totalAmount">0 ر.س</div>
+                <div class="amount" id="totalAmount">0 د.إ</div>
             </div>
 
             <button class="btn-proceed" onclick="proceedToPayment()">متابعة الشراء →</button>
@@ -141,7 +158,7 @@
         </div>
     </div>
 
-    <a href="https://wa.me/972592152484" class="whatsapp-float" target="_blank"><i class="fab fa-whatsapp"></i></a>
+    <a href="https://wa.me/971592152484" class="whatsapp-float" target="_blank"><i class="fab fa-whatsapp"></i></a>
 
     <script type="module" src="cart.js"></script>
 </body>
