@@ -5,14 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة التحكم</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { font-family: 'Tajawal', sans-serif; background: #f5f5f5; margin: 0; }
         header { background: white; padding: 15px 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 24px; font-weight: bold; color: #e63946; }
+        .logo img { height: 40px; object-fit: contain; }
         .container { max-width: 900px; margin: 30px auto; padding: 25px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .tab { padding: 10px 20px; background: #eee; border: none; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; }
-        .tab.active { background: #e63946; color: white; }
+        .tab { padding: 10px 20px; background: #eee; border: none; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; transition: 0.3s; }
+        .tab.active { background: var(--primary-color, #D4AF37); color: white; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .form-group { margin-bottom: 15px; }
@@ -24,23 +25,29 @@
         .btn:hover { background: #218838; }
         .btn-edit { background: #ffc107; color: #000; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-family: 'Tajawal'; margin-left: 5px; }
         .btn-delete { background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-family: 'Tajawal'; }
-        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; background: #f9f9f9; margin-bottom: 8px; border-radius: 6px; }
+        .btn-toggle { background: #17a2b8; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-family: 'Tajawal'; margin-left: 5px; }
+        .btn-toggle.inactive { background: #6c757d; }
+        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; background: #f9f9f9; margin-bottom: 8px; border-radius: 6px; flex-wrap: wrap; gap: 10px; }
         .login-msg { text-align: center; padding: 50px; }
         h2 { margin-top: 0; color: #333; }
         .section-title { font-size: 18px; margin-top: 30px; padding-top: 20px; border-top: 2px solid #eee; }
-        .banner-preview { width: 100px; height: 50px; object-fit: cover; border-radius: 4px; }
+        .banner-preview { width: 120px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; }
+        .banner-info { flex: 1; min-width: 200px; }
+        .banner-info small { color: #666; display: block; margin-top: 4px; }
     </style>
 </head>
 <body>
     <header>
-        <div class="logo">لوحة التحكم</div>
-        <a href="index.html" style="color: #666; text-decoration: none;">← العودة للمتجر</a>
+        <div class="logo">
+            <img src="https://s.sdgcdn.com/7/2026/04/SharafDG-Logo-AR-1.svg" alt="Sharaf DG">
+        </div>
+        <a href="index.html" style="color: #666; text-decoration: none; font-family: 'Tajawal'; font-weight: bold;">← العودة للمتجر</a>
     </header>
 
     <div id="loginMsg" class="container login-msg" style="display:none;">
         <h2>⚠️ يجب تسجيل الدخول</h2>
         <p>هذه الصفحة للمديرين فقط</p>
-        <a href="login.html" class="btn" style="display:inline-block; width:auto; margin-top:20px;">تسجيل الدخول</a>
+        <a href="login.html" class="btn" style="display:inline-block; width:auto; margin-top:20px; text-decoration:none;">تسجيل الدخول</a>
     </div>
 
     <div id="adminContent" class="container" style="display:none;">
@@ -59,7 +66,7 @@
                 <div class="form-group"><label>اسم المنتج *</label><input type="text" id="pName" required></div>
                 <div class="form-group"><label>رابط الصورة (URL) *</label><input type="url" id="pImage" required></div>
                 <div class="form-group"><label>القسم / التصنيف *</label><select id="pCategory" required><option value="">-- اختر القسم --</option></select></div>
-                <div class="form-group"><label>السعر الجديد (ريال) *</label><input type="number" id="pPrice" required></div>
+                <div class="form-group"><label>السعر الجديد (د.إ) *</label><input type="number" id="pPrice" required></div>
                 <div class="form-group"><label>السعر القديم قبل الخصم (اختياري)</label><input type="number" id="pOldPrice"></div>
                 
                 <div class="checkbox-group">
@@ -89,11 +96,19 @@
             <div id="categoriesList"></div>
         </div>
 
-        <!-- تبويب البنرات -->
+        <!-- تبويب البنرات (محدث) -->
         <div id="banners-tab" class="tab-content">
-            <h2>إضافة بنر جديد</h2>
+            <h2>إضافة بنر / إعلان جديد</h2>
             <form id="bannerForm">
-                <div class="form-group"><label>رابط صورة البنر (URL) *</label><input type="url" id="bImageUrl" required></div>
+                <div class="form-group">
+                    <label>نوع البنر *</label>
+                    <select id="bType" required>
+                        <option value="carousel">شريط الصور المتحرك (Carousel)</option>
+                        <option value="top">الشريط الإعلاني العلوي الثابت</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>رابط صورة البنر (URL) *</label><input type="url" id="bImageUrl" required placeholder="https://..."></div>
+                <div class="form-group"><label>رابط الوجهة عند الضغط (اختياري)</label><input type="url" id="bLink" placeholder="https://... (اتركه فارغاً إذا لا يوجد رابط)"></div>
                 <div class="checkbox-group">
                     <input type="checkbox" id="bIsActive" checked>
                     <label for="bIsActive">تفعيل البنر (إظهاره في المتجر)</label>
