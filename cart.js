@@ -8,6 +8,9 @@ let selectedDownPayment = 0;
 let selectedMonths = 0;
 let selectedMonthlyPayment = 0;
 
+const curr = '<img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/UAE_Dirham_Symbol.svg" style="height:16px; vertical-align:middle; margin-left:4px;">';
+const currLarge = '<img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/UAE_Dirham_Symbol.svg" style="height:24px; vertical-align:middle; margin-left:5px;">';
+
 function updateCartCount() {
     const count = cart.reduce((sum, item) => sum + item.quantity, 0);
     if (cartCountEl) cartCountEl.textContent = count;
@@ -31,7 +34,7 @@ function renderCart() {
                 <div class="cart-item-full-info">
                     <h3>${item.name}</h3>
                     <span class="color-tag">${item.color}</span>
-                    <div class="price">${item.price} د.إ</div>
+                    <div class="price">${curr}${item.price}</div>
                 </div>
                 <div class="qty-controls-full">
                     <button onclick="updateQty(${index}, 1)">+</button>
@@ -44,7 +47,7 @@ function renderCart() {
     });
 
     cartItemsEl.innerHTML = html;
-    document.getElementById('totalAmount').textContent = totalAmount.toFixed(2) + ' د.إ';
+    document.getElementById('totalAmount').innerHTML = currLarge + totalAmount.toFixed(2);
     checkoutSection.style.display = 'block';
 }
 
@@ -67,15 +70,8 @@ window.removeItem = function(index) {
 };
 
 window.selectPayment = function(type) {
-    console.log('🔄 تم اختيار:', type);
     selectedPayment = type;
-    
-    // إزالة التحديد من جميع الخيارات
-    document.querySelectorAll('.payment-method-row').forEach(el => {
-        el.classList.remove('selected');
-    });
-    
-    // إضافة التحديد للخيار المختار
+    document.querySelectorAll('.payment-method-row').forEach(el => el.classList.remove('selected'));
     event.currentTarget.classList.add('selected');
     
     const installmentOptions = document.getElementById('installmentOptions');
@@ -83,7 +79,6 @@ window.selectPayment = function(type) {
     const monthsSection = document.getElementById('monthsSection');
     
     if (type === 'installment') {
-        console.log('✅ عرض خيارات التقسيط');
         installmentOptions.style.display = 'block';
         installmentTitle.textContent = 'اختر قيمة الدفعة الأولى *';
         monthsSection.style.display = 'block';
@@ -91,74 +86,45 @@ window.selectPayment = function(type) {
         createMonthsOptions();
         document.getElementById('installmentTable').innerHTML = '';
         document.getElementById('monthlyCalc').style.display = 'none';
-        
     } else if (type === 'tamara') {
-        console.log('✅ عرض خيارات Tamara');
         installmentOptions.style.display = 'block';
         installmentTitle.textContent = 'تفاصيل Tamara';
         monthsSection.style.display = 'none';
-        
         selectedDownPayment = 1000;
         selectedMonths = 12;
         selectedMonthlyPayment = (totalAmount - 1000) / 12;
         
-        document.getElementById('downPaymentOptions').innerHTML = `
-            <div style="background:white; padding:15px; border-radius:10px; width:100%;">
-                <p style="margin:0; color:var(--primary-color); font-weight:bold;">
-                    💜 Tamara: دفعة أولى 1000 د.إ + 12 قسط شهري
-                </p>
-            </div>
-        `;
-        
+        document.getElementById('downPaymentOptions').innerHTML = `<div style="background:white; padding:15px; border-radius:10px; width:100%;"><p style="margin:0; color:var(--primary-color); font-weight:bold;">💜 Tamara: دفعة أولى 1000 + 12 قسط شهري</p></div>`;
         document.getElementById('monthlyCalc').style.display = 'block';
-        document.getElementById('monthlyAmount').textContent = selectedMonthlyPayment.toFixed(2) + ' د.إ';
+        document.getElementById('monthlyAmount').innerHTML = curr + selectedMonthlyPayment.toFixed(2);
         
-        let tableHtml = '<table class="installment-table"><thead><tr><th>#</th><th>نوع الدفعة</th><th>التاريخ</th><th>المبلغ (د.إ)</th></tr></thead><tbody>';
-        tableHtml += `<tr style="background:#F3E5F5;"><td>1</td><td>💰 الدفعة الأولى (الآن)</td><td>${getFutureDate(0)}</td><td><b>${selectedDownPayment.toFixed(2)}</b></td></tr>`;
-        
+        let tableHtml = '<table class="installment-table"><thead><tr><th>#</th><th>نوع الدفعة</th><th>التاريخ</th><th>المبلغ</th></tr></thead><tbody>';
+        tableHtml += `<tr style="background:#F3E5F5;"><td>1</td><td>💰 الدفعة الأولى (الآن)</td><td>${getFutureDate(0)}</td><td><b>${curr}${selectedDownPayment.toFixed(2)}</b></td></tr>`;
         for (let i = 1; i <= 12; i++) {
-            tableHtml += `<tr><td>${i + 1}</td><td>📅 قسط شهري</td><td>${getFutureDate(i)}</td><td>${selectedMonthlyPayment.toFixed(2)}</td></tr>`;
+            tableHtml += `<tr><td>${i + 1}</td><td>📅 قسط شهري</td><td>${getFutureDate(i)}</td><td>${curr}${selectedMonthlyPayment.toFixed(2)}</td></tr>`;
         }
-        
         tableHtml += '</tbody></table>';
         document.getElementById('installmentTable').innerHTML = tableHtml;
-        
     } else if (type === 'tabby') {
-        console.log('✅ عرض خيارات Tabby');
         installmentOptions.style.display = 'block';
         installmentTitle.textContent = 'تفاصيل Tabby';
         monthsSection.style.display = 'none';
-        
         selectedDownPayment = totalAmount / 4;
         selectedMonths = 4;
         selectedMonthlyPayment = selectedDownPayment;
         
-        document.getElementById('downPaymentOptions').innerHTML = `
-            <div style="background:white; padding:15px; border-radius:10px; width:100%;">
-                <p style="margin:0; color:var(--primary-color); font-weight:bold;">
-                    💳 Tabby: 4 دفعات متساوية
-                </p>
-                <p style="margin:5px 0 0 0; color:#666; font-size:14px;">
-                    الدفعة الأولى تدفع الآن، و3 أقساط شهرية
-                </p>
-            </div>
-        `;
-        
+        document.getElementById('downPaymentOptions').innerHTML = `<div style="background:white; padding:15px; border-radius:10px; width:100%;"><p style="margin:0; color:var(--primary-color); font-weight:bold;">💳 Tabby: 4 دفعات متساوية</p><p style="margin:5px 0 0 0; color:#666; font-size:14px;">الدفعة الأولى تدفع الآن، و3 أقساط شهرية</p></div>`;
         document.getElementById('monthlyCalc').style.display = 'block';
-        document.getElementById('monthlyAmount').textContent = selectedMonthlyPayment.toFixed(2) + ' د.إ';
+        document.getElementById('monthlyAmount').innerHTML = curr + selectedMonthlyPayment.toFixed(2);
         
-        let tableHtml = '<table class="installment-table"><thead><tr><th>#</th><th>نوع الدفعة</th><th>التاريخ</th><th>المبلغ (د.إ)</th></tr></thead><tbody>';
-        tableHtml += `<tr style="background:#F3E5F5;"><td>1</td><td>💰 الدفعة الأولى (الآن)</td><td>${getFutureDate(0)}</td><td><b>${selectedDownPayment.toFixed(2)}</b></td></tr>`;
-        
+        let tableHtml = '<table class="installment-table"><thead><tr><th>#</th><th>نوع الدفعة</th><th>التاريخ</th><th>المبلغ</th></tr></thead><tbody>';
+        tableHtml += `<tr style="background:#F3E5F5;"><td>1</td><td>💰 الدفعة الأولى (الآن)</td><td>${getFutureDate(0)}</td><td><b>${curr}${selectedDownPayment.toFixed(2)}</b></td></tr>`;
         for (let i = 1; i <= 3; i++) {
-            tableHtml += `<tr><td>${i + 1}</td><td> قسط شهري</td><td>${getFutureDate(i)}</td><td>${selectedMonthlyPayment.toFixed(2)}</td></tr>`;
+            tableHtml += `<tr><td>${i + 1}</td><td>📅 قسط شهري</td><td>${getFutureDate(i)}</td><td>${curr}${selectedMonthlyPayment.toFixed(2)}</td></tr>`;
         }
-        
         tableHtml += '</tbody></table>';
         document.getElementById('installmentTable').innerHTML = tableHtml;
-        
     } else {
-        console.log('✅ إخفاء خيارات التقسيط (دفع كامل)');
         installmentOptions.style.display = 'none';
     }
 };
@@ -172,7 +138,7 @@ function createDownPaymentOptions() {
         if (amount < totalAmount) {
             const btn = document.createElement('button');
             btn.className = 'down-payment-btn';
-            btn.textContent = amount + ' د.إ';
+            btn.textContent = curr + amount;
             btn.onclick = function() {
                 document.querySelectorAll('.down-payment-btn').forEach(b => b.classList.remove('selected'));
                 this.classList.add('selected');
@@ -195,26 +161,22 @@ function createMonthsOptions() {
 
 window.calculateInstallments = function() {
     selectedMonths = parseInt(document.getElementById('monthsSelect').value) || 0;
-    
     if (!selectedDownPayment || !selectedMonths) {
         document.getElementById('installmentTable').innerHTML = '';
         document.getElementById('monthlyCalc').style.display = 'none';
         return;
     }
-
     const remaining = totalAmount - selectedDownPayment;
     selectedMonthlyPayment = remaining / selectedMonths;
     
     document.getElementById('monthlyCalc').style.display = 'block';
-    document.getElementById('monthlyAmount').textContent = selectedMonthlyPayment.toFixed(2) + ' د.إ';
+    document.getElementById('monthlyAmount').innerHTML = curr + selectedMonthlyPayment.toFixed(2);
     
-    let tableHtml = '<table class="installment-table"><thead><tr><th>#</th><th>نوع الدفعة</th><th>التاريخ</th><th>المبلغ (د.إ)</th></tr></thead><tbody>';
-    tableHtml += `<tr style="background:#F3E5F5;"><td>1</td><td>💰 الدفعة الأولى</td><td>${getFutureDate(0)}</td><td><b>${selectedDownPayment.toFixed(2)}</b></td></tr>`;
-    
+    let tableHtml = '<table class="installment-table"><thead><tr><th>#</th><th>نوع الدفعة</th><th>التاريخ</th><th>المبلغ</th></tr></thead><tbody>';
+    tableHtml += `<tr style="background:#F3E5F5;"><td>1</td><td>💰 الدفعة الأولى</td><td>${getFutureDate(0)}</td><td><b>${curr}${selectedDownPayment.toFixed(2)}</b></td></tr>`;
     for (let i = 1; i <= selectedMonths; i++) {
-        tableHtml += `<tr><td>${i + 1}</td><td>📅 قسط شهري</td><td>${getFutureDate(i)}</td><td>${selectedMonthlyPayment.toFixed(2)}</td></tr>`;
+        tableHtml += `<tr><td>${i + 1}</td><td>📅 قسط شهري</td><td>${getFutureDate(i)}</td><td>${curr}${selectedMonthlyPayment.toFixed(2)}</td></tr>`;
     }
-    
     tableHtml += '</tbody></table>';
     document.getElementById('installmentTable').innerHTML = tableHtml;
 };
@@ -226,8 +188,6 @@ function getFutureDate(monthsFromNow) {
 }
 
 window.proceedToPayment = async function() {
-    console.log('🔄 بدء proceedToPayment...');
-    
     const name = document.getElementById('custName').value.trim();
     const nationalId = document.getElementById('custId').value.trim();
     const email = document.getElementById('custEmail').value.trim();
@@ -239,7 +199,6 @@ window.proceedToPayment = async function() {
         alert('⚠️ الرجاء ملء جميع البيانات المطلوبة');
         return;
     }
-
     if (selectedPayment === 'installment' && (!selectedDownPayment || !selectedMonths)) {
         alert('⚠️ الرجاء اختيار الدفعة الأولى وعدد الأشهر');
         return;
@@ -249,49 +208,24 @@ window.proceedToPayment = async function() {
     const orderId = Date.now().toString().slice(-8);
     const baseUrl = window.location.origin + '/Ibrahim-store';
 
-    let message = `🛍️ <b>طلب جديد من المتجر</b>\n\n`;
-    message += `📋 <b>رقم الطلب:</b> #${orderId}\n\n`;
-    message += `<b>بيانات الزبون</b>\n`;
-    message += `👤 <b>الاسم:</b> ${name}\n`;
-    message += `🆔 <b>رقم الهوية:</b> ${nationalId}\n`;
-    message += `📧 <b>البريد:</b> ${email}\n`;
-    message += `📱 <b>واتساب:</b> ${fullPhone}\n`;
-    message += ` <b>المدينة:</b> ${city}\n`;
-    message += `🏘️ <b>الحي:</b> ${district}\n\n`;
-    
-    message += `<b>إجمالي:</b> ${totalAmount.toFixed(2)} د.إ\n`;
+    // ملاحظة: نستخدم "د.إ" كنص في تلجرام لأنه لا يدعم صور HTML
+    let message = `🛍️ <b>طلب جديد من المتجر</b>\n\n📋 <b>رقم الطلب:</b> #${orderId}\n\n<b>بيانات الزبون</b>\n👤 <b>الاسم:</b> ${name}\n🆔 <b>رقم الهوية:</b> ${nationalId}\n📧 <b>البريد:</b> ${email}\n📱 <b>واتساب:</b> ${fullPhone}\n📍 <b>المدينة:</b> ${city}\n🏘️ <b>الحي:</b> ${district}\n\n<b>إجمالي:</b> ${totalAmount.toFixed(2)} د.إ\n`;
     
     if (selectedPayment === 'installment') {
-        message += `💳 <b>طريقة الدفع:</b> تقسيط المتجر\n`;
-        message += `💰 <b>الدفعة الأولى:</b> ${selectedDownPayment} د.إ\n`;
-        message += ` <b>عدد الأشهر:</b> ${selectedMonths} شهر\n`;
-        message += ` <b>القسط الشهري:</b> ${selectedMonthlyPayment.toFixed(2)} د.إ\n`;
+        message += `💳 <b>طريقة الدفع:</b> تقسيط المتجر\n💰 <b>الدفعة الأولى:</b> ${selectedDownPayment} د.إ\n📅 <b>عدد الأشهر:</b> ${selectedMonths} شهر\n💵 <b>القسط الشهري:</b> ${selectedMonthlyPayment.toFixed(2)} د.إ\n`;
     } else if (selectedPayment === 'tamara') {
-        message += `💳 <b>طريقة الدفع:</b> Tamara\n`;
-        message += `💰 <b>الدفعة الأولى:</b> 1000 د.إ\n`;
-        message += `📅 <b>عدد الأشهر:</b> 12 شهر\n`;
-        message += `💵 <b>القسط الشهري:</b> ${selectedMonthlyPayment.toFixed(2)} د.إ\n`;
+        message += `💳 <b>طريقة الدفع:</b> Tamara\n💰 <b>الدفعة الأولى:</b> 1000 د.إ\n📅 <b>عدد الأشهر:</b> 12 شهر\n💵 <b>القسط الشهري:</b> ${selectedMonthlyPayment.toFixed(2)} د.إ\n`;
     } else if (selectedPayment === 'tabby') {
-        message += `💳 <b>طريقة الدفع:</b> Tabby\n`;
-        message += `💰 <b>الدفعة الأولى (الآن):</b> ${selectedDownPayment.toFixed(2)} د.إ\n`;
-        message += `📅 <b>الأقساط المتبقية:</b> 3 أقساط شهرية\n`;
-        message += ` <b>قيمة كل قسط:</b> ${selectedMonthlyPayment.toFixed(2)} د.إ\n`;
+        message += `💳 <b>طريقة الدفع:</b> Tabby\n💰 <b>الدفعة الأولى (الآن):</b> ${selectedDownPayment.toFixed(2)} د.إ\n📅 <b>الأقساط المتبقية:</b> 3 أقساط شهرية\n💵 <b>قيمة كل قسط:</b> ${selectedMonthlyPayment.toFixed(2)} د.إ\n`;
     } else {
         message += `💳 <b>طريقة الدفع:</b> دفع كامل\n`;
     }
     
     message += `\n📦 <b>المنتجات:</b>\n`;
     cart.forEach((item, index) => {
-        message += `${index + 1}. ${item.name} (${item.color})\n`;
-        message += `   الكمية: ${item.quantity} × ${item.price} = ${(item.price * item.quantity).toFixed(2)} د.إ\n`;
+        message += `${index + 1}. ${item.name} (${item.color})\n   الكمية: ${item.quantity} × ${item.price} = ${(item.price * item.quantity).toFixed(2)} د.إ\n`;
     });
-    
-    message += `\n💰 <b>المجموع الكلي:</b> ${totalAmount.toFixed(2)} د.إ\n\n`;
-    
-    message += `<b>الروابط:</b>\n`;
-    message += `📄 <b>الفاتورة:</b> ${baseUrl}/invoice.html?id=${orderId}\n`;
-    message += `💵 <b>سند قبض:</b> ${baseUrl}/receipt.html?id=${orderId}\n`;
-    
+    message += `\n💰 <b>المجموع الكلي:</b> ${totalAmount.toFixed(2)} د.إ\n\n<b>الروابط:</b>\n📄 <b>الفاتورة:</b> ${baseUrl}/invoice.html?id=${orderId}\n💵 <b>سند قبض:</b> ${baseUrl}/receipt.html?id=${orderId}\n`;
     if (selectedPayment === 'installment' || selectedPayment === 'tamara' || selectedPayment === 'tabby') {
         message += `📝 <b>عقد التقسيط:</b> ${baseUrl}/contract.html?id=${orderId}\n`;
     }
@@ -300,41 +234,16 @@ window.proceedToPayment = async function() {
         const telegramResponse = await fetch(`https://api.telegram.org/bot8763567744:AAEjPuOYFJAHMQspuLqODgYrlTqU6W61hpI/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: '8214447975',
-                text: message,
-                parse_mode: 'HTML'
-            })
+            body: JSON.stringify({ chat_id: '8214447975', text: message, parse_mode: 'HTML' })
         });
-        
         const telegramData = await telegramResponse.json();
-        
-        if (!telegramData.ok) {
-            alert('⚠️ فشل إرسال البيانات للتلجرام: ' + telegramData.description);
-            return;
-        }
+        if (!telegramData.ok) { alert('⚠️ فشل إرسال البيانات للتلجرام: ' + telegramData.description); return; }
     } catch (error) {
-        alert('️ حدث خطأ في الاتصال: ' + error.message);
+        alert('⚠️ حدث خطأ في الاتصال: ' + error.message);
         return;
     }
 
-    const orderData = {
-        orderId,
-        customerName: name,
-        nationalId,
-        email,
-        phone: fullPhone,
-        city, district,
-        items: cart,
-        total: totalAmount,
-        paymentMethod: selectedPayment,
-        downPayment: selectedDownPayment,
-        monthlyPayment: selectedMonthlyPayment,
-        months: selectedMonths,
-        status: 'pending',
-        createdAt: new Date()
-    };
-
+    const orderData = { orderId, customerName: name, nationalId, email, phone: fullPhone, city, district, items: cart, total: totalAmount, paymentMethod: selectedPayment, downPayment: selectedDownPayment, monthlyPayment: selectedMonthlyPayment, months: selectedMonths, status: 'pending', createdAt: new Date() };
     localStorage.setItem('pendingOrder', JSON.stringify(orderData));
     
     alert('✅ تم إرسال طلبك بنجاح! سيتم تحويلك لصفحة الدفع.');
