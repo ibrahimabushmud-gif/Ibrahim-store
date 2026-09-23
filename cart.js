@@ -8,54 +8,6 @@ let selectedDownPayment = 0;
 let selectedMonths = 0;
 let selectedMonthlyPayment = 0;
 
-// قائمة الدول
-const countriesList = [
-    { name: 'فلسطين', dial: '+970' },
-    { name: 'السعودية', dial: '+966' },
-    { name: 'الإمارات', dial: '+971' },
-    { name: 'الكويت', dial: '+965' },
-    { name: 'قطر', dial: '+974' },
-    { name: 'البحرين', dial: '+973' },
-    { name: 'عُمان', dial: '+968' },
-    { name: 'الأردن', dial: '+962' },
-    { name: 'مصر', dial: '+20' },
-    { name: 'العراق', dial: '+964' },
-    { name: 'لبنان', dial: '+961' },
-    { name: 'سوريا', dial: '+963' },
-    { name: 'اليمن', dial: '+967' },
-    { name: 'ليبيا', dial: '+218' },
-    { name: 'تونس', dial: '+216' },
-    { name: 'الجزائر', dial: '+213' },
-    { name: 'المغرب', dial: '+212' },
-    { name: 'السودان', dial: '+249' },
-    { name: 'الولايات المتحدة', dial: '+1' },
-    { name: 'بريطانيا', dial: '+44' },
-    { name: 'تركيا', dial: '+90' }
-];
-
-// ملء قائمة الدول
-function populateCountries() {
-    const select = document.getElementById('custCountry');
-    if (!select) return;
-    
-    countriesList.forEach(country => {
-        const option = document.createElement('option');
-        option.value = country.dial;
-        option.textContent = `${country.name} (${country.dial})`;
-        select.appendChild(option);
-    });
-    
-    select.value = '+970';
-}
-
-window.updatePhonePrefix = function() {
-    const select = document.getElementById('custCountry');
-    const prefixInput = document.getElementById('phonePrefix');
-    if (select && prefixInput) {
-        prefixInput.value = select.value;
-    }
-};
-
 function updateCartCount() {
     const count = cart.reduce((sum, item) => sum + item.quantity, 0);
     if (cartCountEl) cartCountEl.textContent = count;
@@ -97,7 +49,6 @@ function renderCart() {
     
     createDownPaymentOptions();
     createMonthsOptions();
-    createMonthlyPaymentOptions();
 }
 
 window.updateQty = function(index, delta) {
@@ -122,7 +73,90 @@ window.selectPayment = function(type) {
     selectedPayment = type;
     document.querySelectorAll('.payment-method').forEach(el => el.classList.remove('selected'));
     event.currentTarget.classList.add('selected');
-    document.getElementById('installmentOptions').classList.toggle('show', type === 'installment');
+    
+    const installmentOptions = document.getElementById('installmentOptions');
+    const installmentTitle = document.getElementById('installmentTitle');
+    const monthsSection = document.getElementById('monthsSection');
+    
+    if (type === 'installment') {
+        // تقسيط المتجر - الخيارات كاملة
+        installmentOptions.classList.add('show');
+        installmentTitle.textContent = 'اختر قيمة الدفعة الأولى *';
+        monthsSection.style.display = 'block';
+        createDownPaymentOptions();
+        createMonthsOptions();
+        document.getElementById('installmentTable').innerHTML = '';
+        document.getElementById('monthlyCalc').style.display = 'none';
+        
+    } else if (type === 'tamara') {
+        // Tamara - دفعة أولى 1000 + 12 شهر
+        installmentOptions.classList.add('show');
+        installmentTitle.textContent = 'تفاصيل Tamara';
+        monthsSection.style.display = 'none';
+        
+        selectedDownPayment = 1000;
+        selectedMonths = 12;
+        selectedMonthlyPayment = (totalAmount - 1000) / 12;
+        
+        document.getElementById('downPaymentOptions').innerHTML = `
+            <div style="background:white; padding:15px; border-radius:10px; width:100%;">
+                <p style="margin:0; color:var(--primary-color); font-weight:bold;">
+                     Tamara: دفعة أولى 1000 د.إ + 12 قسط شهري
+                </p>
+            </div>
+        `;
+        
+        document.getElementById('monthlyCalc').style.display = 'block';
+        document.getElementById('monthlyAmount').textContent = selectedMonthlyPayment.toFixed(2) + ' د.إ';
+        
+        let tableHtml = '<table class="installment-table"><thead><tr><th>#</th><th>نوع الدفعة</th><th>التاريخ</th><th>المبلغ (د.إ)</th></tr></thead><tbody>';
+        tableHtml += `<tr style="background:#F3E5F5;"><td>1</td><td>💰 الدفعة الأولى (الآن)</td><td>${getFutureDate(0)}</td><td><b>${selectedDownPayment.toFixed(2)}</b></td></tr>`;
+        
+        for (let i = 1; i <= 12; i++) {
+            tableHtml += `<tr><td>${i + 1}</td><td>📅 قسط شهري</td><td>${getFutureDate(i)}</td><td>${selectedMonthlyPayment.toFixed(2)}</td></tr>`;
+        }
+        
+        tableHtml += '</tbody></table>';
+        document.getElementById('installmentTable').innerHTML = tableHtml;
+        
+    } else if (type === 'tabby') {
+        // Tabby - 4 دفعات متساوية
+        installmentOptions.classList.add('show');
+        installmentTitle.textContent = 'تفاصيل Tabby';
+        monthsSection.style.display = 'none';
+        
+        selectedDownPayment = totalAmount / 4;
+        selectedMonths = 4;
+        selectedMonthlyPayment = selectedDownPayment;
+        
+        document.getElementById('downPaymentOptions').innerHTML = `
+            <div style="background:white; padding:15px; border-radius:10px; width:100%;">
+                <p style="margin:0; color:var(--primary-color); font-weight:bold;">
+                    💳 Tabby: 4 دفعات متساوية
+                </p>
+                <p style="margin:5px 0 0 0; color:#666; font-size:14px;">
+                    الدفعة الأولى تدفع الآن، و3 أقساط شهرية
+                </p>
+            </div>
+        `;
+        
+        document.getElementById('monthlyCalc').style.display = 'block';
+        document.getElementById('monthlyAmount').textContent = selectedMonthlyPayment.toFixed(2) + ' د.إ';
+        
+        let tableHtml = '<table class="installment-table"><thead><tr><th>#</th><th>نوع الدفعة</th><th>التاريخ</th><th>المبلغ (د.إ)</th></tr></thead><tbody>';
+        tableHtml += `<tr style="background:#F3E5F5;"><td>1</td><td>💰 الدفعة الأولى (الآن)</td><td>${getFutureDate(0)}</td><td><b>${selectedDownPayment.toFixed(2)}</b></td></tr>`;
+        
+        for (let i = 1; i <= 3; i++) {
+            tableHtml += `<tr><td>${i + 1}</td><td>📅 قسط شهري</td><td>${getFutureDate(i)}</td><td>${selectedMonthlyPayment.toFixed(2)}</td></tr>`;
+        }
+        
+        tableHtml += '</tbody></table>';
+        document.getElementById('installmentTable').innerHTML = tableHtml;
+        
+    } else {
+        // دفع كامل
+        installmentOptions.classList.remove('show');
+    }
 };
 
 function createDownPaymentOptions() {
@@ -149,80 +183,32 @@ function createDownPaymentOptions() {
 function createMonthsOptions() {
     const select = document.getElementById('monthsSelect');
     if (!select) return;
-    select.innerHTML = '<option value="">-- يُحسب تلقائياً --</option>';
-    for (let i = 1; i <= 24; i++) {
+    select.innerHTML = '<option value="">-- اختر عدد الأشهر --</option>';
+    for (let i = 3; i <= 24; i++) {
         select.innerHTML += `<option value="${i}">${i} شهر</option>`;
     }
 }
 
-function createMonthlyPaymentOptions() {
-    const container = document.getElementById('monthlyPaymentOptions');
-    if (!container) return;
-    container.innerHTML = '';
-    
-    const remaining = totalAmount - selectedDownPayment;
-    if (remaining <= 0) return;
-    
-    const baseMonthly = remaining / 12;
-    const options = [baseMonthly * 0.5, baseMonthly * 0.75, baseMonthly, baseMonthly * 1.5, baseMonthly * 2];
-    
-    options.forEach(amount => {
-        if (amount > 0 && amount < remaining) {
-            const btn = document.createElement('button');
-            btn.className = 'monthly-payment-btn';
-            btn.textContent = Math.round(amount) + ' د.إ/شهر';
-            btn.onclick = function() {
-                document.querySelectorAll('.monthly-payment-btn').forEach(b => b.classList.remove('selected'));
-                this.classList.add('selected');
-                selectedMonthlyPayment = Math.round(amount);
-                calculateInstallments();
-            };
-            container.appendChild(btn);
-        }
-    });
-    
-    const customInput = document.createElement('div');
-    customInput.style.marginTop = '15px';
-    customInput.innerHTML = `
-        <label style="display:block; margin-bottom:8px; font-weight:bold;">أو أدخل قيمة مخصصة:</label>
-        <input type="number" id="customMonthlyPayment" placeholder="أدخل قيمة القسط الشهري" 
-               style="width:100%; padding:12px; border:2px solid var(--primary-color); border-radius:10px; font-family:Tajawal; font-size:16px;"
-               oninput="setCustomMonthlyPayment(this.value)">
-    `;
-    container.appendChild(customInput);
-}
-
-window.setCustomMonthlyPayment = function(value) {
-    selectedMonthlyPayment = parseFloat(value) || 0;
-    document.querySelectorAll('.monthly-payment-btn').forEach(b => b.classList.remove('selected'));
-    calculateInstallments();
-};
-
 window.calculateInstallments = function() {
     selectedMonths = parseInt(document.getElementById('monthsSelect').value) || 0;
     
-    if (!selectedDownPayment || (!selectedMonths && !selectedMonthlyPayment)) {
+    if (!selectedDownPayment || !selectedMonths) {
         document.getElementById('installmentTable').innerHTML = '';
+        document.getElementById('monthlyCalc').style.display = 'none';
         return;
     }
 
     const remaining = totalAmount - selectedDownPayment;
+    selectedMonthlyPayment = remaining / selectedMonths;
     
-    if (selectedMonthlyPayment > 0) {
-        selectedMonths = Math.ceil(remaining / selectedMonthlyPayment);
-        document.getElementById('monthsSelect').value = selectedMonths;
-    } else if (selectedMonths > 0) {
-        selectedMonthlyPayment = remaining / selectedMonths;
-    }
+    document.getElementById('monthlyCalc').style.display = 'block';
+    document.getElementById('monthlyAmount').textContent = selectedMonthlyPayment.toFixed(2) + ' د.إ';
     
-    const monthlyPayment = selectedMonthlyPayment || (remaining / selectedMonths);
-    
-    let tableHtml = '<table class="installment-table"><thead><tr><th>#</th><th>تاريخ الدفعة</th><th>الدفعة (د.إ)</th></tr></thead><tbody>';
-    tableHtml += `<tr><td>1</td><td>${getFutureDate(0)}</td><td>${selectedDownPayment.toFixed(2)}</td></tr>`;
+    let tableHtml = '<table class="installment-table"><thead><tr><th>#</th><th>نوع الدفعة</th><th>التاريخ</th><th>المبلغ (د.إ)</th></tr></thead><tbody>';
+    tableHtml += `<tr style="background:#F3E5F5;"><td>1</td><td>💰 الدفعة الأولى</td><td>${getFutureDate(0)}</td><td><b>${selectedDownPayment.toFixed(2)}</b></td></tr>`;
     
     for (let i = 1; i <= selectedMonths; i++) {
-        const payment = (i === selectedMonths) ? (remaining - (monthlyPayment * (selectedMonths - 1))) : monthlyPayment;
-        tableHtml += `<tr><td>${i + 1}</td><td>${getFutureDate(i)}</td><td>${payment.toFixed(2)}</td></tr>`;
+        tableHtml += `<tr><td>${i + 1}</td><td>📅 قسط شهري</td><td>${getFutureDate(i)}</td><td>${selectedMonthlyPayment.toFixed(2)}</td></tr>`;
     }
     
     tableHtml += '</tbody></table>';
@@ -235,46 +221,38 @@ function getFutureDate(monthsFromNow) {
     return date.toLocaleDateString('ar-AE');
 }
 
-// ============ دالة متابعة الشراء (الإصدار النهائي) ============
 window.proceedToPayment = async function() {
     console.log('🔄 بدء proceedToPayment...');
     
     const name = document.getElementById('custName').value.trim();
+    const nationalId = document.getElementById('custId').value.trim();
+    const email = document.getElementById('custEmail').value.trim();
     const phone = document.getElementById('custPhone').value.trim();
     const city = document.getElementById('custCity').value.trim();
     const district = document.getElementById('custDistrict').value.trim();
-    const countrySelect = document.getElementById('custCountry');
-    const phonePrefix = document.getElementById('phonePrefix').value;
 
-    console.log('البيانات:', { name, phone, city, district, countrySelect: countrySelect?.value });
+    console.log('البيانات:', { name, nationalId, email, phone, city, district });
 
-    if (!countrySelect.value) {
-        alert('⚠️ الرجاء اختيار الدولة');
-        return;
-    }
-    if (!name || !phone || !city || !district) {
+    if (!name || !nationalId || !email || !phone || !city || !district) {
         alert('⚠️ الرجاء ملء جميع البيانات المطلوبة');
         return;
     }
 
-    if (selectedPayment === 'installment' && (!selectedDownPayment || !selectedMonthlyPayment)) {
-        alert('⚠️ الرجاء اختيار الدفعة الأولى والقسط الشهري');
+    if (selectedPayment === 'installment' && (!selectedDownPayment || !selectedMonths)) {
+        alert('⚠️ الرجاء اختيار الدفعة الأولى وعدد الأشهر');
         return;
     }
 
-    const fullPhone = phonePrefix + phone;
-    const countryName = countrySelect.options[countrySelect.selectedIndex].text;
+    const fullPhone = '+971' + phone;
     const orderId = Date.now().toString().slice(-8);
-    
-    // ✅ تعريف baseUrl مرة واحدة فقط هنا
     const baseUrl = window.location.origin + '/Ibrahim-store';
 
-    // بناء رسالة التلجرام
     let message = `🛍️ <b>طلب جديد من المتجر</b>\n\n`;
     message += `📋 <b>رقم الطلب:</b> #${orderId}\n\n`;
     message += `<b>بيانات الزبون</b>\n`;
     message += `👤 <b>الاسم:</b> ${name}\n`;
-    message += `🌍 <b>الدولة:</b> ${countryName}\n`;
+    message += `🆔 <b>رقم الهوية:</b> ${nationalId}\n`;
+    message += `📧 <b>البريد:</b> ${email}\n`;
     message += `📱 <b>واتساب:</b> ${fullPhone}\n`;
     message += ` <b>المدينة:</b> ${city}\n`;
     message += `🏘️ <b>الحي:</b> ${district}\n\n`;
@@ -284,7 +262,19 @@ window.proceedToPayment = async function() {
     if (selectedPayment === 'installment') {
         message += `💳 <b>طريقة الدفع:</b> تقسيط المتجر\n`;
         message += `💰 <b>الدفعة الأولى:</b> ${selectedDownPayment} د.إ\n`;
-        message += ` <b>التقسيط على:</b> [${selectedMonths}] شهر [${selectedMonthlyPayment}] د.إ\n`;
+        message += ` <b>عدد الأشهر:</b> ${selectedMonths} شهر\n`;
+        message += ` <b>القسط الشهري:</b> ${selectedMonthlyPayment.toFixed(2)} د.إ\n`;
+    } else if (selectedPayment === 'tamara') {
+        message += `💳 <b>طريقة الدفع:</b> Tamara\n`;
+        message += `💰 <b>الدفعة الأولى:</b> 1000 د.إ\n`;
+        message += `📅 <b>عدد الأشهر:</b> 12 شهر\n`;
+        message += `💵 <b>القسط الشهري:</b> ${selectedMonthlyPayment.toFixed(2)} د.إ\n`;
+    } else if (selectedPayment === 'tabby') {
+        message += `💳 <b>طريقة الدفع:</b> Tabby\n`;
+        message += ` <b>الدفعة الأولى (الآن):</b> ${selectedDownPayment.toFixed(2)} د.إ\n`;
+        message += `📅 <b>الأقساط المتبقية:</b> 3 أقساط شهرية\n`;
+        message += `💵 <b>قيمة كل قسط:</b> ${selectedMonthlyPayment.toFixed(2)} د.إ\n`;
+        message += `📊 <b>إجمالي الدفعات:</b> 4 دفعات متساوية\n`;
     } else {
         message += `💳 <b>طريقة الدفع:</b> دفع كامل\n`;
     }
@@ -297,18 +287,16 @@ window.proceedToPayment = async function() {
     
     message += `\n💰 <b>المجموع الكلي:</b> ${totalAmount.toFixed(2)} د.إ\n\n`;
     
-    // ✅ الروابط الصحيحة مع اسم المستودع
     message += `<b>الروابط:</b>\n`;
     message += `📄 <b>الفاتورة:</b> ${baseUrl}/invoice.html?id=${orderId}\n`;
     message += `💵 <b>سند قبض:</b> ${baseUrl}/receipt.html?id=${orderId}\n`;
     
-    if (selectedPayment === 'installment') {
-        message += `📝 <b>عقد التقسيط:</b> ${baseUrl}/contract.html?id=${orderId}\n`;
+    if (selectedPayment === 'installment' || selectedPayment === 'tamara' || selectedPayment === 'tabby') {
+        message += ` <b>عقد التقسيط:</b> ${baseUrl}/contract.html?id=${orderId}\n`;
     }
 
     console.log('📤 الرسالة:', message);
 
-    // إرسال للتلجرام
     try {
         const telegramResponse = await fetch(`https://api.telegram.org/bot8763567744:AAEjPuOYFJAHMQspuLqODgYrlTqU6W61hpI/sendMessage`, {
             method: 'POST',
@@ -330,15 +318,16 @@ window.proceedToPayment = async function() {
         }
     } catch (error) {
         console.error('❌ خطأ في الإرسال:', error);
-        alert('️ حدث خطأ في الاتصال: ' + error.message);
+        alert('⚠️ حدث خطأ في الاتصال: ' + error.message);
         return;
     }
 
     const orderData = {
         orderId,
         customerName: name,
+        nationalId,
+        email,
         phone: fullPhone,
-        country: countryName,
         city, district,
         items: cart,
         total: totalAmount,
@@ -356,8 +345,6 @@ window.proceedToPayment = async function() {
     window.location.href = 'payment.html';
 };
 
-// تشغيل
 console.log('✅ cart.js تم تحميله بنجاح');
 updateCartCount();
-populateCountries();
 renderCart();
