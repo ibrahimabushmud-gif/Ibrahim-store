@@ -1,16 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
 
 :root {
-    --primary-color: #6B2D8B;
-    --primary-dark: #4A1F61;
-    --primary-light: #9B59B6;
-    --accent-color: #F3E5F5;
-    --bg-color: #FAFAFA;
-    --text-color: #333;
-    --text-light: #666;
+    --primary-color: #D4AF37; /* أصفر غامق - ذهبي */
+    --primary-dark: #B8960C; /* أصفر أغمق */
+    --primary-light: #E5C158; /* أصفر فاتح */
+    --accent-color: #FFF9E6; /* خلفية صفراء فاتحة جداً */
+    --danger-color: #e74c3c;
     --success-color: #27AE60;
-    --danger-color: #E74C3C;
-    --whatsapp-color: #25D366;
+    --text-light: #7f8c8d;
+    --border-color: #ecf0f1;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
