@@ -138,7 +138,8 @@ function createDownPaymentOptions() {
         if (amount < totalAmount) {
             const btn = document.createElement('button');
             btn.className = 'down-payment-btn';
-            btn.textContent = curr + amount;
+            // استخدام innerHTML بدلاً من textContent لعرض الصورة
+            btn.innerHTML = curr + amount;
             btn.onclick = function() {
                 document.querySelectorAll('.down-payment-btn').forEach(b => b.classList.remove('selected'));
                 this.classList.add('selected');
