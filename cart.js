@@ -46,9 +46,6 @@ function renderCart() {
     cartItemsEl.innerHTML = html;
     document.getElementById('totalAmount').textContent = totalAmount.toFixed(2) + ' د.إ';
     checkoutSection.style.display = 'block';
-    
-    createDownPaymentOptions();
-    createMonthsOptions();
 }
 
 window.updateQty = function(index, delta) {
@@ -70,8 +67,15 @@ window.removeItem = function(index) {
 };
 
 window.selectPayment = function(type) {
+    console.log('🔄 تم اختيار:', type);
     selectedPayment = type;
-    document.querySelectorAll('.payment-method').forEach(el => el.classList.remove('selected'));
+    
+    // إزالة التحديد من جميع الخيارات
+    document.querySelectorAll('.payment-method-row').forEach(el => {
+        el.classList.remove('selected');
+    });
+    
+    // إضافة التحديد للخيار المختار
     event.currentTarget.classList.add('selected');
     
     const installmentOptions = document.getElementById('installmentOptions');
@@ -79,8 +83,8 @@ window.selectPayment = function(type) {
     const monthsSection = document.getElementById('monthsSection');
     
     if (type === 'installment') {
-        // تقسيط المتجر - الخيارات كاملة
-        installmentOptions.classList.add('show');
+        console.log('✅ عرض خيارات التقسيط');
+        installmentOptions.style.display = 'block';
         installmentTitle.textContent = 'اختر قيمة الدفعة الأولى *';
         monthsSection.style.display = 'block';
         createDownPaymentOptions();
@@ -89,8 +93,8 @@ window.selectPayment = function(type) {
         document.getElementById('monthlyCalc').style.display = 'none';
         
     } else if (type === 'tamara') {
-        // Tamara - دفعة أولى 1000 + 12 شهر
-        installmentOptions.classList.add('show');
+        console.log('✅ عرض خيارات Tamara');
+        installmentOptions.style.display = 'block';
         installmentTitle.textContent = 'تفاصيل Tamara';
         monthsSection.style.display = 'none';
         
@@ -101,7 +105,7 @@ window.selectPayment = function(type) {
         document.getElementById('downPaymentOptions').innerHTML = `
             <div style="background:white; padding:15px; border-radius:10px; width:100%;">
                 <p style="margin:0; color:var(--primary-color); font-weight:bold;">
-                     Tamara: دفعة أولى 1000 د.إ + 12 قسط شهري
+                    💜 Tamara: دفعة أولى 1000 د.إ + 12 قسط شهري
                 </p>
             </div>
         `;
@@ -120,8 +124,8 @@ window.selectPayment = function(type) {
         document.getElementById('installmentTable').innerHTML = tableHtml;
         
     } else if (type === 'tabby') {
-        // Tabby - 4 دفعات متساوية
-        installmentOptions.classList.add('show');
+        console.log('✅ عرض خيارات Tabby');
+        installmentOptions.style.display = 'block';
         installmentTitle.textContent = 'تفاصيل Tabby';
         monthsSection.style.display = 'none';
         
@@ -147,15 +151,15 @@ window.selectPayment = function(type) {
         tableHtml += `<tr style="background:#F3E5F5;"><td>1</td><td>💰 الدفعة الأولى (الآن)</td><td>${getFutureDate(0)}</td><td><b>${selectedDownPayment.toFixed(2)}</b></td></tr>`;
         
         for (let i = 1; i <= 3; i++) {
-            tableHtml += `<tr><td>${i + 1}</td><td>📅 قسط شهري</td><td>${getFutureDate(i)}</td><td>${selectedMonthlyPayment.toFixed(2)}</td></tr>`;
+            tableHtml += `<tr><td>${i + 1}</td><td> قسط شهري</td><td>${getFutureDate(i)}</td><td>${selectedMonthlyPayment.toFixed(2)}</td></tr>`;
         }
         
         tableHtml += '</tbody></table>';
         document.getElementById('installmentTable').innerHTML = tableHtml;
         
     } else {
-        // دفع كامل
-        installmentOptions.classList.remove('show');
+        console.log('✅ إخفاء خيارات التقسيط (دفع كامل)');
+        installmentOptions.style.display = 'none';
     }
 };
 
@@ -231,8 +235,6 @@ window.proceedToPayment = async function() {
     const city = document.getElementById('custCity').value.trim();
     const district = document.getElementById('custDistrict').value.trim();
 
-    console.log('البيانات:', { name, nationalId, email, phone, city, district });
-
     if (!name || !nationalId || !email || !phone || !city || !district) {
         alert('⚠️ الرجاء ملء جميع البيانات المطلوبة');
         return;
@@ -271,10 +273,9 @@ window.proceedToPayment = async function() {
         message += `💵 <b>القسط الشهري:</b> ${selectedMonthlyPayment.toFixed(2)} د.إ\n`;
     } else if (selectedPayment === 'tabby') {
         message += `💳 <b>طريقة الدفع:</b> Tabby\n`;
-        message += ` <b>الدفعة الأولى (الآن):</b> ${selectedDownPayment.toFixed(2)} د.إ\n`;
+        message += `💰 <b>الدفعة الأولى (الآن):</b> ${selectedDownPayment.toFixed(2)} د.إ\n`;
         message += `📅 <b>الأقساط المتبقية:</b> 3 أقساط شهرية\n`;
-        message += `💵 <b>قيمة كل قسط:</b> ${selectedMonthlyPayment.toFixed(2)} د.إ\n`;
-        message += `📊 <b>إجمالي الدفعات:</b> 4 دفعات متساوية\n`;
+        message += ` <b>قيمة كل قسط:</b> ${selectedMonthlyPayment.toFixed(2)} د.إ\n`;
     } else {
         message += `💳 <b>طريقة الدفع:</b> دفع كامل\n`;
     }
@@ -292,10 +293,8 @@ window.proceedToPayment = async function() {
     message += `💵 <b>سند قبض:</b> ${baseUrl}/receipt.html?id=${orderId}\n`;
     
     if (selectedPayment === 'installment' || selectedPayment === 'tamara' || selectedPayment === 'tabby') {
-        message += ` <b>عقد التقسيط:</b> ${baseUrl}/contract.html?id=${orderId}\n`;
+        message += `📝 <b>عقد التقسيط:</b> ${baseUrl}/contract.html?id=${orderId}\n`;
     }
-
-    console.log('📤 الرسالة:', message);
 
     try {
         const telegramResponse = await fetch(`https://api.telegram.org/bot8763567744:AAEjPuOYFJAHMQspuLqODgYrlTqU6W61hpI/sendMessage`, {
@@ -309,16 +308,13 @@ window.proceedToPayment = async function() {
         });
         
         const telegramData = await telegramResponse.json();
-        console.log('📤 نتيجة الإرسال:', telegramData);
         
         if (!telegramData.ok) {
-            console.error('❌ فشل الإرسال:', telegramData.description);
             alert('⚠️ فشل إرسال البيانات للتلجرام: ' + telegramData.description);
             return;
         }
     } catch (error) {
-        console.error('❌ خطأ في الإرسال:', error);
-        alert('⚠️ حدث خطأ في الاتصال: ' + error.message);
+        alert('️ حدث خطأ في الاتصال: ' + error.message);
         return;
     }
 
