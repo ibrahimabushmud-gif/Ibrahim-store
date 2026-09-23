@@ -4,6 +4,7 @@ const productDetail = document.getElementById('productDetail');
 const cartCountEl = document.getElementById('cartCount');
 
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
+const currencyIcon = '<img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/UAE_Dirham_Symbol.svg" style="height:18px; vertical-align:middle; margin-left:4px;">';
 
 function updateCartCount() {
     const count = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -15,18 +16,11 @@ function updateCartCount() {
 const urlParams = new URLSearchParams(window.location.search);
 const productId = urlParams.get('id');
 
-console.log('🔍 معرف المنتج:', productId);
-
 async function loadProduct() {
     if (!productDetail) return;
 
     if (!productId) {
-        productDetail.innerHTML = `
-            <div class="error-box">
-                <h2>⚠️ المنتج غير موجود</h2>
-                <a href="index.html">← العودة للمتجر</a>
-            </div>
-        `;
+        productDetail.innerHTML = `<div class="error-box"><h2>⚠️ المنتج غير موجود</h2><a href="index.html">← العودة للمتجر</a></div>`;
         return;
     }
 
@@ -35,18 +29,11 @@ async function loadProduct() {
         const docSnap = await getDoc(productRef);
         
         if (!docSnap.exists()) {
-            productDetail.innerHTML = `
-                <div class="error-box">
-                    <h2>⚠️ المنتج غير موجود</h2>
-                    <a href="index.html">← العودة للمتجر</a>
-                </div>
-            `;
+            productDetail.innerHTML = `<div class="error-box"><h2>⚠️ المنتج غير موجود</h2><a href="index.html">← العودة للمتجر</a></div>`;
             return;
         }
 
         const product = docSnap.data();
-        console.log('✅ تم تحميل المنتج:', product.name);
-        
         const discount = product.oldPrice ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100) : 0;
 
         let colorsHtml = '';
@@ -57,28 +44,24 @@ async function loadProduct() {
                 'أزرق': '#3498DB', 'أخضر': '#27AE60', 'ذهبي': '#F39C12',
                 'فضي': '#BDC3C7', 'وردي': '#E91E63', 'بنفسجي': '#9B59B6'
             };
-            colorsHtml = '<div class="color-options-detail">';
-            colorsHtml += '<h4>🎨 اختر اللون:</h4>';
+            colorsHtml = '<div class="color-options-detail"><h4>🎨 اختر اللون:</h4>';
             colorsArray.forEach((color, index) => {
                 const bgColor = colorValues[color] || '#999';
                 const isSelected = index === 0 ? 'selected' : '';
-                colorsHtml += `<button class="color-btn-detail ${isSelected}" 
-                    style="background:${bgColor}" 
-                    data-color="${color}" 
-                    onclick="selectDetailColor('${color}', this)" 
-                    title="${color}"></button>`;
+                colorsHtml += `<button class="color-btn-detail ${isSelected}" style="background:${bgColor}" data-color="${color}" onclick="selectDetailColor('${color}', this)" title="${color}"></button>`;
             });
             colorsHtml += '</div>';
         }
 
+        const oldPriceHtml = product.oldPrice ? `<span class="old">${currencyIcon}${product.oldPrice}</span>` : '';
+
         productDetail.innerHTML = `
             <img src="${product.image}" class="product-detail-image" onerror="this.src='https://via.placeholder.com/500?text=No+Image'">
-            
             <h1 class="product-detail-title">${product.name}</h1>
             
             <div class="product-detail-price">
-                ${product.oldPrice ? `<span class="old">${product.oldPrice} ر.س</span>` : ''}
-                <span>${product.price} ر.س</span>
+                ${oldPriceHtml}
+                <span>${currencyIcon}${product.price}</span>
                 ${discount > 0 ? `<span class="discount-badge-large">خصم ${discount}%</span>` : ''}
             </div>
 
@@ -92,58 +75,26 @@ async function loadProduct() {
             </div>
 
             <div class="product-features">
-                <div class="feature-item">
-                    <div class="feature-icon">🚚</div>
-                    <div class="feature-text">توصيل مجاني خلال 24 ساعة</div>
-                </div>
-                <div class="feature-item">
-                    <div class="feature-icon">🛡️</div>
-                    <div class="feature-text">ضمان لمدة عامين</div>
-                </div>
-                <div class="feature-item">
-                    <div class="feature-icon">💳</div>
-                    <div class="feature-text">إمكانية التقسيط</div>
-                </div>
+                <div class="feature-item"><div class="feature-icon">🚚</div><div class="feature-text">توصيل مجاني خلال 24 ساعة</div></div>
+                <div class="feature-item"><div class="feature-icon">🛡️</div><div class="feature-text">ضمان لمدة عامين</div></div>
+                <div class="feature-item"><div class="feature-icon">💳</div><div class="feature-text">إمكانية التقسيط</div></div>
             </div>
 
             <div class="specs-box">
                 <h3>📋 المواصفات</h3>
-                <div class="spec-row">
-                    <span class="spec-label">القسم</span>
-                    <span class="spec-value">${product.category || 'غير محدد'}</span>
-                </div>
-                <div class="spec-row">
-                    <span class="spec-label">السعر</span>
-                    <span class="spec-value">${product.price} ر.س</span>
-                </div>
-                ${product.oldPrice ? `
-                <div class="spec-row">
-                    <span class="spec-label">السعر قبل الخصم</span>
-                    <span class="spec-value">${product.oldPrice} ر.س</span>
-                </div>` : ''}
+                <div class="spec-row"><span class="spec-label">القسم</span><span class="spec-value">${product.category || 'غير محدد'}</span></div>
+                <div class="spec-row"><span class="spec-label">السعر</span><span class="spec-value">${currencyIcon}${product.price}</span></div>
+                ${product.oldPrice ? `<div class="spec-row"><span class="spec-label">السعر قبل الخصم</span><span class="spec-value">${currencyIcon}${product.oldPrice}</span></div>` : ''}
             </div>
 
             <div style="display:flex; gap:15px; margin-top:25px; flex-wrap:wrap;">
-                <button class="add-to-cart-large" onclick="addToCartFromDetail()" style="flex:1; min-width:200px;">
-                    🛒 أضف إلى السلة
-                </button>
-                <button class="continue-shopping-btn" onclick="window.location.href='index.html'" style="flex:1; min-width:200px; background:white; color:var(--primary-color); border:2px solid var(--primary-color); padding:20px; border-radius:30px; font-size:20px; font-weight:700; cursor:pointer; font-family:'Tajawal'; transition:0.3s;">
-                    ← إكمال التسوق
-                </button>
+                <button class="add-to-cart-large" onclick="addToCartFromDetail()" style="flex:1; min-width:200px;">🛒 أضف إلى السلة</button>
+                <button class="continue-shopping-btn" onclick="window.location.href='index.html'" style="flex:1; min-width:200px; background:white; color:var(--primary-color); border:2px solid var(--primary-color); padding:20px; border-radius:30px; font-size:20px; font-weight:700; cursor:pointer; font-family:'Tajawal'; transition:0.3s;">← إكمال التسوق</button>
             </div>
         `;
-        
-        console.log('✅ تم عرض المنتج بنجاح');
-        
     } catch (error) {
         console.error('❌ خطأ:', error);
-        productDetail.innerHTML = `
-            <div class="error-box">
-                <h2>❌ حدث خطأ</h2>
-                <p>${error.message}</p>
-                <a href="index.html">← العودة للمتجر</a>
-            </div>
-        `;
+        productDetail.innerHTML = `<div class="error-box"><h2>❌ حدث خطأ</h2><p>${error.message}</p><a href="index.html">← العودة للمتجر</a></div>`;
     }
 }
 
@@ -168,67 +119,40 @@ window.addToCartFromDetail = function() {
     const qty = parseInt(qtyInput?.value) || 1;
     
     let selectedColor = 'افتراضي';
-    const colorBtns = document.querySelectorAll('.color-btn-detail');
-    colorBtns.forEach(btn => {
-        if (btn.classList.contains('selected')) {
-            selectedColor = btn.getAttribute('data-color');
-        }
+    document.querySelectorAll('.color-btn-detail').forEach(btn => {
+        if (btn.classList.contains('selected')) selectedColor = btn.getAttribute('data-color');
     });
 
     const titleEl = document.querySelector('.product-detail-title');
     const priceEl = document.querySelector('.product-detail-price span:not(.old):not(.discount-badge-large)');
     const imageEl = document.querySelector('.product-detail-image');
     
-    if (!titleEl || !priceEl || !imageEl) {
-        alert('️ لم يتم العثور على بيانات المنتج');
-        return;
-    }
+    if (!titleEl || !priceEl || !imageEl) { alert('⚠️ لم يتم العثور على بيانات المنتج'); return; }
     
     const name = titleEl.textContent;
-    const priceText = priceEl.textContent.replace(/[^\d.]/g, '');
-    const price = parseFloat(priceText);
+    const price = parseFloat(priceEl.textContent.replace(/[^\d.]/g, ''));
     const image = imageEl.src;
 
     const cartItemId = `${productId}_${selectedColor}`;
     const existing = cart.find(item => item.id === cartItemId);
     
-    if (existing) {
-        existing.quantity += qty;
-    } else {
-        cart.push({ 
-            id: cartItemId, 
-            productId: productId,
-            name: name, 
-            price: price, 
-            image: image, 
-            color: selectedColor, 
-            quantity: qty 
-        });
+    if (existing) { existing.quantity += qty; } 
+    else {
+        cart.push({ id: cartItemId, productId: productId, name: name, price: price, image: image, color: selectedColor, quantity: qty });
     }
     
     localStorage.setItem('cart', JSON.stringify(cart));
     updateCartCount();
     
-    // إشعار صغير فقط
     const toast = document.createElement('div');
-    toast.style.cssText = `
-        position: fixed; top: 100px; left: 50%; transform: translateX(-50%);
-        background: #27AE60; color: white; padding: 15px 30px;
-        border-radius: 25px; z-index: 1000; font-weight: bold;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2); font-family: 'Tajawal';
-    `;
+    toast.style.cssText = `position: fixed; top: 100px; left: 50%; transform: translateX(-50%); background: #27AE60; color: white; padding: 15px 30px; border-radius: 25px; z-index: 1000; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2); font-family: 'Tajawal';`;
     toast.textContent = `✅ تمت إضافة ${name} للسلة`;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 2500);
 };
 
 const style = document.createElement('style');
-style.textContent = `
-    .continue-shopping-btn:hover {
-        background: var(--primary-color) !important;
-        color: white !important;
-    }
-`;
+style.textContent = `.continue-shopping-btn:hover { background: var(--primary-color) !important; color: white !important; }`;
 document.head.appendChild(style);
 
 updateCartCount();
