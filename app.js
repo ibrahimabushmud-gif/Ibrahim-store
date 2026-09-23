@@ -1,7 +1,7 @@
 import { db, collection, getDocs } from './firebase-config.js';
 import { auth, signOut, onAuthStateChanged } from './firebase-config.js';
 
-console.log(' بدء تحميل المتجر...');
+console.log('🚀 بدء تحميل المتجر...');
 
 const ADMIN_EMAIL = 'ibrahimabushmud@gmail.com';
 
@@ -10,6 +10,11 @@ let allCategories = [];
 let currentCategory = 'all';
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
+// أيقونة العملة
+const curr = '<img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/UAE_Dirham_Symbol.svg" style="height:16px; vertical-align:middle; margin-left:4px;">';
+const currLarge = '<img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/UAE_Dirham_Symbol.svg" style="height:20px; vertical-align:middle; margin-left:3px;">';
+
+// ============ 1. التحقق من تسجيل الدخول ============
 onAuthStateChanged(auth, (user) => {
     const userMenuEl = document.getElementById('userMenu');
     if (userMenuEl) {
@@ -33,6 +38,7 @@ window.doLogout = async function() {
     window.location.reload();
 };
 
+// ============ 2. إدارة السلة ============
 function updateCartCount() {
     const count = cart.reduce((sum, item) => sum + item.quantity, 0);
     const el = document.getElementById('cartCount');
@@ -48,10 +54,7 @@ window.toggleCategories = function() {
 };
 
 window.toggleCart = function(e) {
-    if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
+    if (e) { e.preventDefault(); e.stopPropagation(); }
     const drawer = document.getElementById('cartDrawer');
     if (drawer) {
         drawer.classList.toggle('open');
@@ -65,14 +68,8 @@ function renderCartDrawer() {
     if (!content) return;
 
     if (cart.length === 0) {
-        content.innerHTML = `
-            <div class="empty-cart">
-                <div class="icon">🛒</div>
-                <h3>السلة فارغة</h3>
-                <p>أضف منتجات للبدء</p>
-            </div>
-        `;
-        if (totalEl) totalEl.innerHTML = '<img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/UAE_Dirham_Symbol.svg" style="height:20px; vertical-align:middle; margin-left:3px;">0';
+        content.innerHTML = `<div class="empty-cart"><div class="icon">🛒</div><h3>السلة فارغة</h3><p>أضف منتجات للبدء</p></div>`;
+        if (totalEl) totalEl.innerHTML = currLarge + '0';
         return;
     }
 
@@ -86,7 +83,7 @@ function renderCartDrawer() {
                 <div class="cart-item-info">
                     <h4>${item.name}</h4>
                     <span class="color-tag">${item.color}</span>
-                    <div class="price"><img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/UAE_Dirham_Symbol.svg" style="height:16px; vertical-align:middle; margin-left:3px;">${item.price}</div>
+                    <div class="price">${curr}${item.price}</div>
                 </div>
                 <div class="cart-item-actions">
                     <div class="qty-controls">
@@ -101,7 +98,7 @@ function renderCartDrawer() {
     });
 
     content.innerHTML = html;
-    if (totalEl) totalEl.innerHTML = '<img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/UAE_Dirham_Symbol.svg" style="height:20px; vertical-align:middle; margin-left:3px;">' + total.toFixed(2);
+    if (totalEl) totalEl.innerHTML = currLarge + total.toFixed(2);
 }
 
 window.updateCartQty = function(index, delta) {
@@ -121,54 +118,29 @@ window.removeFromCart = function(index) {
 };
 
 window.addToCart = function(productId, event) {
-    if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-    }
-
+    if (event) { event.preventDefault(); event.stopPropagation(); }
     const product = allProducts.find(p => p.id === productId);
-    if (!product) {
-        alert('⚠️ المنتج غير موجود');
-        return;
-    }
+    if (!product) { alert('⚠️ المنتج غير موجود'); return; }
 
     const qtyInput = document.getElementById(`qty-${productId}`);
     const quantity = parseInt(qtyInput?.value) || 1;
 
     let selectedColor = 'افتراضي';
-    const colorBtns = document.querySelectorAll(`.color-btn-${productId}`);
-    colorBtns.forEach(btn => {
-        if (btn.classList.contains('selected')) {
-            selectedColor = btn.getAttribute('data-color');
-        }
+    document.querySelectorAll(`.color-btn-${productId}`).forEach(btn => {
+        if (btn.classList.contains('selected')) selectedColor = btn.getAttribute('data-color');
     });
 
     const cartItemId = `${productId}_${selectedColor}`;
     const existing = cart.find(item => item.id === cartItemId);
 
-    if (existing) {
-        existing.quantity += quantity;
-    } else {
-        cart.push({
-            id: cartItemId,
-            productId,
-            name: product.name,
-            price: product.price,
-            image: product.image,
-            color: selectedColor,
-            quantity
-        });
+    if (existing) { existing.quantity += quantity; } 
+    else {
+        cart.push({ id: cartItemId, productId, name: product.name, price: product.price, image: product.image, color: selectedColor, quantity });
     }
 
     updateCartCount();
-
     const toast = document.createElement('div');
-    toast.style.cssText = `
-        position: fixed; top: 100px; left: 50%; transform: translateX(-50%);
-        background: #27AE60; color: white; padding: 15px 30px;
-        border-radius: 25px; z-index: 1000; font-weight: bold;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2); font-family: 'Tajawal';
-    `;
+    toast.style.cssText = `position: fixed; top: 100px; left: 50%; transform: translateX(-50%); background: #27AE60; color: white; padding: 15px 30px; border-radius: 25px; z-index: 1000; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2); font-family: 'Tajawal';`;
     toast.textContent = `✅ تمت إضافة ${product.name} للسلة`;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 2500);
@@ -190,32 +162,101 @@ window.selectColor = function(productId, colorName, btnElement) {
     btnElement.classList.add('selected');
 };
 
-async function loadBanners() {
-    const container = document.getElementById('bannersContainer');
-    if (!container) return;
+// ============ 3. نظام البنرات والسلايدر الجديد ============
+let carouselImages = [];
+let currentSlide = 0;
+let carouselInterval;
 
+async function loadBannersSystem() {
     try {
         const snapshot = await getDocs(collection(db, "banners"));
-        container.innerHTML = '';
-        if (snapshot.empty) {
-            container.innerHTML = `<div style="background:linear-gradient(135deg, var(--primary-color), var(--primary-light)); height:250px; border-radius:16px; display:flex; align-items:center; justify-content:center; color:white; font-size:28px; font-weight:bold; width:100%;"> عروض حصرية</div>`;
-            return;
-        }
+        const topBannerEl = document.getElementById('topBanner');
+        const topBannerImg = document.getElementById('topBannerImg');
+        const carouselContainer = document.getElementById('carouselContainer');
+        const carouselSlides = document.getElementById('carouselSlides');
+        const carouselDots = document.getElementById('carouselDots');
+        
+        carouselImages = [];
+        let topBannerUrl = '';
+        
         snapshot.forEach((doc) => {
             const banner = doc.data();
             if (banner.isActive) {
-                container.innerHTML += `<img src="${banner.imageUrl}" class="banner-img" alt="banner">`;
+                if (banner.type === 'top') {
+                    topBannerUrl = banner.imageUrl;
+                } else {
+                    carouselImages.push({ id: doc.id, url: banner.imageUrl, link: banner.link || '#' });
+                }
             }
         });
+        
+        if (topBannerEl && topBannerImg && topBannerUrl) {
+            topBannerImg.src = topBannerUrl;
+            topBannerEl.style.display = 'block';
+        }
+        
+        if (carouselContainer && carouselSlides && carouselDots && carouselImages.length > 0) {
+            carouselContainer.style.display = 'block';
+            carouselSlides.innerHTML = '';
+            carouselDots.innerHTML = '';
+            
+            carouselImages.forEach((img, index) => {
+                const slide = document.createElement('div');
+                slide.style.cssText = 'min-width:100%; position:relative;';
+                slide.innerHTML = `<a href="${img.link}" target="_blank"><img src="${img.url}" style="width:100%; height:400px; object-fit:cover; display:block;"></a>`;
+                carouselSlides.appendChild(slide);
+                
+                const dot = document.createElement('button');
+                dot.style.cssText = `width:12px; height:12px; border-radius:50%; border:none; cursor:pointer; background:${index === 0 ? 'var(--primary-color)' : 'rgba(0,0,0,0.3)'}; transition:0.3s;`;
+                dot.onclick = () => goToSlide(index);
+                carouselDots.appendChild(dot);
+            });
+            startCarousel();
+        }
     } catch (error) {
         console.error('خطأ في تحميل البنرات:', error);
     }
 }
 
+function startCarousel() {
+    if (carouselInterval) clearInterval(carouselInterval);
+    carouselInterval = setInterval(() => { moveSlide(1); }, 3000);
+}
+
+window.moveSlide = function(direction) {
+    if (carouselImages.length === 0) return;
+    currentSlide = (currentSlide + direction + carouselImages.length) % carouselImages.length;
+    updateCarousel();
+    startCarousel();
+};
+
+window.goToSlide = function(index) {
+    currentSlide = index;
+    updateCarousel();
+    startCarousel();
+};
+
+function updateCarousel() {
+    const slides = document.getElementById('carouselSlides');
+    const dots = document.querySelectorAll('#carouselDots button');
+    if (!slides) return;
+    
+    slides.style.transform = `translateX(${currentSlide * 100}%)`;
+    dots.forEach((dot, index) => {
+        dot.style.background = index === currentSlide ? 'var(--primary-color)' : 'rgba(0,0,0,0.3)';
+    });
+}
+
+const carouselContainerEl = document.getElementById('carouselContainer');
+if (carouselContainerEl) {
+    carouselContainerEl.addEventListener('mouseenter', () => { if (carouselInterval) clearInterval(carouselInterval); });
+    carouselContainerEl.addEventListener('mouseleave', () => { startCarousel(); });
+}
+
+// ============ 4. إدارة المنتجات والأقسام ============
 async function loadCategories() {
     const sidebar = document.getElementById('sidebarCategories');
     if (!sidebar) return;
-
     try {
         const snapshot = await getDocs(collection(db, "categories"));
         allCategories = [];
@@ -225,9 +266,7 @@ async function loadCategories() {
         allCategories.forEach(cat => {
             sidebar.innerHTML += `<div class="category-item" data-category="${cat.name}" onclick="filterCategory('${cat.name}')">${cat.name}</div>`;
         });
-    } catch (error) {
-        console.error('خطأ في تحميل التصنيفات:', error);
-    }
+    } catch (error) { console.error('خطأ في تحميل التصنيفات:', error); }
 }
 
 window.filterCategory = function(category) {
@@ -241,49 +280,39 @@ window.filterCategory = function(category) {
 
 async function loadProducts() {
     try {
-        console.log('🔄 جاري تحميل المنتجات...');
         const snapshot = await getDocs(collection(db, "products"));
         allProducts = [];
-        snapshot.forEach((doc) => {
-            allProducts.push({ id: doc.id, ...doc.data() });
-        });
-        console.log('✅ تم تحميل', allProducts.length, 'منتج');
+        snapshot.forEach((doc) => allProducts.push({ id: doc.id, ...doc.data() }));
         renderProductsByCategory();
     } catch (error) {
         console.error('❌ خطأ في تحميل المنتجات:', error);
-        const container = document.getElementById('productsByCategory');
-        if (container) {
-            container.innerHTML = '<div style="text-align:center; padding:50px; color:var(--danger-color);">حدث خطأ في تحميل المنتجات. تأكد من اتصالك بالإنترنت.</div>';
-        }
     }
 }
 
 function renderProductsByCategory() {
     const container = document.getElementById('productsByCategory');
     if (!container) return;
-
     container.innerHTML = '';
 
     if (currentCategory !== 'all') {
-        const categoryProducts = allProducts.filter(p => p.category === currentCategory);
-        renderCategorySection(currentCategory, categoryProducts);
+        renderCategorySection(currentCategory, allProducts.filter(p => p.category === currentCategory));
     } else {
         if (allCategories.length === 0) {
             renderCategorySection('all', allProducts);
         } else {
             allCategories.forEach(cat => {
-                const categoryProducts = allProducts.filter(p => p.category === cat.name);
-                if (categoryProducts.length > 0) renderCategorySection(cat.name, categoryProducts);
+                const prods = allProducts.filter(p => p.category === cat.name);
+                if (prods.length > 0) renderCategorySection(cat.name, prods);
             });
-            const noCategoryProducts = allProducts.filter(p => !p.category || p.category === '');
-            if (noCategoryProducts.length > 0) renderCategorySection('منتجات أخرى', noCategoryProducts);
+            const noCat = allProducts.filter(p => !p.category || p.category === '');
+            if (noCat.length > 0) renderCategorySection('منتجات أخرى', noCat);
         }
     }
 }
 
 function renderCategorySection(categoryName, products) {
     const container = document.getElementById('productsByCategory');
-    if (!container) return;
+    if (!container || products.length === 0) return;
 
     const section = document.createElement('div');
     section.style.marginBottom = '40px';
@@ -306,20 +335,15 @@ function renderCategorySection(categoryName, products) {
 
 function createProductCard(product) {
     const discount = product.oldPrice ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100) : 0;
-
     let colorsHtml = '';
+    
     if (product.hasColors && product.colors) {
         const colorsArray = product.colors.split(',').map(c => c.trim());
-        const colorValues = {
-            'أحمر': '#E74C3C', 'أسود': '#2C3E50', 'أبيض': '#ECF0F1',
-            'أزرق': '#3498DB', 'أخضر': '#27AE60', 'ذهبي': '#F39C12',
-            'فضي': '#BDC3C7', 'وردي': '#E91E63', 'بنفسجي': '#9B59B6'
-        };
+        const colorValues = { 'أحمر': '#E74C3C', 'أسود': '#2C3E50', 'أبيض': '#ECF0F1', 'أزرق': '#3498DB', 'أخضر': '#27AE60', 'ذهبي': '#F39C12', 'فضي': '#BDC3C7', 'وردي': '#E91E63', 'بنفسجي': '#9B59B6' };
         colorsHtml = '<div class="color-options">';
         colorsArray.forEach((color, index) => {
             const bgColor = colorValues[color] || '#999';
-            const isSelected = index === 0 ? 'selected' : '';
-            colorsHtml += `<button class="color-btn color-btn-${product.id} ${isSelected}" style="background:${bgColor}" data-color="${color}" onclick="event.stopPropagation(); selectColor('${product.id}', '${color}', this)" title="${color}"></button>`;
+            colorsHtml += `<button class="color-btn color-btn-${product.id} ${index === 0 ? 'selected' : ''}" style="background:${bgColor}" data-color="${color}" onclick="event.stopPropagation(); selectColor('${product.id}', '${color}', this)" title="${color}"></button>`;
         });
         colorsHtml += '</div>';
     }
@@ -330,9 +354,8 @@ function createProductCard(product) {
             <img src="${product.image}" class="product-image" onerror="this.src='https://via.placeholder.com/200?text=No+Image'">
             <div class="product-title">${product.name}</div>
             <small style="color:var(--text-light)">${product.category || ''}</small>
-            ${product.oldPrice ? `<div class="old-price"><img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/UAE_Dirham_Symbol.svg" style="height:14px; vertical-align:middle; margin-left:3px;">${product.oldPrice}</div>` : ''}
-            <div class="new-price"><img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/UAE_Dirham_Symbol.svg" style="height:16px; vertical-align:middle; margin-left:3px;">${product.price}</div>
-            
+            ${product.oldPrice ? `<div class="old-price">${curr}${product.oldPrice}</div>` : ''}
+            <div class="new-price">${curr}${product.price}</div>
             <div class="product-options" onclick="event.stopPropagation();">
                 ${colorsHtml}
                 <div class="qty-selector">
@@ -341,10 +364,7 @@ function createProductCard(product) {
                     <button class="qty-btn" onclick="event.stopPropagation(); changeQty('${product.id}', 1)">+</button>
                 </div>
             </div>
-            
-            <button class="add-to-cart" onclick="event.stopPropagation(); addToCart('${product.id}', event)">
-                 أضف للسلة
-            </button>
+            <button class="add-to-cart" onclick="event.stopPropagation(); addToCart('${product.id}', event)">أضف للسلة</button>
         </div>
     `;
 }
@@ -353,13 +373,13 @@ window.scrollSection = function(categoryName, direction) {
     const sectionId = `section-${categoryName.replace(/\s+/g, '-')}`;
     const container = document.getElementById(sectionId);
     if (container) {
-        const scrollAmount = 300;
-        container.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+        container.scrollBy({ left: direction === 'left' ? -300 : 300, behavior: 'smooth' });
     }
 };
 
+// ============ 5. بدء التشغيل ============
 console.log('✅ بدء التشغيل...');
 updateCartCount();
-loadBanners();
+loadBannersSystem(); // <-- هنا يتم استدعاء نظام البنرات الجديد
 loadCategories();
 loadProducts();
