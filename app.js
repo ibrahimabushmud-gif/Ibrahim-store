@@ -1,7 +1,7 @@
 import { db, collection, getDocs } from './firebase-config.js';
 import { auth, signOut, onAuthStateChanged } from './firebase-config.js';
 
-console.log('🚀 بدء تحميل المتجر...');
+console.log(' بدء تحميل المتجر...');
 
 const ADMIN_EMAIL = 'ibrahimabushmud@gmail.com';
 
@@ -10,9 +10,10 @@ let allCategories = [];
 let currentCategory = 'all';
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
-// أيقونة العملة
+// شعار العملة - حجم أكبر وواضح
 const curr = '<img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/UAE_Dirham_Symbol.svg" style="height:28px; width:auto; vertical-align:middle; margin-left:6px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));">';
 const currLarge = '<img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/UAE_Dirham_Symbol.svg" style="height:38px; width:auto; vertical-align:middle; margin-left:8px; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));">';
+
 // ============ 1. التحقق من تسجيل الدخول ============
 onAuthStateChanged(auth, (user) => {
     const userMenuEl = document.getElementById('userMenu');
@@ -68,7 +69,7 @@ function renderCartDrawer() {
 
     if (cart.length === 0) {
         content.innerHTML = `<div class="empty-cart"><div class="icon">🛒</div><h3>السلة فارغة</h3><p>أضف منتجات للبدء</p></div>`;
-        if (totalEl) totalEl.innerHTML = currLarge + '0';
+        if (totalEl) totalEl.innerHTML = '<div style="display:inline-flex; align-items:center; gap:8px; font-size:26px; font-weight:800; color:var(--primary-color);">' + currLarge + '<span>0.00</span></div>';
         return;
     }
 
@@ -82,7 +83,7 @@ function renderCartDrawer() {
                 <div class="cart-item-info">
                     <h4>${item.name}</h4>
                     <span class="color-tag">${item.color}</span>
-                    <div class="price">${curr}${item.price}</div>
+                    <div class="price" style="display:inline-flex; align-items:center; gap:8px; font-size:22px; font-weight:800; color:var(--primary-color); background:white; padding:6px 12px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.08);">${curr}<span style="font-size:24px;">${item.price}</span></div>
                 </div>
                 <div class="cart-item-actions">
                     <div class="qty-controls">
@@ -97,7 +98,7 @@ function renderCartDrawer() {
     });
 
     content.innerHTML = html;
-    if (totalEl) totalEl.innerHTML = currLarge + total.toFixed(2);
+    if (totalEl) totalEl.innerHTML = '<div style="display:inline-flex; align-items:center; gap:8px; font-size:26px; font-weight:800; color:var(--primary-color);">' + currLarge + '<span>' + total.toFixed(2) + '</span></div>';
 }
 
 window.updateCartQty = function(index, delta) {
@@ -119,7 +120,7 @@ window.removeFromCart = function(index) {
 window.addToCart = function(productId, event) {
     if (event) { event.preventDefault(); event.stopPropagation(); }
     const product = allProducts.find(p => p.id === productId);
-    if (!product) { alert('⚠️ المنتج غير موجود'); return; }
+    if (!product) { alert('️ المنتج غير موجود'); return; }
 
     const qtyInput = document.getElementById(`qty-${productId}`);
     const quantity = parseInt(qtyInput?.value) || 1;
@@ -161,7 +162,7 @@ window.selectColor = function(productId, colorName, btnElement) {
     btnElement.classList.add('selected');
 };
 
-// ============ 3. نظام البنرات والسلايدر الجديد ============
+// ============ 3. نظام البنرات والسلايدر ============
 let carouselImages = [];
 let currentSlide = 0;
 let carouselInterval;
@@ -347,14 +348,18 @@ function createProductCard(product) {
         colorsHtml += '</div>';
     }
 
+    const oldPriceHtml = product.oldPrice 
+        ? `<div class="old-price" style="display:inline-flex; align-items:center; gap:4px; font-size:16px; color:#999; text-decoration:line-through;">${curr}<span>${product.oldPrice}</span></div>` 
+        : '';
+
     return `
         <div class="product-card" onclick="window.location.href='product.html?id=${product.id}'" style="cursor:pointer;">
             ${discount > 0 ? `<div class="discount-badge">خصم ${discount}%</div>` : ''}
             <img src="${product.image}" class="product-image" onerror="this.src='https://via.placeholder.com/200?text=No+Image'">
             <div class="product-title">${product.name}</div>
             <small style="color:var(--text-light)">${product.category || ''}</small>
-            ${product.oldPrice ? `<div class="old-price">${curr}${product.oldPrice}</div>` : ''}
-            <div class="new-price">${curr}${product.price}</div>
+            ${oldPriceHtml}
+            <div class="new-price" style="display:inline-flex; align-items:center; gap:6px; font-size:22px; font-weight:800; color:var(--primary-color);">${curr}<span style="font-size:24px;">${product.price}</span></div>
             <div class="product-options" onclick="event.stopPropagation();">
                 ${colorsHtml}
                 <div class="qty-selector">
@@ -379,6 +384,6 @@ window.scrollSection = function(categoryName, direction) {
 // ============ 5. بدء التشغيل ============
 console.log('✅ بدء التشغيل...');
 updateCartCount();
-loadBannersSystem(); // <-- هنا يتم استدعاء نظام البنرات الجديد
+loadBannersSystem();
 loadCategories();
 loadProducts();
