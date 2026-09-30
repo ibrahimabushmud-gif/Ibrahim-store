@@ -11,9 +11,8 @@ let currentCategory = 'all';
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
 // شعار العملة - حجم أكبر وواضح
-const curr = '<img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/UAE_Dirham_Symbol.svg" style="height:28px; width:auto; vertical-align:middle; margin-left:6px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));">';
-const currLarge = '<img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/UAE_Dirham_Symbol.svg" style="height:38px; width:auto; vertical-align:middle; margin-left:8px; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));">';
-
+const curr = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" style="height:28px; width:auto; vertical-align:middle; margin-left:6px; fill:var(--primary-color);"><path d="M50 10 C30 10, 15 25, 15 45 C15 65, 30 80, 50 80 C60 80, 68 76, 73 70 L73 55 L60 55 L60 65 C57 67, 54 68, 50 68 C38 68, 28 58, 28 45 C28 32, 38 22, 50 22 C56 22, 61 24, 65 28 L75 18 C68 13, 60 10, 50 10 Z M70 75 L85 75 L85 85 L70 85 Z"/></svg>';
+const currLarge = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" style="height:38px; width:auto; vertical-align:middle; margin-left:8px; fill:var(--primary-color);"><path d="M50 10 C30 10, 15 25, 15 45 C15 65, 30 80, 50 80 C60 80, 68 76, 73 70 L73 55 L60 55 L60 65 C57 67, 54 68, 50 68 C38 68, 28 58, 28 45 C28 32, 38 22, 50 22 C56 22, 61 24, 65 28 L75 18 C68 13, 60 10, 50 10 Z M70 75 L85 75 L85 85 L70 85 Z"/></svg>';
 // ============ 1. التحقق من تسجيل الدخول ============
 onAuthStateChanged(auth, (user) => {
     const userMenuEl = document.getElementById('userMenu');
