@@ -11,9 +11,8 @@ let currentCategory = 'all';
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
 // أيقونة العملة
-const curr = '<img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/UAE_Dirham_Symbol.svg" style="height:16px; vertical-align:middle; margin-left:4px;">';
-const currLarge = '<img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/UAE_Dirham_Symbol.svg" style="height:20px; vertical-align:middle; margin-left:3px;">';
-
+const curr = '<img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/UAE_Dirham_Symbol.svg" style="height:28px; width:auto; vertical-align:middle; margin-left:6px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));">';
+const currLarge = '<img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/UAE_Dirham_Symbol.svg" style="height:38px; width:auto; vertical-align:middle; margin-left:8px; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));">';
 // ============ 1. التحقق من تسجيل الدخول ============
 onAuthStateChanged(auth, (user) => {
     const userMenuEl = document.getElementById('userMenu');
