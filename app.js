@@ -11,8 +11,9 @@ let currentCategory = 'all';
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
 // شعار العملة - حجم أكبر وواضح
-const curr = '<img src="https://upload.wikimedia.org/wikipedia/commons/2/23/Dirham_sign.svg" style="height:16px; vertical-align:middle; margin-left:4px;">';
-const currLarge = '<img src="https://upload.wikimedia.org/wikipedia/commons/2/23/Dirham_sign.svg" style="height:20px; vertical-align:middle; margin-left:3px;">';
+const curr = '<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTtauUniR9dGoEXyG6AaYXbzovVet90qe0igubKGL7Ew&s=10" style="height:16px; vertical-align:middle; margin-left:4px;">';
+
+const currLarge = '<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTtauUniR9dGoEXyG6AaYXbzovVet90qe0igubKGL7Ew&s=10" style="height:20px; vertical-align:middle; margin-left:3px;">';
 // ============ 1. التحقق من تسجيل الدخول ============
 onAuthStateChanged(auth, (user) => {
     const userMenuEl = document.getElementById('userMenu');
