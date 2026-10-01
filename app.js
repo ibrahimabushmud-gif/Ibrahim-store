@@ -1,7 +1,7 @@
 import { db, collection, getDocs } from './firebase-config.js';
 import { auth, signOut, onAuthStateChanged } from './firebase-config.js';
 
-console.log('🚀 بدء تحميل المتجر...');
+console.log(' بدء تحميل المتجر...');
 
 const ADMIN_EMAIL = 'ibrahimabushmud@gmail.com';
 
@@ -21,7 +21,7 @@ onAuthStateChanged(auth, (user) => {
         if (user) {
             if (user.email === ADMIN_EMAIL) {
                 userMenuEl.innerHTML = `
-                    <a href="admin.html" style="color:var(--primary-color); text-decoration:none; font-weight:bold; margin-left:10px;">⚙️ الإدارة</a>
+                    <a href="admin.html" style="color:var(--primary-color); text-decoration:none; font-weight:bold; margin-left:10px;">️ الإدارة</a>
                     <button onclick="doLogout()" style="background:none; border:none; color:var(--danger-color); cursor:pointer; font-family:'Tajawal'; font-weight:bold;">خروج</button>
                 `;
             } else {
@@ -185,10 +185,18 @@ async function loadBannersSystem() {
                 if (banner.type === 'top') {
                     topBannerUrl = banner.imageUrl;
                 } else {
-                    carouselImages.push({ id: doc.id, url: banner.imageUrl, link: banner.link || '#' });
+                    carouselImages.push({ 
+                        id: doc.id, 
+                        url: banner.imageUrl, 
+                        link: banner.link || '#',
+                        order: banner.order || 100
+                    });
                 }
             }
         });
+        
+        // ترتيب البنرات حسب order
+        carouselImages.sort((a, b) => a.order - b.order);
         
         if (topBannerEl && topBannerImg && topBannerUrl) {
             topBannerImg.src = topBannerUrl;
@@ -266,9 +274,13 @@ async function loadCategories() {
             allCategories.push({ 
                 id: doc.id, 
                 ...data,
-                level: data.level || (data.parentCategory ? 2 : 1)
+                level: data.level || (data.parentCategory ? 2 : 1),
+                order: data.order || 100
             });
         });
+
+        // ترتيب الأقسام حسب order
+        allCategories.sort((a, b) => a.order - b.order);
 
         categoryNavigationStack = [];
         renderCategorySidebar();
@@ -283,7 +295,6 @@ function renderCategorySidebar() {
     
     sidebar.innerHTML = '';
     
-    // زر الرجوع
     if (categoryNavigationStack.length > 0) {
         const backBtn = document.createElement('div');
         backBtn.className = 'category-item';
@@ -293,7 +304,6 @@ function renderCategorySidebar() {
         sidebar.appendChild(backBtn);
     }
     
-    // زر "الكل" (فقط في المستوى الرئيسي)
     if (categoryNavigationStack.length === 0) {
         const allBtn = document.createElement('div');
         allBtn.className = 'category-item active';
@@ -303,7 +313,6 @@ function renderCategorySidebar() {
         sidebar.appendChild(allBtn);
     }
     
-    // تحديد الأقسام التي يجب عرضها
     let categoriesToShow = [];
     
     if (categoryNavigationStack.length === 0) {
@@ -313,7 +322,6 @@ function renderCategorySidebar() {
         categoriesToShow = allCategories.filter(c => c.parentCategory === currentParent);
     }
     
-    // عرض الأقسام
     categoriesToShow.forEach(cat => {
         const item = document.createElement('div');
         item.className = 'category-item';
@@ -368,7 +376,22 @@ async function loadProducts() {
     try {
         const snapshot = await getDocs(collection(db, "products"));
         allProducts = [];
-        snapshot.forEach((doc) => allProducts.push({ id: doc.id, ...doc.data() }));
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            allProducts.push({ 
+                id: doc.id, 
+                ...data,
+                order: data.order || 100,
+                isNew: data.isNew || false,
+                isSale: data.isSale || false,
+                saleEndDate: data.saleEndDate || null,
+                displayLocation: data.displayLocation || 'all'
+            });
+        });
+        
+        // ترتيب المنتجات حسب order
+        allProducts.sort((a, b) => a.order - b.order);
+        
         renderProductsByCategory();
     } catch (error) {
         console.error('❌ خطأ في تحميل المنتجات:', error);
@@ -381,15 +404,14 @@ function renderProductsByCategory() {
     container.innerHTML = '';
 
     if (currentCategory === 'all') {
-        // عرض كل المنتجات مقسمة حسب الأقسام الرئيسية
         const level1Cats = allCategories.filter(c => c.level === 1);
         
         if (level1Cats.length === 0) {
-            renderCategorySection('جميع المنتجات', allProducts);
+            renderCategorySection('جميع المنتجات', allProducts.filter(p => p.displayLocation !== 'hidden'));
         } else {
             level1Cats.forEach(mainCat => {
                 const allCats = getAllSubCategories(mainCat.name);
-                const categoryProducts = allProducts.filter(p => allCats.includes(p.category));
+                const categoryProducts = allProducts.filter(p => allCats.includes(p.category) && p.displayLocation !== 'hidden');
                 
                 if (categoryProducts.length > 0) {
                     displayCategoryProducts(mainCat.name, 0, container);
@@ -397,9 +419,8 @@ function renderProductsByCategory() {
             });
         }
     } else {
-        // عرض منتجات القسم المحدد فقط (مع فروعه)
         const allCats = getAllSubCategories(currentCategory);
-        const categoryProducts = allProducts.filter(p => allCats.includes(p.category));
+        const categoryProducts = allProducts.filter(p => allCats.includes(p.category) && p.displayLocation !== 'hidden');
         
         if (categoryProducts.length > 0) {
             displayCategoryProducts(currentCategory, 0, container);
@@ -411,14 +432,12 @@ function renderProductsByCategory() {
 
 function displayCategoryProducts(parentName, level, container) {
     const subs = allCategories.filter(c => c.parentCategory === parentName);
-    const directProducts = allProducts.filter(p => p.category === parentName);
+    const directProducts = allProducts.filter(p => p.category === parentName && p.displayLocation !== 'hidden');
     
-    // عرض منتجات هذا القسم مباشرة
     if (directProducts.length > 0) {
         renderCategorySection(parentName, directProducts);
     }
     
-    // عرض الفروع
     subs.forEach(subCat => {
         displayCategoryProducts(subCat.name, level + 1, container);
     });
@@ -448,8 +467,21 @@ function renderCategorySection(categoryName, products) {
 
 function createProductCard(product) {
     const discount = product.oldPrice ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100) : 0;
-    let colorsHtml = '';
     
+    // التحقق من العروض
+    let badges = '';
+    if (product.isNew) {
+        badges += '<div class="badge-new" style="position:absolute; top:10px; right:10px; background:#28a745; color:white; padding:5px 12px; border-radius:15px; font-size:12px; font-weight:bold; z-index:10;">🆕 جديد</div>';
+    }
+    if (product.isSale) {
+        const endDate = product.saleEndDate ? new Date(product.saleEndDate) : null;
+        const isExpired = endDate && endDate < new Date();
+        if (!isExpired) {
+            badges += '<div class="badge-sale" style="position:absolute; top:10px; left:10px; background:#dc3545; color:white; padding:5px 12px; border-radius:15px; font-size:12px; font-weight:bold; z-index:10;">🔥 عرض محدود</div>';
+        }
+    }
+    
+    let colorsHtml = '';
     if (product.hasColors && product.colors) {
         const colorsArray = product.colors.split(',').map(c => c.trim());
         const colorValues = { 'أحمر': '#E74C3C', 'أسود': '#2C3E50', 'أبيض': '#ECF0F1', 'أزرق': '#3498DB', 'أخضر': '#27AE60', 'ذهبي': '#F39C12', 'فضي': '#BDC3C7', 'وردي': '#E91E63', 'بنفسجي': '#9B59B6' };
@@ -462,7 +494,8 @@ function createProductCard(product) {
     }
 
     return `
-        <div class="product-card" onclick="window.location.href='product.html?id=${product.id}'" style="cursor:pointer;">
+        <div class="product-card" onclick="window.location.href='product.html?id=${product.id}'" style="cursor:pointer; position:relative;">
+            ${badges}
             ${discount > 0 ? `<div class="discount-badge">خصم ${discount}%</div>` : ''}
             <img src="${product.image}" class="product-image" onerror="this.src='https://via.placeholder.com/200?text=No+Image'">
             <div class="product-title">${product.name}</div>
