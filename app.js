@@ -9,11 +9,12 @@ let allProducts = [];
 let allCategories = [];
 let currentCategory = 'all';
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
+let categoryNavigationStack = [];
 
 const curr = '<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTtauUniR9dGoEXyG6AaYXbzovVet90qe0igubKGL7Ew&s=10" style="height:12px; vertical-align:middle; margin-left:4px;">';
 const currLarge = '<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTtauUniR9dGoEXyG6AaYXbzovVet90qe0igubKGL7Ew&s=10" style="height:18px; vertical-align:middle; margin-left:3px;">';
 
-// 1. التحقق من تسجيل الدخول
+// ============ 1. التحقق من تسجيل الدخول ============
 onAuthStateChanged(auth, (user) => {
     const userMenuEl = document.getElementById('userMenu');
     if (userMenuEl) {
@@ -37,7 +38,7 @@ window.doLogout = async function() {
     window.location.reload();
 };
 
-// 2. إدارة السلة
+// ============ 2. إدارة السلة ============
 function updateCartCount() {
     const count = cart.reduce((sum, item) => sum + item.quantity, 0);
     const el = document.getElementById('cartCount');
@@ -161,7 +162,7 @@ window.selectColor = function(productId, colorName, btnElement) {
     btnElement.classList.add('selected');
 };
 
-// 3. نظام البنرات والسلايدر
+// ============ 3. نظام البنرات والسلايدر ============
 let carouselImages = [];
 let currentSlide = 0;
 let carouselInterval;
@@ -252,7 +253,7 @@ if (carouselContainerEl) {
     carouselContainerEl.addEventListener('mouseleave', () => { startCarousel(); });
 }
 
-// 4. إدارة الأقسام الهرمية والمنتجات
+// ============ 4. نظام التصنيفات الهرمي ============
 async function loadCategories() {
     const sidebar = document.getElementById('sidebarCategories');
     if (!sidebar) return;
@@ -265,37 +266,93 @@ async function loadCategories() {
             allCategories.push({ 
                 id: doc.id, 
                 ...data,
-                // الأقسام القديمة بدون level نعتبرها مستوى 1
                 level: data.level || (data.parentCategory ? 2 : 1)
             });
         });
 
-        sidebar.innerHTML = '<div class="category-item active" data-category="all" onclick="filterCategory(\'all\')">🏠 الكل</div>';
-        
-        // عرض الأقسام الرئيسية فقط (المستوى 1 + الأقسام القديمة بدون parentCategory)
-        const mainCategories = allCategories.filter(c => c.level === 1);
-        
-        if (mainCategories.length === 0) {
-            // إذا لم يوجد أقسام هرمية، اعرض كل الأقسام
-            allCategories.forEach(cat => {
-                sidebar.innerHTML += `<div class="category-item" data-category="${cat.name}" onclick="filterCategory('${cat.name}')">${cat.name}</div>`;
-            });
-        } else {
-            mainCategories.forEach(cat => {
-                sidebar.innerHTML += `<div class="category-item" data-category="${cat.name}" onclick="filterCategory('${cat.name}')">${cat.name}</div>`;
-            });
-        }
+        categoryNavigationStack = [];
+        renderCategorySidebar();
     } catch (error) {
         console.error('خطأ في تحميل التصنيفات:', error);
     }
 }
+
+function renderCategorySidebar() {
+    const sidebar = document.getElementById('sidebarCategories');
+    if (!sidebar) return;
+    
+    sidebar.innerHTML = '';
+    
+    // زر الرجوع
+    if (categoryNavigationStack.length > 0) {
+        const backBtn = document.createElement('div');
+        backBtn.className = 'category-item';
+        backBtn.style.cssText = 'background: #f0f0f0; font-weight: bold;';
+        backBtn.innerHTML = '← رجوع';
+        backBtn.onclick = () => goBackCategory();
+        sidebar.appendChild(backBtn);
+    }
+    
+    // زر "الكل" (فقط في المستوى الرئيسي)
+    if (categoryNavigationStack.length === 0) {
+        const allBtn = document.createElement('div');
+        allBtn.className = 'category-item active';
+        allBtn.dataset.category = 'all';
+        allBtn.innerHTML = '🏠 الكل';
+        allBtn.onclick = () => filterCategory('all');
+        sidebar.appendChild(allBtn);
+    }
+    
+    // تحديد الأقسام التي يجب عرضها
+    let categoriesToShow = [];
+    
+    if (categoryNavigationStack.length === 0) {
+        categoriesToShow = allCategories.filter(c => c.level === 1);
+    } else {
+        const currentParent = categoryNavigationStack[categoryNavigationStack.length - 1];
+        categoriesToShow = allCategories.filter(c => c.parentCategory === currentParent);
+    }
+    
+    // عرض الأقسام
+    categoriesToShow.forEach(cat => {
+        const item = document.createElement('div');
+        item.className = 'category-item';
+        item.dataset.category = cat.name;
+        
+        const hasChildren = allCategories.some(c => c.parentCategory === cat.name);
+        item.innerHTML = hasChildren ? `📁 ${cat.name} ›` : `📄 ${cat.name}`;
+        item.onclick = () => navigateToCategory(cat.name);
+        
+        sidebar.appendChild(item);
+    });
+}
+
+window.navigateToCategory = function(categoryName) {
+    categoryNavigationStack.push(categoryName);
+    renderCategorySidebar();
+    filterCategory(categoryName);
+};
+
+window.goBackCategory = function() {
+    categoryNavigationStack.pop();
+    renderCategorySidebar();
+    if (categoryNavigationStack.length === 0) {
+        filterCategory('all');
+    } else {
+        const currentParent = categoryNavigationStack[categoryNavigationStack.length - 1];
+        filterCategory(currentParent);
+    }
+};
+
 window.filterCategory = function(category) {
     currentCategory = category;
-    document.querySelectorAll('.category-item').forEach(el => el.classList.remove('active'));
-    const target = document.querySelector(`[data-category="${category}"]`);
-    if (target) target.classList.add('active');
+    
+    const sidebar = document.getElementById('categoriesSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (sidebar) sidebar.classList.remove('open');
+    if (overlay) overlay.classList.remove('show');
+    
     renderProductsByCategory();
-    toggleCategories();
 };
 
 function getAllSubCategories(parentName) {
@@ -305,19 +362,6 @@ function getAllSubCategories(parentName) {
         allNames = [...allNames, ...getAllSubCategories(sub.name)];
     });
     return allNames;
-}
-
-function displayCategoryProducts(parentName, level, container) {
-    const subs = allCategories.filter(c => c.parentCategory === parentName);
-    const directProducts = allProducts.filter(p => p.category === parentName);
-    
-    if (directProducts.length > 0 && level > 0) {
-        renderCategorySection(parentName, directProducts);
-    }
-    
-    subs.forEach(subCat => {
-        displayCategoryProducts(subCat.name, level + 1, container);
-    });
 }
 
 async function loadProducts() {
@@ -336,20 +380,12 @@ function renderProductsByCategory() {
     if (!container) return;
     container.innerHTML = '';
 
-    if (currentCategory !== 'all') {
-        const allCats = getAllSubCategories(currentCategory);
-        const categoryProducts = allProducts.filter(p => allCats.includes(p.category));
-        
-        if (categoryProducts.length > 0) {
-            displayCategoryProducts(currentCategory, 0, container);
-        } else {
-            container.innerHTML = '<div style="text-align:center; padding:50px; color:#666;">لا توجد منتجات في هذا القسم</div>';
-        }
-    } else {
+    if (currentCategory === 'all') {
+        // عرض كل المنتجات مقسمة حسب الأقسام الرئيسية
         const level1Cats = allCategories.filter(c => c.level === 1);
         
         if (level1Cats.length === 0) {
-            renderCategorySection('all', allProducts);
+            renderCategorySection('جميع المنتجات', allProducts);
         } else {
             level1Cats.forEach(mainCat => {
                 const allCats = getAllSubCategories(mainCat.name);
@@ -360,7 +396,32 @@ function renderProductsByCategory() {
                 }
             });
         }
+    } else {
+        // عرض منتجات القسم المحدد فقط (مع فروعه)
+        const allCats = getAllSubCategories(currentCategory);
+        const categoryProducts = allProducts.filter(p => allCats.includes(p.category));
+        
+        if (categoryProducts.length > 0) {
+            displayCategoryProducts(currentCategory, 0, container);
+        } else {
+            container.innerHTML = '<div style="text-align:center; padding:50px; color:#666;">لا توجد منتجات في هذا القسم</div>';
+        }
     }
+}
+
+function displayCategoryProducts(parentName, level, container) {
+    const subs = allCategories.filter(c => c.parentCategory === parentName);
+    const directProducts = allProducts.filter(p => p.category === parentName);
+    
+    // عرض منتجات هذا القسم مباشرة
+    if (directProducts.length > 0) {
+        renderCategorySection(parentName, directProducts);
+    }
+    
+    // عرض الفروع
+    subs.forEach(subCat => {
+        displayCategoryProducts(subCat.name, level + 1, container);
+    });
 }
 
 function renderCategorySection(categoryName, products) {
@@ -369,11 +430,10 @@ function renderCategorySection(categoryName, products) {
 
     const section = document.createElement('div');
     section.style.marginBottom = '40px';
-    const displayTitle = categoryName === 'all' ? 'جميع المنتجات' : categoryName;
 
     section.innerHTML = `
         <div class="section-header">
-            <h2 class="section-title">${displayTitle}</h2>
+            <h2 class="section-title">${categoryName}</h2>
             <div class="nav-arrows">
                 <button class="nav-arrow" onclick="scrollSection('${categoryName}', 'right')">›</button>
                 <button class="nav-arrow" onclick="scrollSection('${categoryName}', 'left')">‹</button>
@@ -430,7 +490,7 @@ window.scrollSection = function(categoryName, direction) {
     }
 };
 
-// 5. بدء التشغيل
+// ============ 5. بدء التشغيل ============
 console.log('✅ بدء التشغيل...');
 updateCartCount();
 loadBannersSystem();
