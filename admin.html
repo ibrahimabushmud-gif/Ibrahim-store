@@ -19,6 +19,7 @@
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
         .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: 'Tajawal'; font-size: 14px; }
+        .form-group small { color: #666; font-size: 12px; display: block; margin-top: 4px; }
         .checkbox-group { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
         .checkbox-group input { width: auto; }
         .btn { background: #28a745; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; font-family: 'Tajawal'; }
@@ -45,7 +46,11 @@
         .tree-level-2 { background: #FFF9E6; padding: 10px; border-radius: 6px; margin-right: 20px; border-right: 4px solid #D4AF37; }
         .tree-level-3 { background: #f9f9f9; padding: 10px; border-radius: 6px; margin-right: 40px; border-right: 3px solid #ccc; }
         .order-controls { display: flex; align-items: center; gap: 5px; }
-        .order-number { font-weight: bold; color: var(--primary-color); min-width: 30px; text-align: center; }
+        .level-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; margin-right: 8px; }
+        .level-1 { background: rgba(255,255,255,0.3); color: white; }
+        .level-2 { background: #D4AF37; color: white; }
+        .level-3 { background: #FFF9E6; color: #333; border: 1px solid #D4AF37; }
+        .sale-options { background: #fff3cd; padding: 15px; border-radius: 8px; margin: 15px 0; border-right: 4px solid #ffc107; }
     </style>
 </head>
 <body>
@@ -64,7 +69,7 @@
 
     <div id="adminContent" class="container" style="display:none;">
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('products')">📦 المنتجات</button>
+            <button class="tab active" onclick="switchTab('products')"> المنتجات</button>
             <button class="tab" onclick="switchTab('categories')">📁 الأقسام</button>
             <button class="tab" onclick="switchTab('banners')">🖼️ البنرات</button>
             <button class="tab" onclick="switchTab('orders')">🛍️ الطلبات</button>
@@ -78,13 +83,13 @@
                 <div class="form-group"><label>اسم المنتج *</label><input type="text" id="pName" required></div>
                 <div class="form-group"><label>رابط الصورة (URL) *</label><input type="url" id="pImage" required></div>
                 <div class="form-group"><label>القسم / التصنيف *</label><select id="pCategory" required><option value="">-- اختر القسم --</option></select></div>
-                <div class="form-group"><label>السعر الجديد (د.إ) *</label><input type="number" id="pPrice" required></div>
-                <div class="form-group"><label>السعر القديم قبل الخصم (اختياري)</label><input type="number" id="pOldPrice"></div>
+                <div class="form-group"><label>السعر الجديد (د.إ) *</label><input type="number" id="pPrice" required step="0.01"></div>
+                <div class="form-group"><label>السعر القديم قبل الخصم (اختياري)</label><input type="number" id="pOldPrice" step="0.01"></div>
                 
                 <div class="form-group">
                     <label>ترتيب العرض (الرقم الأصغر يظهر أولاً) *</label>
                     <input type="number" id="pOrder" value="100" min="1" required>
-                    <small style="color:#666;">المنتجات ذات الرقم الأصغر تظهر أولاً في المتجر</small>
+                    <small>المنتجات ذات الرقم الأصغر تظهر أولاً في المتجر</small>
                 </div>
 
                 <div class="form-group">
@@ -99,25 +104,35 @@
 
                 <div class="checkbox-group">
                     <input type="checkbox" id="pIsNew">
-                    <label for="pIsNew"> وضع علامة "جديد" على المنتج</label>
+                    <label for="pIsNew">🆕 وضع علامة "جديد" على المنتج</label>
                 </div>
 
                 <div class="checkbox-group">
                     <input type="checkbox" id="pIsSale">
-                    <label for="pIsSale">🔥 وضع علامة "عرض لفترة محدودة"</label>
+                    <label for="pIsSale"> تفعيل عرض على المنتج</label>
                 </div>
 
-                <div class="form-group" id="saleEndDateGroup" style="display:none;">
-                    <label>تاريخ انتهاء العرض</label>
-                    <input type="date" id="pSaleEndDate">
+                <div id="saleOptionsGroup" style="display:none;">
+                    <div class="sale-options">
+                        <div class="form-group">
+                            <label>نسبة الخصم % *</label>
+                            <input type="number" id="pDiscountPercent" min="1" max="99" placeholder="مثال: 5">
+                            <small>أدخل نسبة الخصم (1-99)</small>
+                        </div>
+                        <div class="form-group">
+                            <label>تاريخ انتهاء العرض (اختياري)</label>
+                            <input type="date" id="pSaleEndDate">
+                            <small>اتركه فارغاً إذا لا يوجد تاريخ انتهاء</small>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="checkbox-group">
                     <input type="checkbox" id="pHasColors">
-                    <label for="pHasColors">تفعيل اختيار الألوان لهذا المنتج؟</label>
+                    <label for="pHasColors"> تفعيل اختيار الألوان لهذا المنتج؟</label>
                 </div>
                 <div class="form-group" id="colorsInputGroup" style="display:none;">
-                    <label>الألوان المتاحة (افصل بينها بفاصلة، مثال: أحمر, أسود, أبيض)</label>
+                    <label>الألوان المتاحة (افصل بينها بفاصلة)</label>
                     <input type="text" id="pColors" placeholder="أحمر, أسود, أبيض">
                 </div>
 
@@ -139,7 +154,6 @@
                 المستوى 3: آيفون 18
             </div>
 
-            <!-- إضافة قسم -->
             <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
                 <h3>➕ إضافة قسم جديد</h3>
                 <form id="categoryForm">
@@ -164,13 +178,12 @@
                     <div class="form-group">
                         <label>ترتيب العرض (الرقم الأصغر يظهر أولاً) *</label>
                         <input type="number" id="catOrder" value="100" min="1" required>
-                        <small style="color:#666;">الأقسام ذات الرقم الأصغر تظهر أولاً</small>
+                        <small>الأقسام ذات الرقم الأصغر تظهر أولاً</small>
                     </div>
                     <button type="submit" class="btn">إضافة القسم</button>
                 </form>
             </div>
 
-            <!-- عرض الأقسام -->
             <div class="section-title">
                 <h3>الهيكل الهرمي للأقسام</h3>
             </div>
@@ -189,7 +202,7 @@
                     </select>
                 </div>
                 <div class="form-group"><label>رابط صورة البنر (URL) *</label><input type="url" id="bImageUrl" required placeholder="https://..."></div>
-                <div class="form-group"><label>رابط الوجهة عند الضغط (اختياري)</label><input type="url" id="bLink" placeholder="https://... (اتركه فارغاً إذا لا يوجد رابط)"></div>
+                <div class="form-group"><label>رابط الوجهة عند الضغط (اختياري)</label><input type="url" id="bLink" placeholder="https://..."></div>
                 <div class="form-group">
                     <label>ترتيب العرض (الرقم الأصغر يظهر أولاً)</label>
                     <input type="number" id="bOrder" value="100" min="1">
