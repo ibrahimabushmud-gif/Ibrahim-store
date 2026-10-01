@@ -3,8 +3,7 @@ import { db, collection, addDoc } from './firebase-config.js';
 const orderData = JSON.parse(localStorage.getItem('pendingOrder'));
 let currentOTP = null;
 let otpAttempts = 0;
-const curr = '<img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/UAE_Dirham_Symbol.svg" style="height:16px; vertical-align:middle; margin-left:4px;">';
-
+const curr = '<img src="https://upload.wikimedia.org/wikipedia/commons/2/23/Dirham_sign.svg" style="height:16px; vertical-align:middle; margin-left:4px;">';
 if (!orderData) {
     document.body.innerHTML = '<div style="text-align:center; padding:50px;"><h2>لا يوجد طلب</h2><a href="index.html" style="color:var(--primary-color);">العودة للمتجر</a></div>';
 } else {
