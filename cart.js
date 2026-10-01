@@ -9,8 +9,9 @@ let selectedMonths = 0;
 let selectedMonthlyPayment = 0;
 
 // شعار العملة - كبير وواضح
-const curr = '<img src="https://upload.wikimedia.org/wikipedia/commons/2/23/Dirham_sign.svg" style="height:16px; vertical-align:middle; margin-left:4px;">';
-const currLarge = '<img src="https://upload.wikimedia.org/wikipedia/commons/2/23/Dirham_sign.svg" style="height:24px; vertical-align:middle; margin-left:5px;">';
+const curr = '<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTtauUniR9dGoEXyG6AaYXbzovVet90qe0igubKGL7Ew&s=10" style="height:16px; vertical-align:middle; margin-left:4px;">';
+
+const currLarge = '<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTtauUniR9dGoEXyG6AaYXbzovVet90qe0igubKGL7Ew&s=10" style="height:24px; vertical-align:middle; margin-left:5px;">';
 function updateCartCount() {
     const count = cart.reduce((sum, item) => sum + item.quantity, 0);
     if (cartCountEl) cartCountEl.textContent = count;
