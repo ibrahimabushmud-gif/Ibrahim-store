@@ -21,7 +21,7 @@ onAuthStateChanged(auth, (user) => {
         if (user) {
             if (user.email === ADMIN_EMAIL) {
                 userMenuEl.innerHTML = `
-                    <a href="admin.html" style="color:var(--primary-color); text-decoration:none; font-weight:bold; margin-left:10px;">️ الإدارة</a>
+                    <a href="admin.html" style="color:var(--primary-color); text-decoration:none; font-weight:bold; margin-left:10px;">⚙️ الإدارة</a>
                     <button onclick="doLogout()" style="background:none; border:none; color:var(--danger-color); cursor:pointer; font-family:'Tajawal'; font-weight:bold;">خروج</button>
                 `;
             } else {
@@ -195,7 +195,6 @@ async function loadBannersSystem() {
             }
         });
         
-        // ترتيب البنرات حسب order
         carouselImages.sort((a, b) => a.order - b.order);
         
         if (topBannerEl && topBannerImg && topBannerUrl) {
@@ -279,7 +278,6 @@ async function loadCategories() {
             });
         });
 
-        // ترتيب الأقسام حسب order
         allCategories.sort((a, b) => a.order - b.order);
 
         categoryNavigationStack = [];
@@ -384,12 +382,12 @@ async function loadProducts() {
                 order: data.order || 100,
                 isNew: data.isNew || false,
                 isSale: data.isSale || false,
+                discountPercent: data.discountPercent || 0,
                 saleEndDate: data.saleEndDate || null,
                 displayLocation: data.displayLocation || 'all'
             });
         });
         
-        // ترتيب المنتجات حسب order
         allProducts.sort((a, b) => a.order - b.order);
         
         renderProductsByCategory();
@@ -468,16 +466,15 @@ function renderCategorySection(categoryName, products) {
 function createProductCard(product) {
     const discount = product.oldPrice ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100) : 0;
     
-    // التحقق من العروض
     let badges = '';
     if (product.isNew) {
         badges += '<div class="badge-new" style="position:absolute; top:10px; right:10px; background:#28a745; color:white; padding:5px 12px; border-radius:15px; font-size:12px; font-weight:bold; z-index:10;">🆕 جديد</div>';
     }
-    if (product.isSale) {
+    if (product.isSale && product.discountPercent) {
         const endDate = product.saleEndDate ? new Date(product.saleEndDate) : null;
         const isExpired = endDate && endDate < new Date();
         if (!isExpired) {
-            badges += '<div class="badge-sale" style="position:absolute; top:10px; left:10px; background:#dc3545; color:white; padding:5px 12px; border-radius:15px; font-size:12px; font-weight:bold; z-index:10;">🔥 عرض محدود</div>';
+            badges += `<div class="badge-sale" style="position:absolute; top:10px; left:10px; background:#dc3545; color:white; padding:5px 12px; border-radius:15px; font-size:12px; font-weight:bold; z-index:10;">خصم ${product.discountPercent}%</div>`;
         }
     }
     
