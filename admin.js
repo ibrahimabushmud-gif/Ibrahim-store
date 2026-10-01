@@ -22,12 +22,11 @@ onAuthStateChanged(auth, (user) => {
 window.switchTab = function(tabName) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    
     event.target.classList.add('active');
     document.getElementById(`${tabName}-tab`).classList.add('active');
 };
 
-// 3. إدارة الأقسام الهرمية (3 مستويات)
+// 3. إدارة الأقسام الهرمية
 let allCategories = [];
 
 async function loadCategories() {
@@ -49,10 +48,8 @@ async function loadCategories() {
         });
     });
 
-    // ترتيب الأقسام حسب order
     allCategories.sort((a, b) => a.order - b.order);
 
-    // ملء قائمة المنتجات بجميع الأقسام
     allCategories.forEach(cat => {
         const indent = '  '.repeat(cat.level - 1);
         const levelLabel = cat.level === 1 ? '(رئيسي)' : cat.level === 2 ? '(فرعي)' : '(فرعي من الفرعي)';
@@ -105,7 +102,7 @@ function displayCategoryTree() {
                             <strong style="font-size:18px;"> ${mainCat.name}</strong>
                         </div>
                         <div class="order-controls">
-                            <button class="btn-move" onclick="changeCategoryOrder('${mainCat.id}', -1)">️</button>
+                            <button class="btn-move" onclick="changeCategoryOrder('${mainCat.id}', -1)">⬆️</button>
                             <button class="btn-move" onclick="changeCategoryOrder('${mainCat.id}', 1)">⬇️</button>
                             <button class="btn-delete" onclick="deleteCategory('${mainCat.id}')">حذف</button>
                         </div>
@@ -145,7 +142,7 @@ function displayCategoryTree() {
                                     <small style="display:block; color:#999;">فرع من: ${subSubCat.parentCategory}</small>
                                 </div>
                                 <div class="order-controls">
-                                    <button class="btn-move" onclick="changeCategoryOrder('${subSubCat.id}', -1)">️</button>
+                                    <button class="btn-move" onclick="changeCategoryOrder('${subSubCat.id}', -1)">⬆️</button>
                                     <button class="btn-move" onclick="changeCategoryOrder('${subSubCat.id}', 1)">⬇️</button>
                                     <button class="btn-delete" onclick="deleteCategory('${subSubCat.id}')">حذف</button>
                                 </div>
@@ -169,7 +166,6 @@ window.changeCategoryOrder = async function(id, delta) {
     }
 };
 
-// إضافة قسم
 document.getElementById('categoryForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const level = parseInt(document.getElementById('catLevel').value);
@@ -222,7 +218,7 @@ document.getElementById('pHasColors').addEventListener('change', (e) => {
 });
 
 document.getElementById('pIsSale').addEventListener('change', (e) => {
-    document.getElementById('saleEndDateGroup').style.display = e.target.checked ? 'block' : 'none';
+    document.getElementById('saleOptionsGroup').style.display = e.target.checked ? 'block' : 'none';
 });
 
 async function loadProducts() {
@@ -236,14 +232,13 @@ async function loadProducts() {
         products.push({ id: docSnap.id, ...docSnap.data() });
     });
     
-    // ترتيب المنتجات حسب order
     products.sort((a, b) => (a.order || 100) - (b.order || 100));
     
     let html = '';
     products.forEach(p => {
         const badges = [];
         if (p.isNew) badges.push('<span class="badge-new">جديد</span>');
-        if (p.isSale) badges.push('<span class="badge-sale">عرض</span>');
+        if (p.isSale && p.discountPercent) badges.push(`<span class="badge-sale">خصم ${p.discountPercent}%</span>`);
         
         html += `
             <div class="item-row">
@@ -255,7 +250,7 @@ async function loadProducts() {
                 <div class="order-controls">
                     <button class="btn-move" onclick="changeProductOrder('${p.id}', -1)">⬆️</button>
                     <button class="btn-move" onclick="changeProductOrder('${p.id}', 1)">⬇️</button>
-                    <button class="btn-edit" onclick="editProduct('${p.id}', '${p.name}', '${p.image}', '${p.category}', ${p.price}, ${p.oldPrice || 0}, ${p.hasColors}, '${p.colors || ''}', ${p.order || 100}, '${p.displayLocation || 'all'}', ${p.isNew || false}, ${p.isSale || false}, '${p.saleEndDate || ''}')">تعديل</button>
+                    <button class="btn-edit" onclick="editProduct('${p.id}', '${p.name}', '${p.image}', '${p.category}', ${p.price}, ${p.oldPrice || 0}, ${p.hasColors}, '${p.colors || ''}', ${p.order || 100}, '${p.displayLocation || 'all'}', ${p.isNew || false}, ${p.isSale || false}, ${p.discountPercent || 0}, '${p.saleEndDate || ''}')">تعديل</button>
                     <button class="btn-delete" onclick="deleteProduct('${p.id}')">حذف</button>
                 </div>
             </div>`;
@@ -291,6 +286,7 @@ document.getElementById('productForm').addEventListener('submit', async (e) => {
         displayLocation: document.getElementById('pDisplayLocation').value,
         isNew: document.getElementById('pIsNew').checked,
         isSale: document.getElementById('pIsSale').checked,
+        discountPercent: Number(document.getElementById('pDiscountPercent').value) || 0,
         saleEndDate: document.getElementById('pSaleEndDate').value || null,
         hasColors: document.getElementById('pHasColors').checked,
         colors: document.getElementById('pColors').value
@@ -303,13 +299,13 @@ document.getElementById('productForm').addEventListener('submit', async (e) => {
         await addDoc(collection(db, "products"), productData);
         e.target.reset();
         document.getElementById('colorsInputGroup').style.display = 'none';
-        document.getElementById('saleEndDateGroup').style.display = 'none';
+        document.getElementById('saleOptionsGroup').style.display = 'none';
         document.getElementById('pOrder').value = '100';
     }
     loadProducts();
 });
 
-window.editProduct = (id, name, image, category, price, oldPrice, hasColors, colors, order, displayLocation, isNew, isSale, saleEndDate) => {
+window.editProduct = (id, name, image, category, price, oldPrice, hasColors, colors, order, displayLocation, isNew, isSale, discountPercent, saleEndDate) => {
     document.getElementById('editId').value = id;
     document.getElementById('pName').value = name;
     document.getElementById('pImage').value = image;
@@ -320,11 +316,12 @@ window.editProduct = (id, name, image, category, price, oldPrice, hasColors, col
     document.getElementById('pDisplayLocation').value = displayLocation;
     document.getElementById('pIsNew').checked = isNew;
     document.getElementById('pIsSale').checked = isSale;
-    document.getElementById('pSaleEndDate').value = saleEndDate;
+    document.getElementById('pDiscountPercent').value = discountPercent || '';
+    document.getElementById('pSaleEndDate').value = saleEndDate || '';
     document.getElementById('pHasColors').checked = hasColors;
     document.getElementById('pColors').value = colors;
     document.getElementById('colorsInputGroup').style.display = hasColors ? 'block' : 'none';
-    document.getElementById('saleEndDateGroup').style.display = isSale ? 'block' : 'none';
+    document.getElementById('saleOptionsGroup').style.display = isSale ? 'block' : 'none';
     
     document.getElementById('formTitle').textContent = 'تعديل المنتج';
     document.getElementById('submitBtn').textContent = 'تحديث المنتج';
@@ -338,7 +335,7 @@ window.cancelEdit = () => {
     document.getElementById('submitBtn').textContent = 'حفظ المنتج';
     document.getElementById('cancelBtn').style.display = 'none';
     document.getElementById('colorsInputGroup').style.display = 'none';
-    document.getElementById('saleEndDateGroup').style.display = 'none';
+    document.getElementById('saleOptionsGroup').style.display = 'none';
     document.getElementById('pOrder').value = '100';
 };
 
@@ -360,7 +357,6 @@ async function loadBanners() {
         banners.push({ id: docSnap.id, ...docSnap.data() });
     });
     
-    // ترتيب البنرات حسب order
     banners.sort((a, b) => (a.order || 100) - (b.order || 100));
     
     let html = '';
@@ -378,7 +374,7 @@ async function loadBanners() {
                     <small style="color: ${b.isActive ? 'green' : 'red'}">الحالة: ${statusText}</small>
                 </div>
                 <div class="order-controls">
-                    <button class="btn-move" onclick="changeBannerOrder('${b.id}', -1)">️</button>
+                    <button class="btn-move" onclick="changeBannerOrder('${b.id}', -1)">⬆️</button>
                     <button class="btn-move" onclick="changeBannerOrder('${b.id}', 1)">⬇️</button>
                     <button class="btn-toggle ${statusClass}" onclick="toggleBanner('${b.id}', ${b.isActive})">
                         ${b.isActive ? 'تعطيل' : 'تفعيل'}
@@ -451,8 +447,8 @@ async function loadOrders() {
                     <span style="color:#666;">${date}</span>
                 </div>
                 <div style="width:100%; font-size:14px; color:#555;">
-                    <p>👤 ${o.customerName} | 📱 ${o.phone}</p>
-                    <p> المجموع: ${o.total} د.إ | 💳 الدفع: ${o.paymentMethod === 'installment' ? 'تقسيط' : o.paymentMethod}</p>
+                    <p> ${o.customerName} | 📱 ${o.phone}</p>
+                    <p>💰 المجموع: ${o.total} د.إ | 💳 الدفع: ${o.paymentMethod === 'installment' ? 'تقسيط' : o.paymentMethod}</p>
                     <p>📦 المنتجات: ${o.items.map(i => i.name).join(', ')}</p>
                 </div>
             </div>`;
