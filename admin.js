@@ -44,9 +44,13 @@ async function loadCategories() {
         allCategories.push({ 
             id: docSnap.id, 
             ...docSnap.data(),
-            level: docSnap.data().level || 1
+            level: docSnap.data().level || 1,
+            order: docSnap.data().order || 100
         });
     });
+
+    // ترتيب الأقسام حسب order
+    allCategories.sort((a, b) => a.order - b.order);
 
     // ملء قائمة المنتجات بجميع الأقسام
     allCategories.forEach(cat => {
@@ -55,7 +59,6 @@ async function loadCategories() {
         select.innerHTML += `<option value="${cat.name}">${indent}${cat.name} ${levelLabel}</option>`;
     });
 
-    // عرض الهيكل الهرمي
     displayCategoryTree();
     updateParentSelect();
 }
@@ -96,11 +99,16 @@ function displayCategoryTree() {
             html += `
                 <div class="tree-item tree-level-1">
                     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                        <div>
+                        <div style="flex:1;">
+                            <span class="badge-order">ترتيب: ${mainCat.order}</span>
                             <span class="level-badge level-1">مستوى 1</span>
-                            <strong style="font-size:18px;">📁 ${mainCat.name}</strong>
+                            <strong style="font-size:18px;"> ${mainCat.name}</strong>
                         </div>
-                        <button class="btn-delete" onclick="deleteCategory('${mainCat.id}')">حذف</button>
+                        <div class="order-controls">
+                            <button class="btn-move" onclick="changeCategoryOrder('${mainCat.id}', -1)">️</button>
+                            <button class="btn-move" onclick="changeCategoryOrder('${mainCat.id}', 1)">⬇️</button>
+                            <button class="btn-delete" onclick="deleteCategory('${mainCat.id}')">حذف</button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -110,12 +118,17 @@ function displayCategoryTree() {
                 html += `
                     <div class="tree-item tree-level-2">
                         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                            <div>
+                            <div style="flex:1;">
+                                <span class="badge-order">ترتيب: ${subCat.order}</span>
                                 <span class="level-badge level-2">مستوى 2</span>
                                 <strong style="font-size:16px;">📂 ${subCat.name}</strong>
                                 <small style="display:block; color:#666;">فرع من: ${subCat.parentCategory}</small>
                             </div>
-                            <button class="btn-delete" onclick="deleteCategory('${subCat.id}')">حذف</button>
+                            <div class="order-controls">
+                                <button class="btn-move" onclick="changeCategoryOrder('${subCat.id}', -1)">⬆️</button>
+                                <button class="btn-move" onclick="changeCategoryOrder('${subCat.id}', 1)">⬇️</button>
+                                <button class="btn-delete" onclick="deleteCategory('${subCat.id}')">حذف</button>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -125,12 +138,17 @@ function displayCategoryTree() {
                     html += `
                         <div class="tree-item tree-level-3">
                             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                                <div>
+                                <div style="flex:1;">
+                                    <span class="badge-order">ترتيب: ${subSubCat.order}</span>
                                     <span class="level-badge level-3">مستوى 3</span>
                                     <strong style="font-size:14px;">📄 ${subSubCat.name}</strong>
                                     <small style="display:block; color:#999;">فرع من: ${subSubCat.parentCategory}</small>
                                 </div>
-                                <button class="btn-delete" onclick="deleteCategory('${subSubCat.id}')">حذف</button>
+                                <div class="order-controls">
+                                    <button class="btn-move" onclick="changeCategoryOrder('${subSubCat.id}', -1)">️</button>
+                                    <button class="btn-move" onclick="changeCategoryOrder('${subSubCat.id}', 1)">⬇️</button>
+                                    <button class="btn-delete" onclick="deleteCategory('${subSubCat.id}')">حذف</button>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -142,12 +160,22 @@ function displayCategoryTree() {
     list.innerHTML = html;
 }
 
+window.changeCategoryOrder = async function(id, delta) {
+    const cat = allCategories.find(c => c.id === id);
+    if (cat) {
+        const newOrder = Math.max(1, cat.order + delta);
+        await updateDoc(doc(db, "categories", id), { order: newOrder });
+        loadCategories();
+    }
+};
+
 // إضافة قسم
 document.getElementById('categoryForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const level = parseInt(document.getElementById('catLevel').value);
     const parentCategory = document.getElementById('parentCategory').value;
     const name = document.getElementById('catName').value.trim();
+    const order = parseInt(document.getElementById('catOrder').value) || 100;
     
     if (level > 1 && !parentCategory) {
         alert('⚠️ الرجاء اختيار القسم الأب للمستوى ' + level);
@@ -158,11 +186,13 @@ document.getElementById('categoryForm').addEventListener('submit', async (e) => 
         name: name,
         level: level,
         parentCategory: parentCategory || null,
+        order: order,
         createdAt: new Date()
     });
     
     document.getElementById('catName').value = '';
     document.getElementById('parentCategory').value = '';
+    document.getElementById('catOrder').value = '100';
     loadCategories();
 });
 
@@ -191,30 +221,62 @@ document.getElementById('pHasColors').addEventListener('change', (e) => {
     document.getElementById('colorsInputGroup').style.display = e.target.checked ? 'block' : 'none';
 });
 
+document.getElementById('pIsSale').addEventListener('change', (e) => {
+    document.getElementById('saleEndDateGroup').style.display = e.target.checked ? 'block' : 'none';
+});
+
 async function loadProducts() {
     const list = document.getElementById('productsList');
     list.innerHTML = 'جاري التحميل...';
     const snapshot = await getDocs(collection(db, "products"));
     document.getElementById('prodCount').textContent = snapshot.size;
     
-    let html = '';
+    let products = [];
     snapshot.forEach(docSnap => {
-        const p = docSnap.data();
+        products.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    
+    // ترتيب المنتجات حسب order
+    products.sort((a, b) => (a.order || 100) - (b.order || 100));
+    
+    let html = '';
+    products.forEach(p => {
+        const badges = [];
+        if (p.isNew) badges.push('<span class="badge-new">جديد</span>');
+        if (p.isSale) badges.push('<span class="badge-sale">عرض</span>');
+        
         html += `
             <div class="item-row">
                 <img src="${p.image}" class="banner-preview" style="width:50px; height:50px;">
                 <div style="flex:1;">
-                    <strong>${p.name}</strong><br>
-                    <small>${p.price} د.إ | ${p.category}</small>
+                    <strong>${badges.join(' ')}${p.name}</strong><br>
+                    <small>${p.price} د.إ | ${p.category} | ترتيب: ${p.order || 100} | ${p.displayLocation || 'all'}</small>
                 </div>
-                <div>
-                    <button class="btn-edit" onclick="editProduct('${docSnap.id}', '${p.name}', '${p.image}', '${p.category}', ${p.price}, ${p.oldPrice || 0}, ${p.hasColors}, '${p.colors || ''}')">تعديل</button>
-                    <button class="btn-delete" onclick="deleteProduct('${docSnap.id}')">حذف</button>
+                <div class="order-controls">
+                    <button class="btn-move" onclick="changeProductOrder('${p.id}', -1)">⬆️</button>
+                    <button class="btn-move" onclick="changeProductOrder('${p.id}', 1)">⬇️</button>
+                    <button class="btn-edit" onclick="editProduct('${p.id}', '${p.name}', '${p.image}', '${p.category}', ${p.price}, ${p.oldPrice || 0}, ${p.hasColors}, '${p.colors || ''}', ${p.order || 100}, '${p.displayLocation || 'all'}', ${p.isNew || false}, ${p.isSale || false}, '${p.saleEndDate || ''}')">تعديل</button>
+                    <button class="btn-delete" onclick="deleteProduct('${p.id}')">حذف</button>
                 </div>
             </div>`;
     });
     list.innerHTML = html || '<p>لا توجد منتجات</p>';
 }
+
+window.changeProductOrder = async function(id, delta) {
+    const snapshot = await getDocs(collection(db, "products"));
+    let products = [];
+    snapshot.forEach(docSnap => {
+        products.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    
+    const product = products.find(p => p.id === id);
+    if (product) {
+        const newOrder = Math.max(1, (product.order || 100) + delta);
+        await updateDoc(doc(db, "products", id), { order: newOrder });
+        loadProducts();
+    }
+};
 
 document.getElementById('productForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -225,6 +287,11 @@ document.getElementById('productForm').addEventListener('submit', async (e) => {
         category: document.getElementById('pCategory').value,
         price: Number(document.getElementById('pPrice').value),
         oldPrice: Number(document.getElementById('pOldPrice').value) || null,
+        order: Number(document.getElementById('pOrder').value) || 100,
+        displayLocation: document.getElementById('pDisplayLocation').value,
+        isNew: document.getElementById('pIsNew').checked,
+        isSale: document.getElementById('pIsSale').checked,
+        saleEndDate: document.getElementById('pSaleEndDate').value || null,
         hasColors: document.getElementById('pHasColors').checked,
         colors: document.getElementById('pColors').value
     };
@@ -236,20 +303,28 @@ document.getElementById('productForm').addEventListener('submit', async (e) => {
         await addDoc(collection(db, "products"), productData);
         e.target.reset();
         document.getElementById('colorsInputGroup').style.display = 'none';
+        document.getElementById('saleEndDateGroup').style.display = 'none';
+        document.getElementById('pOrder').value = '100';
     }
     loadProducts();
 });
 
-window.editProduct = (id, name, image, category, price, oldPrice, hasColors, colors) => {
+window.editProduct = (id, name, image, category, price, oldPrice, hasColors, colors, order, displayLocation, isNew, isSale, saleEndDate) => {
     document.getElementById('editId').value = id;
     document.getElementById('pName').value = name;
     document.getElementById('pImage').value = image;
     document.getElementById('pCategory').value = category;
     document.getElementById('pPrice').value = price;
     document.getElementById('pOldPrice').value = oldPrice;
+    document.getElementById('pOrder').value = order;
+    document.getElementById('pDisplayLocation').value = displayLocation;
+    document.getElementById('pIsNew').checked = isNew;
+    document.getElementById('pIsSale').checked = isSale;
+    document.getElementById('pSaleEndDate').value = saleEndDate;
     document.getElementById('pHasColors').checked = hasColors;
     document.getElementById('pColors').value = colors;
     document.getElementById('colorsInputGroup').style.display = hasColors ? 'block' : 'none';
+    document.getElementById('saleEndDateGroup').style.display = isSale ? 'block' : 'none';
     
     document.getElementById('formTitle').textContent = 'تعديل المنتج';
     document.getElementById('submitBtn').textContent = 'تحديث المنتج';
@@ -263,6 +338,8 @@ window.cancelEdit = () => {
     document.getElementById('submitBtn').textContent = 'حفظ المنتج';
     document.getElementById('cancelBtn').style.display = 'none';
     document.getElementById('colorsInputGroup').style.display = 'none';
+    document.getElementById('saleEndDateGroup').style.display = 'none';
+    document.getElementById('pOrder').value = '100';
 };
 
 window.deleteProduct = async (id) => {
@@ -278,9 +355,16 @@ async function loadBanners() {
     list.innerHTML = 'جاري التحميل...';
     const snapshot = await getDocs(collection(db, "banners"));
     
-    let html = '';
+    let banners = [];
     snapshot.forEach(docSnap => {
-        const b = docSnap.data();
+        banners.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    
+    // ترتيب البنرات حسب order
+    banners.sort((a, b) => (a.order || 100) - (b.order || 100));
+    
+    let html = '';
+    banners.forEach(b => {
         const typeText = b.type === 'top' ? '📌 الشريط العلوي الثابت' : '🎠 شريط الصور المتحرك';
         const statusClass = b.isActive ? '' : 'inactive';
         const statusText = b.isActive ? 'مفعل' : 'معطل';
@@ -290,19 +374,36 @@ async function loadBanners() {
                 <img src="${b.imageUrl}" class="banner-preview" onerror="this.src='https://via.placeholder.com/120x60?text=No+Image'">
                 <div class="banner-info">
                     <strong>${typeText}</strong>
-                    <small>الرابط: ${b.link || 'لا يوجد'}</small>
+                    <small>الرابط: ${b.link || 'لا يوجد'} | ترتيب: ${b.order || 100}</small>
                     <small style="color: ${b.isActive ? 'green' : 'red'}">الحالة: ${statusText}</small>
                 </div>
-                <div>
-                    <button class="btn-toggle ${statusClass}" onclick="toggleBanner('${docSnap.id}', ${b.isActive})">
+                <div class="order-controls">
+                    <button class="btn-move" onclick="changeBannerOrder('${b.id}', -1)">️</button>
+                    <button class="btn-move" onclick="changeBannerOrder('${b.id}', 1)">⬇️</button>
+                    <button class="btn-toggle ${statusClass}" onclick="toggleBanner('${b.id}', ${b.isActive})">
                         ${b.isActive ? 'تعطيل' : 'تفعيل'}
                     </button>
-                    <button class="btn-delete" onclick="deleteBanner('${docSnap.id}')">حذف</button>
+                    <button class="btn-delete" onclick="deleteBanner('${b.id}')">حذف</button>
                 </div>
             </div>`;
     });
     list.innerHTML = html || '<p>لا توجد بنرات</p>';
 }
+
+window.changeBannerOrder = async function(id, delta) {
+    const snapshot = await getDocs(collection(db, "banners"));
+    let banners = [];
+    snapshot.forEach(docSnap => {
+        banners.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    
+    const banner = banners.find(b => b.id === id);
+    if (banner) {
+        const newOrder = Math.max(1, (banner.order || 100) + delta);
+        await updateDoc(doc(db, "banners", id), { order: newOrder });
+        loadBanners();
+    }
+};
 
 document.getElementById('bannerForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -310,11 +411,13 @@ document.getElementById('bannerForm').addEventListener('submit', async (e) => {
         type: document.getElementById('bType').value,
         imageUrl: document.getElementById('bImageUrl').value,
         link: document.getElementById('bLink').value || null,
+        order: Number(document.getElementById('bOrder').value) || 100,
         isActive: document.getElementById('bIsActive').checked,
         createdAt: new Date()
     });
     e.target.reset();
     document.getElementById('bIsActive').checked = true;
+    document.getElementById('bOrder').value = '100';
     loadBanners();
 });
 
@@ -349,7 +452,7 @@ async function loadOrders() {
                 </div>
                 <div style="width:100%; font-size:14px; color:#555;">
                     <p>👤 ${o.customerName} | 📱 ${o.phone}</p>
-                    <p>💰 المجموع: ${o.total} د.إ | 💳 الدفع: ${o.paymentMethod === 'installment' ? 'تقسيط' : o.paymentMethod}</p>
+                    <p> المجموع: ${o.total} د.إ | 💳 الدفع: ${o.paymentMethod === 'installment' ? 'تقسيط' : o.paymentMethod}</p>
                     <p>📦 المنتجات: ${o.items.map(i => i.name).join(', ')}</p>
                 </div>
             </div>`;
