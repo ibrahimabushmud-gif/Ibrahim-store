@@ -4,7 +4,7 @@ const productDetail = document.getElementById('productDetail');
 const cartCountEl = document.getElementById('cartCount');
 
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
-const currencyIcon = '<img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/UAE_Dirham_Symbol.svg" style="height:18px; vertical-align:middle; margin-left:4px;">';
+const currencyIcon = '<img src="https://upload.wikimedia.org/wikipedia/commons/2/23/Dirham_sign.svg" style="height:18px; vertical-align:middle; margin-left:4px;">';
 
 function updateCartCount() {
     const count = cart.reduce((sum, item) => sum + item.quantity, 0);
