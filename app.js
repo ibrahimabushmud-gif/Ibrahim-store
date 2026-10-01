@@ -260,19 +260,35 @@ async function loadCategories() {
     try {
         const snapshot = await getDocs(collection(db, "categories"));
         allCategories = [];
-        snapshot.forEach((doc) => allCategories.push({ id: doc.id, ...doc.data() }));
-
-        sidebar.innerHTML = '<div class="category-item active" data-category="all" onclick="filterCategory(\'all\')"> الكل</div>';
-        
-        const level1Cats = allCategories.filter(c => c.level === 1);
-        level1Cats.forEach(cat => {
-            sidebar.innerHTML += `<div class="category-item" data-category="${cat.name}" onclick="filterCategory('${cat.name}')">${cat.name}</div>`;
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            allCategories.push({ 
+                id: doc.id, 
+                ...data,
+                // الأقسام القديمة بدون level نعتبرها مستوى 1
+                level: data.level || (data.parentCategory ? 2 : 1)
+            });
         });
+
+        sidebar.innerHTML = '<div class="category-item active" data-category="all" onclick="filterCategory(\'all\')">🏠 الكل</div>';
+        
+        // عرض الأقسام الرئيسية فقط (المستوى 1 + الأقسام القديمة بدون parentCategory)
+        const mainCategories = allCategories.filter(c => c.level === 1);
+        
+        if (mainCategories.length === 0) {
+            // إذا لم يوجد أقسام هرمية، اعرض كل الأقسام
+            allCategories.forEach(cat => {
+                sidebar.innerHTML += `<div class="category-item" data-category="${cat.name}" onclick="filterCategory('${cat.name}')">${cat.name}</div>`;
+            });
+        } else {
+            mainCategories.forEach(cat => {
+                sidebar.innerHTML += `<div class="category-item" data-category="${cat.name}" onclick="filterCategory('${cat.name}')">${cat.name}</div>`;
+            });
+        }
     } catch (error) {
         console.error('خطأ في تحميل التصنيفات:', error);
     }
 }
-
 window.filterCategory = function(category) {
     currentCategory = category;
     document.querySelectorAll('.category-item').forEach(el => el.classList.remove('active'));
