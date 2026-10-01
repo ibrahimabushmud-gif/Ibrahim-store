@@ -10,9 +10,10 @@ let selectedMonthlyPayment = 0;
 
 // شعار العملة - كبير وواضح
 // شعار العملة - مصغر
-const curr = '<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTtauUniR9dGoEXyG6AaYXbzovVet90qe0igubKGL7Ew&s=10" style="height:12px; width:auto; vertical-align:middle; margin-left:4px;">';
+// شعار العملة - SVG مضمن
+const curr = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle; margin-left:3px;"><circle cx="12" cy="12" r="10"/><path d="M9 12h6M12 9v6"/></svg>';
 
-const currLarge = '<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTtauUniR9dGoEXyG6AaYXbzovVet90qe0igubKGL7Ew&s=10" style="height:18px; width:auto; vertical-align:middle; margin-left:5px;">';
+const currLarge = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle; margin-left:4px;"><circle cx="12" cy="12" r="10"/><path d="M9 12h6M12 9v6"/></svg>';
 function updateCartCount() {
     const count = cart.reduce((sum, item) => sum + item.quantity, 0);
     if (cartCountEl) cartCountEl.textContent = count;
