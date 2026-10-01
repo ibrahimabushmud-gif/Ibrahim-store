@@ -27,39 +27,160 @@ window.switchTab = function(tabName) {
     document.getElementById(`${tabName}-tab`).classList.add('active');
 };
 
-// 3. إدارة الأقسام
+// 3. إدارة الأقسام الهرمية (3 مستويات)
+let allCategories = [];
+
 async function loadCategories() {
     const select = document.getElementById('pCategory');
     const list = document.getElementById('categoriesList');
+    
     select.innerHTML = '<option value="">-- اختر القسم --</option>';
     list.innerHTML = 'جاري التحميل...';
 
     const snapshot = await getDocs(collection(db, "categories"));
-    document.getElementById('catCount').textContent = snapshot.size;
+    allCategories = [];
     
-    let html = '';
     snapshot.forEach(docSnap => {
-        const cat = docSnap.data();
-        select.innerHTML += `<option value="${cat.name}">${cat.name}</option>`;
-        html += `
-            <div class="item-row">
-                <span>${cat.name}</span>
-                <button class="btn-delete" onclick="deleteCategory('${docSnap.id}')">حذف</button>
-            </div>`;
+        allCategories.push({ 
+            id: docSnap.id, 
+            ...docSnap.data(),
+            level: docSnap.data().level || 1
+        });
     });
-    list.innerHTML = html || '<p>لا توجد أقسام</p>';
+
+    // ملء قائمة المنتجات بجميع الأقسام
+    allCategories.forEach(cat => {
+        const indent = '  '.repeat(cat.level - 1);
+        const levelLabel = cat.level === 1 ? '(رئيسي)' : cat.level === 2 ? '(فرعي)' : '(فرعي من الفرعي)';
+        select.innerHTML += `<option value="${cat.name}">${indent}${cat.name} ${levelLabel}</option>`;
+    });
+
+    // عرض الهيكل الهرمي
+    displayCategoryTree();
+    updateParentSelect();
 }
 
+window.updateParentSelect = function() {
+    const level = parseInt(document.getElementById('catLevel').value);
+    const parentSelect = document.getElementById('parentCategory');
+    
+    parentSelect.innerHTML = '<option value="">-- لا يوجد (قسم رئيسي) --</option>';
+    
+    if (level === 1) {
+        parentSelect.disabled = true;
+    } else if (level === 2) {
+        const level1Cats = allCategories.filter(c => c.level === 1);
+        level1Cats.forEach(cat => {
+            parentSelect.innerHTML += `<option value="${cat.name}">${cat.name} (المستوى 1)</option>`;
+        });
+        parentSelect.disabled = false;
+    } else if (level === 3) {
+        const level2Cats = allCategories.filter(c => c.level === 2);
+        level2Cats.forEach(cat => {
+            parentSelect.innerHTML += `<option value="${cat.name}">${cat.name} (المستوى 2)</option>`;
+        });
+        parentSelect.disabled = false;
+    }
+};
+
+function displayCategoryTree() {
+    const list = document.getElementById('categoriesList');
+    const level1Cats = allCategories.filter(c => c.level === 1);
+    
+    let html = '';
+    
+    if (level1Cats.length === 0) {
+        html = '<p style="text-align:center; color:#666;">لا توجد أقسام</p>';
+    } else {
+        level1Cats.forEach(mainCat => {
+            html += `
+                <div class="tree-item tree-level-1">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                        <div>
+                            <span class="level-badge level-1">مستوى 1</span>
+                            <strong style="font-size:18px;">📁 ${mainCat.name}</strong>
+                        </div>
+                        <button class="btn-delete" onclick="deleteCategory('${mainCat.id}')">حذف</button>
+                    </div>
+                </div>
+            `;
+            
+            const level2Cats = allCategories.filter(c => c.level === 2 && c.parentCategory === mainCat.name);
+            level2Cats.forEach(subCat => {
+                html += `
+                    <div class="tree-item tree-level-2">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                            <div>
+                                <span class="level-badge level-2">مستوى 2</span>
+                                <strong style="font-size:16px;">📂 ${subCat.name}</strong>
+                                <small style="display:block; color:#666;">فرع من: ${subCat.parentCategory}</small>
+                            </div>
+                            <button class="btn-delete" onclick="deleteCategory('${subCat.id}')">حذف</button>
+                        </div>
+                    </div>
+                `;
+                
+                const level3Cats = allCategories.filter(c => c.level === 3 && c.parentCategory === subCat.name);
+                level3Cats.forEach(subSubCat => {
+                    html += `
+                        <div class="tree-item tree-level-3">
+                            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                                <div>
+                                    <span class="level-badge level-3">مستوى 3</span>
+                                    <strong style="font-size:14px;">📄 ${subSubCat.name}</strong>
+                                    <small style="display:block; color:#999;">فرع من: ${subSubCat.parentCategory}</small>
+                                </div>
+                                <button class="btn-delete" onclick="deleteCategory('${subSubCat.id}')">حذف</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+        });
+    }
+    
+    list.innerHTML = html;
+}
+
+// إضافة قسم
 document.getElementById('categoryForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const name = document.getElementById('cName').value.trim();
-    await addDoc(collection(db, "categories"), { name });
-    document.getElementById('cName').value = '';
+    const level = parseInt(document.getElementById('catLevel').value);
+    const parentCategory = document.getElementById('parentCategory').value;
+    const name = document.getElementById('catName').value.trim();
+    
+    if (level > 1 && !parentCategory) {
+        alert('⚠️ الرجاء اختيار القسم الأب للمستوى ' + level);
+        return;
+    }
+    
+    await addDoc(collection(db, "categories"), {
+        name: name,
+        level: level,
+        parentCategory: parentCategory || null,
+        createdAt: new Date()
+    });
+    
+    document.getElementById('catName').value = '';
+    document.getElementById('parentCategory').value = '';
     loadCategories();
 });
 
 window.deleteCategory = async (id) => {
-    if(confirm('حذف هذا القسم؟')) {
+    if(confirm('حذف هذا القسم؟ (سيتم حذف الفروع التابعة أيضاً)')) {
+        const cat = allCategories.find(c => c.id === id);
+        
+        if (cat) {
+            const subCategories = allCategories.filter(c => c.parentCategory === cat.name);
+            for (const sub of subCategories) {
+                const subSubCategories = allCategories.filter(c => c.parentCategory === sub.name);
+                for (const subSub of subSubCategories) {
+                    await deleteDoc(doc(db, "categories", subSub.id));
+                }
+                await deleteDoc(doc(db, "categories", sub.id));
+            }
+        }
+        
         await deleteDoc(doc(db, "categories", id));
         loadCategories();
     }
@@ -151,7 +272,7 @@ window.deleteProduct = async (id) => {
     }
 };
 
-// 5. إدارة البنرات (النظام الجديد)
+// 5. إدارة البنرات
 async function loadBanners() {
     const list = document.getElementById('bannersList');
     list.innerHTML = 'جاري التحميل...';
