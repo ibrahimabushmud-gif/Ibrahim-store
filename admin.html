@@ -27,6 +27,8 @@
         .btn-delete { background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-family: 'Tajawal'; }
         .btn-toggle { background: #17a2b8; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-family: 'Tajawal'; margin-left: 5px; }
         .btn-toggle.inactive { background: #6c757d; }
+        .btn-move { background: #6c757d; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-family: 'Tajawal'; margin: 0 2px; font-size: 12px; }
+        .btn-move:hover { background: #495057; }
         .item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; background: #f9f9f9; margin-bottom: 8px; border-radius: 6px; flex-wrap: wrap; gap: 10px; }
         .login-msg { text-align: center; padding: 50px; }
         h2 { margin-top: 0; color: #333; }
@@ -35,14 +37,15 @@
         .banner-preview { width: 120px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; }
         .banner-info { flex: 1; min-width: 200px; }
         .banner-info small { color: #666; display: block; margin-top: 4px; }
-        .level-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; margin-right: 8px; }
-        .level-1 { background: #D4AF37; color: white; }
-        .level-2 { background: #E5C158; color: #333; }
-        .level-3 { background: #FFF9E6; color: #333; border: 1px solid #D4AF37; }
+        .badge-new { background: #28a745; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-right: 5px; }
+        .badge-sale { background: #dc3545; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-right: 5px; }
+        .badge-order { background: #6c757d; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-right: 5px; }
         .tree-item { margin-bottom: 5px; }
         .tree-level-1 { background: #D4AF37; color: white; padding: 12px; border-radius: 8px; border-right: 5px solid #B8960C; }
         .tree-level-2 { background: #FFF9E6; padding: 10px; border-radius: 6px; margin-right: 20px; border-right: 4px solid #D4AF37; }
         .tree-level-3 { background: #f9f9f9; padding: 10px; border-radius: 6px; margin-right: 40px; border-right: 3px solid #ccc; }
+        .order-controls { display: flex; align-items: center; gap: 5px; }
+        .order-number { font-weight: bold; color: var(--primary-color); min-width: 30px; text-align: center; }
     </style>
 </head>
 <body>
@@ -61,10 +64,10 @@
 
     <div id="adminContent" class="container" style="display:none;">
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('products')"> المنتجات</button>
+            <button class="tab active" onclick="switchTab('products')">📦 المنتجات</button>
             <button class="tab" onclick="switchTab('categories')">📁 الأقسام</button>
-            <button class="tab" onclick="switchTab('banners')">️ البنرات</button>
-            <button class="tab" onclick="switchTab('orders')">️ الطلبات</button>
+            <button class="tab" onclick="switchTab('banners')">🖼️ البنرات</button>
+            <button class="tab" onclick="switchTab('orders')">🛍️ الطلبات</button>
         </div>
 
         <!-- تبويب المنتجات -->
@@ -78,6 +81,37 @@
                 <div class="form-group"><label>السعر الجديد (د.إ) *</label><input type="number" id="pPrice" required></div>
                 <div class="form-group"><label>السعر القديم قبل الخصم (اختياري)</label><input type="number" id="pOldPrice"></div>
                 
+                <div class="form-group">
+                    <label>ترتيب العرض (الرقم الأصغر يظهر أولاً) *</label>
+                    <input type="number" id="pOrder" value="100" min="1" required>
+                    <small style="color:#666;">المنتجات ذات الرقم الأصغر تظهر أولاً في المتجر</small>
+                </div>
+
+                <div class="form-group">
+                    <label>موقع العرض في المتجر</label>
+                    <select id="pDisplayLocation">
+                        <option value="all">كل الأماكن (افتراضي)</option>
+                        <option value="home">الصفحة الرئيسية فقط</option>
+                        <option value="featured">قسم المميزات فقط</option>
+                        <option value="hidden">مخفي (لا يظهر)</option>
+                    </select>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="pIsNew">
+                    <label for="pIsNew"> وضع علامة "جديد" على المنتج</label>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="pIsSale">
+                    <label for="pIsSale">🔥 وضع علامة "عرض لفترة محدودة"</label>
+                </div>
+
+                <div class="form-group" id="saleEndDateGroup" style="display:none;">
+                    <label>تاريخ انتهاء العرض</label>
+                    <input type="date" id="pSaleEndDate">
+                </div>
+
                 <div class="checkbox-group">
                     <input type="checkbox" id="pHasColors">
                     <label for="pHasColors">تفعيل اختيار الألوان لهذا المنتج؟</label>
@@ -99,7 +133,7 @@
             <h2>إدارة الأقسام (3 مستويات)</h2>
             
             <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-right: 4px solid #ffc107;">
-                <strong>💡 مثال على الهيكل:</strong><br>
+                <strong> مثال على الهيكل:</strong><br>
                 المستوى 1: هواتف<br>
                 المستوى 2: هواتف آبل<br>
                 المستوى 3: آيفون 18
@@ -107,7 +141,7 @@
 
             <!-- إضافة قسم -->
             <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                <h3> إضافة قسم جديد</h3>
+                <h3>➕ إضافة قسم جديد</h3>
                 <form id="categoryForm">
                     <div class="form-group">
                         <label>المستوى *</label>
@@ -126,6 +160,11 @@
                     <div class="form-group">
                         <label>اسم القسم *</label>
                         <input type="text" id="catName" required placeholder="مثال: هواتف آبل">
+                    </div>
+                    <div class="form-group">
+                        <label>ترتيب العرض (الرقم الأصغر يظهر أولاً) *</label>
+                        <input type="number" id="catOrder" value="100" min="1" required>
+                        <small style="color:#666;">الأقسام ذات الرقم الأصغر تظهر أولاً</small>
                     </div>
                     <button type="submit" class="btn">إضافة القسم</button>
                 </form>
@@ -151,6 +190,10 @@
                 </div>
                 <div class="form-group"><label>رابط صورة البنر (URL) *</label><input type="url" id="bImageUrl" required placeholder="https://..."></div>
                 <div class="form-group"><label>رابط الوجهة عند الضغط (اختياري)</label><input type="url" id="bLink" placeholder="https://... (اتركه فارغاً إذا لا يوجد رابط)"></div>
+                <div class="form-group">
+                    <label>ترتيب العرض (الرقم الأصغر يظهر أولاً)</label>
+                    <input type="number" id="bOrder" value="100" min="1">
+                </div>
                 <div class="checkbox-group">
                     <input type="checkbox" id="bIsActive" checked>
                     <label for="bIsActive">تفعيل البنر (إظهاره في المتجر)</label>
