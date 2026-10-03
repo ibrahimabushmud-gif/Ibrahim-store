@@ -23,9 +23,9 @@ let carouselInterval;
 
 function updateCurrencySymbols() {
     const icon = storeSettings.currencyIcon || '';
-    const sizeP = storeSettings.currencySizeProduct || 12;
-    const sizeC = storeSettings.currencySizeCart || 18;
-    const sizeL = storeSettings.currencySizeLarge || 24;
+    const sizeP = storeSettings.currencySizeProduct || 8;
+    const sizeC = storeSettings.currencySizeCart || 12;
+    const sizeL = storeSettings.currencySizeLarge || 12;
     const text = storeSettings.currencyText || 'د.إ';
     if (icon) {
         curr = '<img src="' + icon + '" style="height:' + sizeP + 'px; vertical-align:middle; margin-left:4px;">';
@@ -65,9 +65,9 @@ async function loadStoreSettings() {
             trustBadgesEnabled: true, 
             footerDesc: 'متجرك الإلكتروني الأول في الإمارات', 
             currencyIcon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/UAE_Dirham_Symbol.svg/1200px-UAE_Dirham_Symbol.svg.png', 
-            currencySizeProduct: 12, 
-            currencySizeCart: 18, 
-            currencySizeLarge: 24, 
+            currencySizeProduct: 8, 
+            currencySizeCart: 12, 
+            currencySizeLarge: 12, 
             currencyText: 'د.إ', 
             notifications: 'أحمد من دبي|آيفون 18 برو\nفاطمة من أبوظبي|سامسونج S26' 
         };
@@ -1007,9 +1007,17 @@ function createProductCard(product, showSalesBadge) {
         colorsHtml += '</div>';
     }
     
+    // ✅ إزالة كلمة "افتراضي" - نعرض الألوان فقط إذا كانت موجودة
+    var colorLabel = '';
+    if (product.hasColors && product.colors && product.colors.trim() !== '') {
+        var firstColor = product.colors.split(',')[0].trim();
+        colorLabel = '<small style="color:#666; display:block; margin-bottom:5px;">اللون: ' + firstColor + '</small>';
+    }
+    
     var oldPriceHtml = product.oldPrice ? '<div class="old-price">' + curr + product.oldPrice + '</div>' : '';
     
-    return '<div class="product-card" onclick="window.location.href=\'product.html?id=' + product.id + '\'" style="cursor:pointer; position:relative;">' + actionButtons + badges + '<img src="' + product.image + '" class="product-image" onerror="this.src=\'https://via.placeholder.com/200?text=No+Image\'" style="height:var(--product-image-height, 200px);"><div class="product-title">' + product.name + '</div><small style="color:var(--text-light)">' + (product.category || '') + '</small>' + oldPriceHtml + '<div class="new-price">' + curr + product.price + '</div><div class="product-options" onclick="event.stopPropagation();">' + colorsHtml + '<div class="qty-selector"><button class="qty-btn" onclick="event.stopPropagation();changeQty(\'' + product.id + '\',-1)">−</button><input type="number" id="qty-' + product.id + '" class="qty-input" value="1" min="1" max="10" readonly><button class="qty-btn" onclick="event.stopPropagation();changeQty(\'' + product.id + '\',1)">+</button></div></div><button class="add-to-cart" onclick="event.stopPropagation();addToCart(\'' + product.id + '\',event)">أضف للسلة</button></div>';
+    // ✅ شعار العملة بحجم صغير في بطاقة المنتج
+    return '<div class="product-card" onclick="window.location.href=\'product.html?id=' + product.id + '\'" style="cursor:pointer; position:relative;">' + actionButtons + badges + '<img src="' + product.image + '" class="product-image" onerror="this.src=\'https://via.placeholder.com/200?text=No+Image\'" style="height:var(--product-image-height, 200px);"><div class="product-title">' + product.name + '</div>' + colorLabel + oldPriceHtml + '<div class="new-price" style="font-size:18px; font-weight:bold; color:var(--primary-color); display:flex; align-items:center; gap:4px;">' + curr + product.price + '</div><div class="product-options" onclick="event.stopPropagation();">' + colorsHtml + '<div class="qty-selector"><button class="qty-btn" onclick="event.stopPropagation();changeQty(\'' + product.id + '\',-1)">−</button><input type="number" id="qty-' + product.id + '" class="qty-input" value="1" min="1" max="10" readonly><button class="qty-btn" onclick="event.stopPropagation();changeQty(\'' + product.id + '\',1)">+</button></div></div><button class="add-to-cart" onclick="event.stopPropagation();addToCart(\'' + product.id + '\',event)">أضف للسلة</button></div>';
 }
 
 window.scrollSection = function(cn, d) { 
