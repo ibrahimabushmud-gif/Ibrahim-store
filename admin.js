@@ -101,6 +101,12 @@ function populateSettingsForm() {
     document.getElementById('sInstagram').value = storeSettings.instagram || '';
     document.getElementById('sTwitter').value = storeSettings.twitter || '';
     document.getElementById('sFooterDesc').value = storeSettings.footerDesc || '';
+        // الإعدادات الجديدة - شعار العملة
+    set('sCurrencyIcon', storeSettings.currencyIcon || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTtauUniR9dGoEXyG6AaYXbzovVet90qe0igubKGL7Ew&s=10');
+    set('sCurrencySizeProduct', storeSettings.currencySizeProduct || 12);
+    set('sCurrencySizeCart', storeSettings.currencySizeCart || 18);
+    set('sCurrencySizeLarge', storeSettings.currencySizeLarge || 24);
+    set('sCurrencyText', storeSettings.currencyText || 'د.إ');
 }
 
 document.getElementById('settingsForm').addEventListener('submit', async (e) => {
