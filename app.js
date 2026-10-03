@@ -679,54 +679,75 @@ function showLiveNotification() {
 
 // ============ إصلاح تحميل الأقسام ============
 async function loadCategories() {
-    console.log('📁 تحميل الأقسام...');
-    const sidebar = document.getElementById('sidebarCategories'); 
-    if (!sidebar) {
-        console.error('❌ عنصر sidebarCategories غير موجود!');
-        return;
-    }
+    console.log('📁 بدء تحميل الأقسام...');
     
     try {
+        // التحقق من وجود العنصر
+        const sidebar = document.getElementById('categoriesSidebar');
+        if (!sidebar) {
+            console.error('❌ عنصر categoriesSidebar غير موجود في HTML!');
+            console.log(' سأقوم بإنشائه تلقائياً...');
+            
+            // إنشاء العنصر إذا لم يكن موجوداً
+            const newSidebar = document.createElement('div');
+            newSidebar.id = 'categoriesSidebar';
+            newSidebar.className = 'categories-sidebar';
+            document.body.appendChild(newSidebar);
+            
+            const newOverlay = document.createElement('div');
+            newOverlay.id = 'sidebarOverlay';
+            newOverlay.className = 'sidebar-overlay';
+            newOverlay.onclick = () => toggleCategories();
+            document.body.appendChild(newOverlay);
+            
+            console.log('✅ تم إنشاء العناصر تلقائياً');
+        }
+        
+        console.log('📡 جاري الاتصال بـ Firebase...');
         const snapshot = await getDocs(collection(db, "categories"));
-        console.log(' عدد الأقسام المحملة:', snapshot.size);
+        console.log('📊 عدد المستندات المحملة:', snapshot.size);
         
         allCategories = [];
         
-        // تحميل جميع الأقسام
-        snapshot.forEach((doc) => {
-            const data = doc.data();
-            console.log('📂 قسم:', data.name, '| المستوى:', data.level, '| الأب:', data.parentCategory);
-            
-            // تحديد المستوى: إذا لم يكن هناك level، نعتبره مستوى 1 إذا لم يكن له أب
-            let level = data.level;
-            if (!level) {
-                level = data.parentCategory ? 2 : 1;
-            }
-            
-            allCategories.push({ 
-                id: doc.id, 
-                ...data, 
-                level: level, 
-                order: data.order || 100 
+        if (snapshot.empty) {
+            console.warn('⚠️ لا توجد أقسام في Firebase!');
+            console.log('💡 تأكد من:');
+            console.log('   1. وجود مجموعة "categories" في Firebase');
+            console.log('   2. أن المستندات تحتوي على حقول: name, level, parentCategory');
+        } else {
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                console.log('📂 قسم:', data.name, '| المستوى:', data.level, '| الأب:', data.parentCategory);
+                
+                let level = data.level;
+                if (!level) {
+                    level = data.parentCategory ? 2 : 1;
+                }
+                
+                allCategories.push({ 
+                    id: doc.id, 
+                    ...data, 
+                    level: level, 
+                    order: data.order || 100 
+                });
             });
-        });
-        
-        allCategories.sort((a, b) => a.order - b.order);
-        console.log('✅ الأقسام بعد المعالجة:', allCategories.map(c => `${c.name} (مستوى ${c.level})`));
+            
+            allCategories.sort((a, b) => a.order - b.order);
+            console.log('✅ الأقسام بعد المعالجة:', allCategories.length);
+            console.log('📋 الأقسام:', allCategories.map(c => `${c.name} (مستوى ${c.level})`));
+        }
         
         renderCategorySidebar();
-    } catch (error) { 
-        console.error('❌ خطأ في تحميل الأقسام:', error); 
+        return allCategories;
+        
+    } catch (error) {
+        console.error('❌ خطأ في تحميل الأقسام:', error);
+        console.error('📝 تفاصيل الخطأ:', error.message);
+        console.error(' الكود:', error.code);
+        allCategories = [];
+        return [];
     }
 }
-
-function renderCategorySidebar() {
-    console.log('🎨 رسم القائمة الجانبية...');
-    const sidebar = document.getElementById('sidebarCategories'); 
-    if (!sidebar) {
-        console.error('❌ sidebar غير موجود');
-        return;
-    }
     
     sidebar.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:15px; border-bottom:2px solid var(--accent-color);">
