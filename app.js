@@ -41,21 +41,66 @@ async function loadStoreSettings() {
 }
 
 function applySettings() {
+    console.log('⚙️ تطبيق الإعدادات:', storeSettings);
+    
+    // 1. اللون الرئيسي
     if (storeSettings.primaryColor) {
         document.documentElement.style.setProperty('--primary-color', storeSettings.primaryColor);
         document.documentElement.style.setProperty('--primary-dark', storeSettings.primaryColor);
     }
-    if (storeSettings.storeName) document.title = storeSettings.storeName + ' - متجر إلكتروني';
+    
+    // 2. اسم المتجر
+    if (storeSettings.storeName) {
+        document.title = storeSettings.storeName;
+        const footerName = document.getElementById('footerStoreName');
+        if (footerName) footerName.textContent = storeSettings.storeName;
+    }
+    
+    // 3. الواتساب
     if (storeSettings.whatsapp) {
         const whatsappBtn = document.querySelector('.whatsapp-float');
-        if (whatsappBtn) whatsappBtn.href = `https://wa.me/${storeSettings.whatsapp.replace(/[^0-9]/g, '')}`;
+        if (whatsappBtn) whatsappBtn.href = `https://wa.me/${storeSettings.whatsapp.replace(/[^0-9]/g,'')}`;
+        const footerWhatsapp = document.getElementById('footerWhatsapp');
+        if (footerWhatsapp) footerWhatsapp.textContent = `📱 ${storeSettings.whatsapp}`;
     }
+    
+    // 4. البريد الإلكتروني
+    if (storeSettings.email) {
+        const footerEmail = document.getElementById('footerEmail');
+        if (footerEmail) footerEmail.textContent = ` ${storeSettings.email}`;
+    }
+    
+    // 5. وصف الفوتر
+    if (storeSettings.footerDesc) {
+        const footerDesc = document.getElementById('footerDescription');
+        if (footerDesc) footerDesc.textContent = storeSettings.footerDesc;
+    }
+    
+    // 6. روابط السوشيال ميديا
+    if (storeSettings.facebook) {
+        const fb = document.getElementById('footerFacebook');
+        if (fb) fb.href = storeSettings.facebook;
+    }
+    if (storeSettings.instagram) {
+        const ig = document.getElementById('footerInstagram');
+        if (ig) ig.href = storeSettings.instagram;
+    }
+    if (storeSettings.twitter) {
+        const tw = document.getElementById('footerTwitter');
+        if (tw) tw.href = storeSettings.twitter;
+    }
+    
+    // 7. شارات الثقة
     if (storeSettings.trustBadgesEnabled === false) {
         const badges = document.querySelector('.trust-badges');
         if (badges) badges.style.display = 'none';
+    } else {
+        const badges = document.querySelector('.trust-badges');
+        if (badges) badges.style.display = 'grid';
     }
+    
+    console.log('✅ تم تطبيق الإعدادات بنجاح');
 }
-
 // ============ الوضع الداكن ============
 function toggleDarkMode() {
     document.body.classList.toggle('dark-mode');
