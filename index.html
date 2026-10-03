@@ -9,7 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- شريط علوي ثابت -->
     <div id="topBanner"></div>
 
     <!-- Header -->
@@ -21,11 +20,21 @@
             </div>
         </div>
         <div class="header-actions">
-            <!-- شريط البحث الذكي -->
             <div class="search-container">
                 <input type="text" id="searchInput" placeholder="🔍 ابحث عن منتج..." onkeyup="searchProducts()">
                 <div id="searchResults" class="search-results"></div>
             </div>
+            <button onclick="toggleWishlist()" style="background:none; border:none; font-size:22px; cursor:pointer; position:relative;" title="المفضلة">
+                ❤️
+                <span class="cart-badge" id="wishlistCount" style="background:#e91e63;">0</span>
+            </button>
+            <button onclick="toggleCompare()" style="background:none; border:none; font-size:22px; cursor:pointer; position:relative;" title="المقارنة">
+                ⚖️
+                <span class="cart-badge" id="compareCount" style="background:#2196F3;">0</span>
+            </button>
+            <button onclick="toggleDarkMode()" style="background:none; border:none; font-size:22px; cursor:pointer;" title="الوضع الداكن">
+                🌙
+            </button>
             <div class="cart-icon" onclick="toggleCart(event)">
                 🛒
                 <span class="cart-badge" id="cartCount">0</span>
@@ -47,46 +56,73 @@
         </div>
         <div id="cartContent"></div>
         <div id="cartTotalBox" style="display:none; margin-top:20px;">
-            <!-- شريط التقدم للشحن المجاني -->
+            <!-- كوبون الخصم -->
+            <div style="background:#f0f0f0; padding:12px; border-radius:10px; margin-bottom:15px;">
+                <label style="font-size:14px; font-weight:bold;">🎟️ كوبون الخصم:</label>
+                <div style="display:flex; gap:8px; margin-top:8px;">
+                    <input type="text" id="couponInput" placeholder="أدخل الكود" style="flex:1; padding:8px; border:1px solid #ddd; border-radius:6px; font-family:'Tajawal';">
+                    <button onclick="applyCoupon()" style="background:var(--primary-color); color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; font-family:'Tajawal'; font-weight:bold;">تطبيق</button>
+                </div>
+                <div id="couponMessage" style="margin-top:8px; font-size:13px;"></div>
+            </div>
+            <!-- شريط الشحن المجاني -->
             <div id="shippingProgress" style="background:var(--accent-color); padding:15px; border-radius:10px; margin-bottom:15px;">
                 <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:14px;">
-                    <span>🚚 الشحن المجاني</span>
+                    <span> الشحن المجاني</span>
                     <span id="shippingRemaining"></span>
                 </div>
                 <div style="background:white; height:8px; border-radius:10px; overflow:hidden;">
                     <div id="shippingProgressBar" style="background:var(--primary-color); height:100%; width:0%; transition:width 0.5s;"></div>
                 </div>
             </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:15px; background:var(--accent-color); border-radius:10px; margin-bottom:10px;">
+                <span style="font-weight:bold;">المجموع الفرعي:</span>
+                <span id="cartSubtotal" style="font-size:18px; font-weight:bold;"></span>
+            </div>
+            <div id="discountRow" style="display:none; justify-content:space-between; align-items:center; padding:10px 15px; background:#e8f5e9; border-radius:10px; margin-bottom:10px;">
+                <span style="font-weight:bold; color:#2e7d32;">🎟️ الخصم:</span>
+                <span id="discountAmount" style="font-size:16px; font-weight:bold; color:#2e7d32;"></span>
+            </div>
             <div style="display:flex; justify-content:space-between; align-items:center; padding:15px; background:var(--accent-color); border-radius:10px; margin-bottom:15px;">
-                <span style="font-weight:bold; font-size:18px;">المجموع:</span>
+                <span style="font-weight:bold; font-size:18px;">المجموع النهائي:</span>
                 <span id="cartTotal" style="font-size:24px; font-weight:800; color:var(--primary-color);"></span>
             </div>
             <button onclick="window.location.href='cart.html'" style="width:100%; padding:15px; background:var(--primary-color); color:white; border:none; border-radius:25px; font-size:18px; font-weight:bold; cursor:pointer; font-family:'Tajawal';">إتمام الطلب 💳</button>
         </div>
     </div>
 
-    <!-- السلايدر الرئيسي -->
-    <div id="carouselContainer">
-        <div id="carouselSlides"></div>
-        <button onclick="moveSlide(-1)" style="position:absolute; top:50%; left:15px; transform:translateY(-50%); background:rgba(255,255,255,0.9); border:none; width:45px; height:45px; border-radius:50%; cursor:pointer; font-size:24px; color:var(--primary-color); box-shadow:0 2px 10px rgba(0,0,0,0.2); z-index:10;">‹</button>
-        <button onclick="moveSlide(1)" style="position:absolute; top:50%; right:15px; transform:translateY(-50%); background:rgba(255,255,255,0.9); border:none; width:45px; height:45px; border-radius:50%; cursor:pointer; font-size:24px; color:var(--primary-color); box-shadow:0 2px 10px rgba(0,0,0,0.2); z-index:10;">›</button>
-        <div id="carouselDots" style="position:absolute; bottom:15px; left:50%; transform:translateX(-50%); display:flex; gap:8px; z-index:10;"></div>
+    <!-- قائمة الأمنيات -->
+    <div class="sidebar-overlay" id="wishlistOverlay" onclick="toggleWishlist()"></div>
+    <div class="cart-drawer" id="wishlistDrawer" style="left:auto; right:-400px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:15px; border-bottom:2px solid var(--accent-color);">
+            <h3 style="color:#e91e63; margin:0;">❤️ قائمة الأمنيات</h3>
+            <button onclick="toggleWishlist()" style="background:none; border:none; font-size:24px; cursor:pointer;">✕</button>
+        </div>
+        <div id="wishlistContent"></div>
     </div>
 
-    <!-- نافذة الخصم للزوار الجدد -->
+    <!-- نافذة المقارنة -->
+    <div id="compareModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:2000; justify-content:center; align-items:center; overflow-y:auto; padding:20px;">
+        <div style="background:white; padding:30px; border-radius:20px; max-width:900px; width:100%; position:relative; max-height:90vh; overflow-y:auto;">
+            <button onclick="toggleCompare()" style="position:absolute; top:15px; left:15px; background:none; border:none; font-size:24px; cursor:pointer;"></button>
+            <h2 style="color:var(--primary-color); margin-bottom:20px;">⚖️ مقارنة المنتجات</h2>
+            <div id="compareContent"></div>
+        </div>
+    </div>
+
+    <!-- نافذة الترحيب -->
     <div id="welcomeModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:2000; justify-content:center; align-items:center;">
         <div style="background:white; padding:40px; border-radius:20px; max-width:500px; text-align:center; position:relative; animation:fadeIn 0.5s;">
             <button onclick="closeWelcomeModal()" style="position:absolute; top:15px; left:15px; background:none; border:none; font-size:24px; cursor:pointer;">✕</button>
             <div style="font-size:60px; margin-bottom:20px;">🎉</div>
-            <h2 style="color:var(--primary-color); margin-bottom:15px;">مرحباً بك في شرف DG!</h2>
+            <h2 style="color:var(--primary-color); margin-bottom:15px;">مرحباً بك!</h2>
             <p style="font-size:18px; margin-bottom:20px;">احصل على <b style="color:var(--danger-color); font-size:24px;">خصم 10%</b> على أول طلب!</p>
             <div style="background:var(--accent-color); padding:15px; border-radius:10px; margin:20px 0;">
                 <p style="margin:0 0 10px 0;">استخدم كود الخصم:</p>
-                <div style="font-size:32px; font-weight:900; color:var(--primary-color); letter-spacing:5px; background:white; padding:10px; border-radius:8px; border:2px dashed var(--primary-color);">WELCOME10</div>
+                <div class="discount-code" style="font-size:32px; font-weight:900; color:var(--primary-color); letter-spacing:5px; background:white; padding:10px; border-radius:8px; border:2px dashed var(--primary-color);">WELCOME10</div>
             </div>
             <input type="email" id="welcomeEmail" placeholder="بريدك الإلكتروني" style="width:100%; padding:12px; border:2px solid #ddd; border-radius:8px; margin-bottom:15px; font-family:'Tajawal'; font-size:16px;">
             <button onclick="claimDiscount()" style="width:100%; padding:15px; background:var(--primary-color); color:white; border:none; border-radius:25px; font-size:18px; font-weight:bold; cursor:pointer; font-family:'Tajawal';">احصل على الخصم 🎁</button>
-            <p style="margin-top:15px; font-size:12px; color:#999;">بالاشتراك، أنت توافق على تلقي عروضنا الحصرية</p>
         </div>
     </div>
 
@@ -95,23 +131,14 @@
 
     <!-- المحتوى الرئيسي -->
     <div class="main-content">
-        <!-- قسم الأكثر مبيعاً -->
         <div id="bestSellersSection" style="display:none;">
-            <div class="section-header">
-                <h2 class="section-title">🏆 الأكثر مبيعاً</h2>
-            </div>
+            <div class="section-header"><h2 class="section-title">🏆 الأكثر مبيعاً</h2></div>
             <div class="products-scroll" id="bestSellersScroll"></div>
         </div>
-
-        <!-- قسم وصل حديثاً -->
         <div id="newArrivalsSection" style="display:none;">
-            <div class="section-header">
-                <h2 class="section-title"> وصل حديثاً</h2>
-            </div>
+            <div class="section-header"><h2 class="section-title">✨ وصل حديثاً</h2></div>
             <div class="products-scroll" id="newArrivalsScroll"></div>
         </div>
-
-        <!-- قسم العروض المحدودة -->
         <div id="flashSaleSection" style="display:none;">
             <div class="section-header">
                 <h2 class="section-title">🔥 عروض لفترة محدودة</h2>
@@ -121,41 +148,57 @@
             </div>
             <div class="products-scroll" id="flashSaleScroll"></div>
         </div>
-
-        <!-- جميع المنتجات -->
         <div id="productsByCategory"></div>
+    </div>
+
+    <!-- شهادات العملاء -->
+    <div class="testimonials-section">
+        <div class="section-header" style="max-width:1200px; margin:0 auto 30px auto;">
+            <h2 class="section-title">💬 آراء عملائنا</h2>
+        </div>
+        <div class="testimonials-container">
+            <div class="testimonial-card">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p>"تجربة شراء رائعة! المنتجات أصلية والتوصيل سريع جداً. أنصح بالتعامل معهم."</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">أ</div>
+                    <div>
+                        <strong>أحمد محمد</strong>
+                        <small>دبي، الإمارات</small>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p>"خدمة عملاء ممتازة وأسعار منافسة. طلبت آيفون ووصلني خلال 24 ساعة!"</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">ف</div>
+                    <div>
+                        <strong>فاطمة العلي</strong>
+                        <small>أبوظبي، الإمارات</small>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p>"أفضل متجر إلكتروني تعاملت معه. التقسيط عبر تابي وتمارا سهل جداً."</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">م</div>
+                    <div>
+                        <strong>محمد الشامسي</strong>
+                        <small>الشارقة، الإمارات</small>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- شارات الثقة -->
     <div class="trust-badges">
-        <div class="trust-badge">
-            <div class="trust-icon">🔒</div>
-            <div class="trust-text">
-                <strong>دفع آمن 100%</strong>
-                <small>محمي بتقنية SSL</small>
-            </div>
-        </div>
-        <div class="trust-badge">
-            <div class="trust-icon">🚚</div>
-            <div class="trust-text">
-                <strong>شحن سريع</strong>
-                <small>توصيل خلال 24-48 ساعة</small>
-            </div>
-        </div>
-        <div class="trust-badge">
-            <div class="trust-icon">✅</div>
-            <div class="trust-text">
-                <strong>ضمان الجودة</strong>
-                <small>منتجات أصلية 100%</small>
-            </div>
-        </div>
-        <div class="trust-badge">
-            <div class="trust-icon">💳</div>
-            <div class="trust-text">
-                <strong>تقسيط متاح</strong>
-                <small>عبر Tabby و Tamara</small>
-            </div>
-        </div>
+        <div class="trust-badge"><div class="trust-icon"></div><div class="trust-text"><strong>دفع آمن 100%</strong><small>محمي بتقنية SSL</small></div></div>
+        <div class="trust-badge"><div class="trust-icon">🚚</div><div class="trust-text"><strong>شحن سريع</strong><small>توصيل خلال 24-48 ساعة</small></div></div>
+        <div class="trust-badge"><div class="trust-icon">✅</div><div class="trust-text"><strong>ضمان الجودة</strong><small>منتجات أصلية 100%</small></div></div>
+        <div class="trust-badge"><div class="trust-icon">💳</div><div class="trust-text"><strong>تقسيط متاح</strong><small>عبر Tabby و Tamara</small></div></div>
     </div>
 
     <!-- Footer -->
@@ -163,7 +206,7 @@
         <div style="max-width:1200px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:30px;">
             <div>
                 <h3 style="color:var(--primary-color); margin-bottom:15px;">شرف DG</h3>
-                <p style="color:#ccc; line-height:1.8;">متجرك الإلكتروني الأول في الإمارات العربية المتحدة. نقدم لك أفضل المنتجات بأسعار منافسة.</p>
+                <p class="footer-description" style="color:#ccc; line-height:1.8;">متجرك الإلكتروني الأول في الإمارات العربية المتحدة. نقدم لك أفضل المنتجات بأسعار منافسة.</p>
             </div>
             <div>
                 <h3 style="color:var(--primary-color); margin-bottom:15px;">روابط سريعة</h3>
@@ -179,9 +222,9 @@
                 <p style="color:#ccc; margin-bottom:10px;">📱 واتساب: +971592152484</p>
                 <p style="color:#ccc; margin-bottom:10px;">📧 info@sharafdg.com</p>
                 <div style="display:flex; gap:15px; margin-top:15px;">
-                    <a href="#" style="color:white; font-size:24px;"><i class="fab fa-facebook"></i></a>
-                    <a href="#" style="color:white; font-size:24px;"><i class="fab fa-instagram"></i></a>
-                    <a href="#" style="color:white; font-size:24px;"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="footer-facebook" style="color:white; font-size:24px;"><i class="fab fa-facebook"></i></a>
+                    <a href="#" class="footer-instagram" style="color:white; font-size:24px;"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="footer-twitter" style="color:white; font-size:24px;"><i class="fab fa-twitter"></i></a>
                 </div>
             </div>
         </div>
