@@ -650,19 +650,17 @@ function renderProductsByCategory() {
         console.log('📁 الأقسام الرئيسية:', level1Cats.length);
         
         if (level1Cats.length === 0) {
-            // لا توجد أقسام، اعرض كل المنتجات
             const allVisible = allProducts.filter(p => p.displayLocation !== 'hidden');
             if (allVisible.length > 0) {
                 console.log('️ لا توجد أقسام، عرض كل المنتجات');
                 renderCategorySection('جميع المنتجات', allVisible);
             }
         } else {
-            // اعرض كل قسم رئيسي مع فروعه
             level1Cats.forEach(mainCat => {
                 console.log('📁 عرض القسم:', mainCat.name);
                 const mainSection = document.createElement('div');
-                mainSection.style.marginBottom = '50px';
-                mainSection.innerHTML = `<div class="section-header" style="margin-bottom:25px;"><h2 class="section-title" style="font-size:26px; border-right:5px solid var(--primary-color); padding-right:15px;"> ${mainCat.name}</h2></div>`;
+                mainSection.style.marginBottom = '40px';
+                mainSection.innerHTML = `<div class="section-header" style="margin-bottom:20px;"><h2 class="section-title" style="font-size:24px; border-right:5px solid var(--primary-color); padding-right:15px;"> ${mainCat.name}</h2></div>`;
                 container.appendChild(mainSection);
                 displaySubCategoriesWithProducts(mainCat.name, container);
             });
