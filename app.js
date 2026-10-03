@@ -21,7 +21,27 @@ const heartFilledSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="18" heigh
 
 let curr = '';
 let currLarge = '';
+let currXLarge = '';
 
+function updateCurrencySymbols() {
+    const icon = storeSettings.currencyIcon || '';
+    const sizeProduct = storeSettings.currencySizeProduct || 12;
+    const sizeCart = storeSettings.currencySizeCart || 18;
+    const sizeLarge = storeSettings.currencySizeLarge || 24;
+    const text = storeSettings.currencyText || 'د.إ';
+    
+    if (icon) {
+        // استخدام الصورة
+        curr = `<img src="${icon}" style="height:${sizeProduct}px; vertical-align:middle; margin-left:4px;">`;
+        currLarge = `<img src="${icon}" style="height:${sizeCart}px; vertical-align:middle; margin-left:3px;">`;
+        currXLarge = `<img src="${icon}" style="height:${sizeLarge}px; vertical-align:middle; margin-left:3px;">`;
+    } else {
+        // استخدام النص
+        curr = `<span style="font-weight:bold; color:var(--primary-color); margin-left:4px; font-size:${sizeProduct}px;">${text}</span>`;
+        currLarge = `<span style="font-weight:bold; color:var(--primary-color); margin-left:3px; font-size:${sizeCart}px;">${text}</span>`;
+        currXLarge = `<span style="font-weight:bold; color:var(--primary-color); margin-left:3px; font-size:${sizeLarge}px;">${text}</span>`;
+    }
+}
 function updateCurrencySymbols() {
     const icon = storeSettings.currencyIcon || '';
     const size = storeSettings.currencySize || 12;
@@ -95,6 +115,8 @@ function applySettings() {
     const productImageSize = storeSettings.productImageSize || 200;
     document.documentElement.style.setProperty('--product-image-height', productImageSize + 'px');
     
+    updateCurrencySymbols();
+        // تحديث رموز العملة
     updateCurrencySymbols();
     console.log('✅ تم تطبيق الإعدادات');
 }
@@ -837,6 +859,7 @@ console.log('✅ بدء التشغيل...');
 updateWishlistCount();
 updateCompareCount();
 loadStoreSettings().then(() => {
+    updateCurrencySymbols(); // تحديث رموز العملة أولاً
     updateCartCount();
     loadBannersSystem();
     loadCategories();
