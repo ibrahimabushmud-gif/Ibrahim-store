@@ -402,24 +402,76 @@ function showToast(msg, col = '#27AE60') {
 // ============ البنرات ============
 let carouselImages = [], currentSlide = 0, carouselInterval;
 async function loadBannersSystem() {
+    console.log('🖼️ بدء تحميل البنرات...');
     try {
-        const snap = await getDocs(collection(db, "banners"));
-        const tb = document.getElementById('topBanner'), cc = document.getElementById('carouselContainer'), cs = document.getElementById('carouselSlides'), cd = document.getElementById('carouselDots');
-        carouselImages = []; let tbu = '';
-        snap.forEach(d => { const b = d.data(); if (b.isActive) { if (b.type === 'top') tbu = b.imageUrl; else carouselImages.push({ id: d.id, url: b.imageUrl, link: b.link || '#', order: b.order || 100 }); } });
+        const snapshot = await getDocs(collection(db, "banners"));
+        console.log('📊 عدد البنرات المحملة:', snapshot.size);
+        
+        const topBannerEl = document.getElementById('topBanner');
+        const carouselContainer = document.getElementById('carouselContainer');
+        const carouselSlides = document.getElementById('carouselSlides');
+        const carouselDots = document.getElementById('carouselDots');
+        
+        carouselImages = [];
+        let topBannerUrl = '';
+        
+        snapshot.forEach((doc) => {
+            const banner = doc.data();
+            console.log(' بنر:', banner.type, '| مفعل:', banner.isActive);
+            if (banner.isActive) {
+                if (banner.type === 'top') {
+                    topBannerUrl = banner.imageUrl;
+                } else {
+                    carouselImages.push({ 
+                        id: doc.id, 
+                        url: banner.imageUrl, 
+                        link: banner.link || '#', 
+                        order: banner.order || 100 
+                    });
+                }
+            }
+        });
+        
         carouselImages.sort((a, b) => a.order - b.order);
-        if (tb && tbu) { tb.innerHTML = `<img src="${tbu}" style="width:100%; max-height:120px; object-fit:cover;">`; tb.style.display = 'block'; }
-        if (cc && cs && cd && carouselImages.length > 0) {
-            cc.style.display = 'block'; cs.innerHTML = ''; cd.innerHTML = '';
-            carouselImages.forEach((img, i) => {
-                const s = document.createElement('div'); s.style.cssText = 'min-width:100%; position:relative;';
-                s.innerHTML = `<a href="${img.link}" target="_blank"><img src="${img.url}" style="width:100%; height:400px; object-fit:cover; display:block;"></a>`;
-                cs.appendChild(s);
-                const dot = document.createElement('button'); dot.style.cssText = `width:12px; height:12px; border-radius:50%; border:none; cursor:pointer; background:${i === 0 ? 'var(--primary-color)' : 'rgba(0,0,0,0.3)'}; transition:0.3s;`; dot.onclick = () => goToSlide(i); cd.appendChild(dot);
-            });
-            startCarousel();
+        console.log(' صور السلايدر:', carouselImages.length);
+        
+        // عرض البنر العلوي
+        if (topBannerEl && topBannerUrl) {
+            topBannerEl.innerHTML = `<img src="${topBannerUrl}" style="width:100%; max-height:120px; object-fit:cover;">`;
+            topBannerEl.style.display = 'block';
+            console.log('✅ البنر العلوي ظاهر');
         }
-    } catch (e) { console.error(e); }
+        
+        // عرض السلايدر
+        if (carouselContainer && carouselSlides && carouselDots) {
+            if (carouselImages.length > 0) {
+                carouselContainer.style.display = 'block';
+                carouselContainer.classList.add('show');
+                carouselSlides.innerHTML = '';
+                carouselDots.innerHTML = '';
+                
+                carouselImages.forEach((img, index) => {
+                    const slide = document.createElement('div');
+                    slide.style.cssText = 'min-width:100%; position:relative;';
+                    slide.innerHTML = `<a href="${img.link}" target="_blank"><img src="${img.url}" style="width:100%; height:400px; object-fit:cover; display:block;" onerror="this.parentElement.style.display='none'; console.log(' فشل تحميل صورة:', '${img.url}');"></a>`;
+                    carouselSlides.appendChild(slide);
+                    
+                    const dot = document.createElement('button');
+                    dot.style.cssText = `width:12px; height:12px; border-radius:50%; border:none; cursor:pointer; background:${index === 0 ? 'var(--primary-color)' : 'rgba(0,0,0,0.3)'}; transition:0.3s;`;
+                    dot.onclick = () => goToSlide(index);
+                    carouselDots.appendChild(dot);
+                });
+                
+                console.log('✅ السلايدر ظاهر مع', carouselImages.length, 'صورة');
+                startCarousel();
+            } else {
+                console.log('⚠️ لا توجد صور للسلايدر');
+                carouselContainer.style.display = 'none';
+            }
+        }
+    } catch (error) { 
+        console.error('❌ خطأ في تحميل البنرات:', error); 
+    }
 }
 function startCarousel() { if (carouselInterval) clearInterval(carouselInterval); carouselInterval = setInterval(() => moveSlide(1), 3000); }
 window.moveSlide = d => { if (carouselImages.length === 0) return; currentSlide = (currentSlide + d + carouselImages.length) % carouselImages.length; updateCarousel(); startCarousel(); };
