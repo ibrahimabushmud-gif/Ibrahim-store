@@ -3,120 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>متجري الإلكتروني</title>
+    <title>شرف DG - متجر إلكتروني</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- شريط علوي ثابت -->
+    <div id="topBanner"></div>
+
+    <!-- Header -->
     <header>
         <div style="display:flex; align-items:center; gap:15px;">
-            <button class="menu-toggle" onclick="toggleCategories()">
-                <span></span><span></span><span></span>
-            </button>
+            <button onclick="toggleCategories()" style="background:none; border:none; font-size:24px; cursor:pointer; color:var(--primary-color);">☰</button>
             <div class="logo">
-    <img src="https://s.sdgcdn.com/7/2026/04/SharafDG-Logo-AR-1.svg" alt="Sharaf DG" style="height:40px; object-fit:contain;">
-</div>
+                <img src="https://s.sdgcdn.com/7/2026/04/SharafDG-Logo-AR-1.svg" alt="Sharaf DG">
+            </div>
         </div>
         <div class="header-actions">
-            <a href="#" class="cart-icon" onclick="toggleCart(event)">
+            <!-- شريط البحث الذكي -->
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="🔍 ابحث عن منتج..." onkeyup="searchProducts()">
+                <div id="searchResults" class="search-results"></div>
+            </div>
+            <div class="cart-icon" onclick="toggleCart(event)">
                 🛒
                 <span class="cart-badge" id="cartCount">0</span>
-            </a>
-            <span id="userMenu"></span>
+            </div>
+            <div id="userMenu"></div>
         </div>
     </header>
 
-    <!-- القائمة الجانبية -->
+    <!-- القائمة الجانبية للأقسام -->
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleCategories()"></div>
-    <div class="sidebar" id="categoriesSidebar">
-        <div class="sidebar-header">
-            <h3>📂 التصنيفات</h3>
-            <button class="close-btn" onclick="toggleCategories()">✕</button>
-        </div>
-        <div class="sidebar-content" id="sidebarCategories">
-            <div class="category-item active" data-category="all" onclick="filterCategory('all')">🏠 الكل</div>
-        </div>
-    </div>
+    <div class="categories-sidebar" id="categoriesSidebar"></div>
 
     <!-- سلة المشتريات -->
+    <div class="sidebar-overlay" id="cartOverlay" onclick="toggleCart()"></div>
     <div class="cart-drawer" id="cartDrawer">
-        <div class="cart-drawer-header">
-            <h2>🛒 سلة المشتريات</h2>
-            <button class="close-btn" onclick="toggleCart()">✕</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:15px; border-bottom:2px solid var(--accent-color);">
+            <h3 style="color:var(--primary-color); margin:0;">🛒 سلة المشتريات</h3>
+            <button onclick="toggleCart()" style="background:none; border:none; font-size:24px; cursor:pointer;">✕</button>
         </div>
-        <div class="cart-drawer-content" id="cartContent">
-            <div class="empty-cart">
-                <div class="icon"></div>
-                <h3>السلة فارغة</h3>
-                <p>أضف منتجات للبدء</p>
+        <div id="cartContent"></div>
+        <div id="cartTotalBox" style="display:none; margin-top:20px;">
+            <!-- شريط التقدم للشحن المجاني -->
+            <div id="shippingProgress" style="background:var(--accent-color); padding:15px; border-radius:10px; margin-bottom:15px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:14px;">
+                    <span>🚚 الشحن المجاني</span>
+                    <span id="shippingRemaining"></span>
+                </div>
+                <div style="background:white; height:8px; border-radius:10px; overflow:hidden;">
+                    <div id="shippingProgressBar" style="background:var(--primary-color); height:100%; width:0%; transition:width 0.5s;"></div>
+                </div>
             </div>
-        </div>
-        <div style="padding:20px; position:sticky; bottom:0; background:white; border-top:2px solid var(--accent-color);">
-            <div class="cart-total" style="margin-bottom:15px;">
-                <span>المجموع:</span>
-                <span id="cartTotal">0 ر.س</span>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:15px; background:var(--accent-color); border-radius:10px; margin-bottom:15px;">
+                <span style="font-weight:bold; font-size:18px;">المجموع:</span>
+                <span id="cartTotal" style="font-size:24px; font-weight:800; color:var(--primary-color);"></span>
             </div>
-            <button class="btn-checkout" onclick="window.location.href='cart.html'">
-                إتمام الطلب 💳
-            </button>
+            <button onclick="window.location.href='cart.html'" style="width:100%; padding:15px; background:var(--primary-color); color:white; border:none; border-radius:25px; font-size:18px; font-weight:bold; cursor:pointer; font-family:'Tajawal';">إتمام الطلب 💳</button>
         </div>
     </div>
 
-    <div class="container">
-        <!-- البنرات -->
-        <!-- الشريط الإعلاني العلوي الثابت -->
-<div id="topBanner" style="width:100%; background:#f5f5f5; display:none;">
-    <img id="topBannerImg" src="" alt="إعلان" style="width:100%; max-height:120px; object-fit:cover; display:block;">
-</div>
+    <!-- السلايدر الرئيسي -->
+    <div id="carouselContainer">
+        <div id="carouselSlides"></div>
+        <button onclick="moveSlide(-1)" style="position:absolute; top:50%; left:15px; transform:translateY(-50%); background:rgba(255,255,255,0.9); border:none; width:45px; height:45px; border-radius:50%; cursor:pointer; font-size:24px; color:var(--primary-color); box-shadow:0 2px 10px rgba(0,0,0,0.2); z-index:10;">‹</button>
+        <button onclick="moveSlide(1)" style="position:absolute; top:50%; right:15px; transform:translateY(-50%); background:rgba(255,255,255,0.9); border:none; width:45px; height:45px; border-radius:50%; cursor:pointer; font-size:24px; color:var(--primary-color); box-shadow:0 2px 10px rgba(0,0,0,0.2); z-index:10;">›</button>
+        <div id="carouselDots" style="position:absolute; bottom:15px; left:50%; transform:translateX(-50%); display:flex; gap:8px; z-index:10;"></div>
+    </div>
 
-<!-- السلايدر المتحرك -->
-<div id="carouselContainer" style="position:relative; width:100%; max-width:1200px; margin:20px auto; overflow:hidden; border-radius:16px; display:none;">
-    <div id="carouselSlides" style="display:flex; transition:transform 0.5s ease;"></div>
-    
-    <!-- أزرار التنقل -->
-    <button onclick="moveSlide(-1)" style="position:absolute; top:50%; left:15px; transform:translateY(-50%); background:rgba(255,255,255,0.9); border:none; width:45px; height:45px; border-radius:50%; cursor:pointer; font-size:24px; color:var(--primary-color); box-shadow:0 2px 10px rgba(0,0,0,0.2); z-index:10;">‹</button>
-    <button onclick="moveSlide(1)" style="position:absolute; top:50%; right:15px; transform:translateY(-50%); background:rgba(255,255,255,0.9); border:none; width:45px; height:45px; border-radius:50%; cursor:pointer; font-size:24px; color:var(--primary-color); box-shadow:0 2px 10px rgba(0,0,0,0.2); z-index:10;">›</button>
-    
-    <!-- نقاط التنقل -->
-    <div id="carouselDots" style="position:absolute; bottom:15px; left:50%; transform:translateX(-50%); display:flex; gap:8px; z-index:10;"></div>
-</div>
+    <!-- نافذة الخصم للزوار الجدد -->
+    <div id="welcomeModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:2000; justify-content:center; align-items:center;">
+        <div style="background:white; padding:40px; border-radius:20px; max-width:500px; text-align:center; position:relative; animation:fadeIn 0.5s;">
+            <button onclick="closeWelcomeModal()" style="position:absolute; top:15px; left:15px; background:none; border:none; font-size:24px; cursor:pointer;">✕</button>
+            <div style="font-size:60px; margin-bottom:20px;">🎉</div>
+            <h2 style="color:var(--primary-color); margin-bottom:15px;">مرحباً بك في شرف DG!</h2>
+            <p style="font-size:18px; margin-bottom:20px;">احصل على <b style="color:var(--danger-color); font-size:24px;">خصم 10%</b> على أول طلب!</p>
+            <div style="background:var(--accent-color); padding:15px; border-radius:10px; margin:20px 0;">
+                <p style="margin:0 0 10px 0;">استخدم كود الخصم:</p>
+                <div style="font-size:32px; font-weight:900; color:var(--primary-color); letter-spacing:5px; background:white; padding:10px; border-radius:8px; border:2px dashed var(--primary-color);">WELCOME10</div>
+            </div>
+            <input type="email" id="welcomeEmail" placeholder="بريدك الإلكتروني" style="width:100%; padding:12px; border:2px solid #ddd; border-radius:8px; margin-bottom:15px; font-family:'Tajawal'; font-size:16px;">
+            <button onclick="claimDiscount()" style="width:100%; padding:15px; background:var(--primary-color); color:white; border:none; border-radius:25px; font-size:18px; font-weight:bold; cursor:pointer; font-family:'Tajawal';">احصل على الخصم 🎁</button>
+            <p style="margin-top:15px; font-size:12px; color:#999;">بالاشتراك، أنت توافق على تلقي عروضنا الحصرية</p>
+        </div>
+    </div>
 
-<!-- باقي المحتوى -->
-<div id="bannersContainer"></div>
+    <!-- الإشعارات الفورية -->
+    <div id="liveNotifications" style="position:fixed; bottom:90px; left:20px; z-index:100;"></div>
 
-        <!-- المنتجات - نظام التمرير الأفقي -->
+    <!-- المحتوى الرئيسي -->
+    <div class="main-content">
+        <!-- قسم الأكثر مبيعاً -->
+        <div id="bestSellersSection" style="display:none;">
+            <div class="section-header">
+                <h2 class="section-title">🏆 الأكثر مبيعاً</h2>
+            </div>
+            <div class="products-scroll" id="bestSellersScroll"></div>
+        </div>
+
+        <!-- قسم وصل حديثاً -->
+        <div id="newArrivalsSection" style="display:none;">
+            <div class="section-header">
+                <h2 class="section-title"> وصل حديثاً</h2>
+            </div>
+            <div class="products-scroll" id="newArrivalsScroll"></div>
+        </div>
+
+        <!-- قسم العروض المحدودة -->
+        <div id="flashSaleSection" style="display:none;">
+            <div class="section-header">
+                <h2 class="section-title">🔥 عروض لفترة محدودة</h2>
+                <div id="countdown" style="background:var(--danger-color); color:white; padding:10px 20px; border-radius:25px; font-weight:bold; font-size:18px;">
+                    ⏰ <span id="countdownTimer">23:59:59</span>
+                </div>
+            </div>
+            <div class="products-scroll" id="flashSaleScroll"></div>
+        </div>
+
+        <!-- جميع المنتجات -->
         <div id="productsByCategory"></div>
     </div>
 
-    <!-- زر واتساب -->
-    <a href="https://wa.me/972592152484" class="whatsapp-float" target="_blank" title="تواصل واتساب">
-        <i class="fab fa-whatsapp"></i>
-    </a>
-
-    <!-- الفوتر -->
-    <footer>
-        <div class="footer-content">
-            <div class="footer-section">
-                <h3>من نحن</h3>
-                <p>متجر إلكتروني متخصص في بيع أحدث الأجهزة التقنية والإلكترونيات بأفضل الأسعار وجودة عالية.</p>
-            </div>
-            <div class="footer-section">
-                <h3>روابط مهمة</h3>
-                <p><a href="#">سياسة الخصوصية</a></p>
-                <p><a href="#">الشروط والأحكام</a></p>
-                <p><a href="#">سياسة الإرجاع</a></p>
-            </div>
-            <div class="footer-section">
-                <h3>تواصل معنا</h3>
-                <p>📱 واتساب: 972592152484+</p>
-                <p> البريد: info@mystore.com</p>
-                <p>📍 فلسطين</p>
+    <!-- شارات الثقة -->
+    <div class="trust-badges">
+        <div class="trust-badge">
+            <div class="trust-icon">🔒</div>
+            <div class="trust-text">
+                <strong>دفع آمن 100%</strong>
+                <small>محمي بتقنية SSL</small>
             </div>
         </div>
-        <div class="footer-bottom">
-            <p>© 2026 متجري. جميع الحقوق محفوظة.</p>
+        <div class="trust-badge">
+            <div class="trust-icon">🚚</div>
+            <div class="trust-text">
+                <strong>شحن سريع</strong>
+                <small>توصيل خلال 24-48 ساعة</small>
+            </div>
+        </div>
+        <div class="trust-badge">
+            <div class="trust-icon">✅</div>
+            <div class="trust-text">
+                <strong>ضمان الجودة</strong>
+                <small>منتجات أصلية 100%</small>
+            </div>
+        </div>
+        <div class="trust-badge">
+            <div class="trust-icon">💳</div>
+            <div class="trust-text">
+                <strong>تقسيط متاح</strong>
+                <small>عبر Tabby و Tamara</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer style="background:#333; color:white; padding:40px 20px; margin-top:50px;">
+        <div style="max-width:1200px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:30px;">
+            <div>
+                <h3 style="color:var(--primary-color); margin-bottom:15px;">شرف DG</h3>
+                <p style="color:#ccc; line-height:1.8;">متجرك الإلكتروني الأول في الإمارات العربية المتحدة. نقدم لك أفضل المنتجات بأسعار منافسة.</p>
+            </div>
+            <div>
+                <h3 style="color:var(--primary-color); margin-bottom:15px;">روابط سريعة</h3>
+                <ul style="list-style:none; padding:0;">
+                    <li style="margin-bottom:10px;"><a href="#" style="color:#ccc; text-decoration:none;">الرئيسية</a></li>
+                    <li style="margin-bottom:10px;"><a href="#" style="color:#ccc; text-decoration:none;">المنتجات</a></li>
+                    <li style="margin-bottom:10px;"><a href="#" style="color:#ccc; text-decoration:none;">العروض</a></li>
+                    <li style="margin-bottom:10px;"><a href="#" style="color:#ccc; text-decoration:none;">اتصل بنا</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 style="color:var(--primary-color); margin-bottom:15px;">تواصل معنا</h3>
+                <p style="color:#ccc; margin-bottom:10px;">📱 واتساب: +971592152484</p>
+                <p style="color:#ccc; margin-bottom:10px;">📧 info@sharafdg.com</p>
+                <div style="display:flex; gap:15px; margin-top:15px;">
+                    <a href="#" style="color:white; font-size:24px;"><i class="fab fa-facebook"></i></a>
+                    <a href="#" style="color:white; font-size:24px;"><i class="fab fa-instagram"></i></a>
+                    <a href="#" style="color:white; font-size:24px;"><i class="fab fa-twitter"></i></a>
+                </div>
+            </div>
+        </div>
+        <div style="text-align:center; margin-top:30px; padding-top:20px; border-top:1px solid #555; color:#999;">
+            <p>© 2026 شرف DG. جميع الحقوق محفوظة.</p>
         </div>
     </footer>
+
+    <!-- زر واتساب العائم -->
+    <a href="https://wa.me/971592152484" class="whatsapp-float" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+    </a>
 
     <script type="module" src="app.js"></script>
 </body>
