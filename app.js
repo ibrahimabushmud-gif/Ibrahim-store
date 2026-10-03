@@ -55,7 +55,7 @@ async function loadStoreSettings() {
             notifInterval: 15, 
             trustBadgesEnabled: true, 
             footerDesc: 'متجرك الإلكتروني الأول في الإمارات', 
-            currencyIcon: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTtauUniR9dGoEXyG6AaYXbzovVet90qe0igubKGL7Ew&s=10', 
+            currencyIcon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/UAE_Dirham_Symbol.svg/1200px-UAE_Dirham_Symbol.svg.png', 
             currencySizeProduct: 12, 
             currencySizeCart: 18, 
             currencySizeLarge: 24, 
@@ -115,7 +115,7 @@ onAuthStateChanged(auth, (user) => {
     if (userMenuEl) {
         if (user) {
             if (user.email === ADMIN_EMAIL) 
-                userMenuEl.innerHTML = `<a href="admin.html" style="color:var(--primary-color); text-decoration:none; font-weight:bold; margin-left:10px;">⚙️ الإدارة</a><button onclick="doLogout()" style="background:none; border:none; color:var(--danger-color); cursor:pointer;">خروج</button>`;
+                userMenuEl.innerHTML = `<a href="admin.html" style="color:var(--primary-color); text-decoration:none; font-weight:bold; margin-left:10px;">️ الإدارة</a><button onclick="doLogout()" style="background:none; border:none; color:var(--danger-color); cursor:pointer;">خروج</button>`;
             else 
                 userMenuEl.innerHTML = `<span style="color:var(--text-light); font-size:14px;">مرحباً</span>`;
         } else 
@@ -157,7 +157,7 @@ window.closeWelcomeModal = function() {
 window.claimDiscount = function() {
     const email = document.getElementById('welcomeEmail').value;
     if (!email || !email.includes('@')) { 
-        alert('️ بريد صحيح'); 
+        alert('⚠️ بريد صحيح'); 
         return; 
     }
     localStorage.setItem('discountCode', storeSettings.welcomeCode || 'WELCOME10');
@@ -540,7 +540,7 @@ let carouselImages = [], currentSlide = 0, carouselInterval;
 
 async function loadBannersSystem() {
     try {
-        console.log('️ تحميل البنرات...');
+        console.log('🖼️ تحميل البنرات...');
         const snap = await getDocs(collection(db, "banners"));
         const tb = document.getElementById('topBanner');
         const cc = document.getElementById('carouselContainer');
@@ -677,6 +677,7 @@ function showLiveNotification() {
     }, intv);
 }
 
+// ============ إصلاح تحميل الأقسام ============
 async function loadCategories() {
     console.log('📁 تحميل الأقسام...');
     const sidebar = document.getElementById('sidebarCategories'); 
@@ -687,15 +688,20 @@ async function loadCategories() {
     
     try {
         const snapshot = await getDocs(collection(db, "categories"));
-        console.log('📊 عدد الأقسام المحملة:', snapshot.size);
+        console.log(' عدد الأقسام المحملة:', snapshot.size);
         
         allCategories = [];
+        
+        // تحميل جميع الأقسام
         snapshot.forEach((doc) => {
             const data = doc.data();
             console.log('📂 قسم:', data.name, '| المستوى:', data.level, '| الأب:', data.parentCategory);
             
+            // تحديد المستوى: إذا لم يكن هناك level، نعتبره مستوى 1 إذا لم يكن له أب
             let level = data.level;
-            if (!level) level = data.parentCategory ? 2 : 1;
+            if (!level) {
+                level = data.parentCategory ? 2 : 1;
+            }
             
             allCategories.push({ 
                 id: doc.id, 
@@ -715,7 +721,7 @@ async function loadCategories() {
 }
 
 function renderCategorySidebar() {
-    console.log(' رسم القائمة الجانبية...');
+    console.log('🎨 رسم القائمة الجانبية...');
     const sidebar = document.getElementById('sidebarCategories'); 
     if (!sidebar) {
         console.error('❌ sidebar غير موجود');
@@ -742,35 +748,38 @@ function renderCategorySidebar() {
         return; 
     }
     
+    // عرض الأقسام الرئيسية (المستوى 1)
     const level1Cats = allCategories.filter(c => c.level === 1);
-    console.log('📁 الأقسام الرئيسية:', level1Cats.length);
+    console.log(' الأقسام الرئيسية:', level1Cats.length);
     
     level1Cats.forEach(mainCat => {
         const mainItem = document.createElement('div'); 
         mainItem.className = 'category-item'; 
         mainItem.dataset.category = mainCat.name; 
         mainItem.style.cssText = 'font-weight:bold; font-size:16px; padding:15px 20px;'; 
-        mainItem.innerHTML = `📁 ${mainCat.name}`; 
+        mainItem.innerHTML = ` ${mainCat.name}`; 
         mainItem.onclick = () => { filterCategory(mainCat.name); }; 
         sidebar.appendChild(mainItem);
         
+        // الفروع (المستوى 2)
         const level2Cats = allCategories.filter(c => c.parentCategory === mainCat.name);
         level2Cats.forEach(subCat => {
             const subItem = document.createElement('div'); 
             subItem.className = 'category-item'; 
             subItem.dataset.category = subCat.name; 
             subItem.style.cssText = 'padding:12px 20px 12px 40px; font-size:15px;'; 
-            subItem.innerHTML = ` ${subCat.name}`; 
+            subItem.innerHTML = `📂 ${subCat.name}`; 
             subItem.onclick = () => { filterCategory(subCat.name); }; 
             sidebar.appendChild(subItem);
             
+            // الفروع الفرعية (المستوى 3)
             const level3Cats = allCategories.filter(c => c.parentCategory === subCat.name);
             level3Cats.forEach(subSubCat => {
                 const subSubItem = document.createElement('div'); 
                 subSubItem.className = 'category-item'; 
                 subSubItem.dataset.category = subSubCat.name; 
                 subSubItem.style.cssText = 'padding:10px 20px 10px 60px; font-size:14px; color:#666;'; 
-                subSubItem.innerHTML = ` ${subSubCat.name}`; 
+                subSubItem.innerHTML = `📄 ${subSubCat.name}`; 
                 subSubItem.onclick = () => { filterCategory(subSubCat.name); }; 
                 sidebar.appendChild(subSubItem);
             });
@@ -801,7 +810,7 @@ function getAllSubCategories(parentName) {
 }
 
 async function loadProducts() {
-    console.log('📦 تحميل المنتجات...');
+    console.log(' تحميل المنتجات...');
     try {
         const snapshot = await getDocs(collection(db, "products"));
         console.log('📊 عدد المنتجات المحملة:', snapshot.size);
@@ -835,7 +844,7 @@ async function loadProducts() {
 }
 
 function renderSpecialSections() {
-    console.log('🎨 عرض الأقسام الخاصة...');
+    console.log(' عرض الأقسام الخاصة...');
     const bestSellers = [...allProducts].sort((a, b) => b.salesCount - a.salesCount).slice(0, 10);
     if (bestSellers.length > 0) { 
         document.getElementById('bestSellersSection').style.display = 'block'; 
@@ -858,7 +867,7 @@ function renderSpecialSections() {
 
 function renderProductsByCategory() {
     console.log('🎯 عرض المنتجات حسب الأقسام...');
-    console.log(' عدد الأقسام:', allCategories.length);
+    console.log('📊 عدد الأقسام:', allCategories.length);
     console.log('📊 عدد المنتجات:', allProducts.length);
     
     const container = document.getElementById('productsByCategory'); 
@@ -945,7 +954,7 @@ function displaySubCategoriesWithProducts(parentName, container) {
             subSection.innerHTML = `
                 <div class="section-header" style="margin-bottom:15px;">
                     <h3 class="section-title" style="font-size:22px;">
-                        📂 ${subCat.name}
+                         ${subCat.name}
                     </h3>
                 </div>
             `;
@@ -1102,7 +1111,7 @@ async function initStore() {
         checkWelcomeModal(); 
         showLiveNotification();
         
-        console.log(' اكتمل تحميل المتجر بنجاح!');
+        console.log('🎉 اكتمل تحميل المتجر بنجاح!');
     } catch (err) {
         console.error('❌ خطأ في بدء التشغيل:', err);
     }
