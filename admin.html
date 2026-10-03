@@ -6,6 +6,7 @@
     <title>لوحة التحكم - شرف DG</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Tajawal', sans-serif; background: #f5f5f5; margin: 0; }
         header { background: white; padding: 15px 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
@@ -30,7 +31,6 @@
         .btn-toggle.inactive { background: #6c757d; }
         .btn-move { background: #6c757d; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-family: 'Tajawal'; margin: 0 2px; font-size: 12px; }
         .btn-upload { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; margin-top: 10px; }
-        .btn-upload:hover { background: #0056b3; }
         .item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; background: #f9f9f9; margin-bottom: 8px; border-radius: 6px; flex-wrap: wrap; gap: 10px; }
         .login-msg { text-align: center; padding: 50px; }
         h2 { margin-top: 0; color: #333; }
@@ -56,10 +56,8 @@
         .upload-options label { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px; background: white; border-radius: 6px; margin-bottom: 10px; }
         .upload-options input[type="radio"] { width: auto; }
         .image-preview { max-width: 200px; max-height: 150px; margin-top: 10px; border-radius: 8px; border: 2px solid #ddd; }
-        .upload-progress { display: none; margin-top: 10px; }
-        .upload-progress.active { display: block; }
-        .progress-bar { width: 100%; height: 20px; background: #eee; border-radius: 10px; overflow: hidden; }
-        .progress-fill { height: 100%; background: #28a745; width: 0%; transition: width 0.3s; }
+        .settings-section { background: #f9f9f9; padding: 20px; border-radius: 10px; margin-bottom: 20px; border-right: 4px solid var(--primary-color, #D4AF37); }
+        .settings-section h3 { margin-top: 0; }
     </style>
 </head>
 <body>
@@ -78,10 +76,11 @@
 
     <div id="adminContent" class="container" style="display:none;">
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('products')"> المنتجات</button>
+            <button class="tab active" onclick="switchTab('products')">📦 المنتجات</button>
             <button class="tab" onclick="switchTab('categories')">📁 الأقسام</button>
             <button class="tab" onclick="switchTab('banners')">🖼️ البنرات</button>
             <button class="tab" onclick="switchTab('orders')">🛍️ الطلبات</button>
+            <button class="tab" onclick="switchTab('settings')">⚙️ الإعدادات</button>
         </div>
 
         <!-- تبويب المنتجات -->
@@ -90,44 +89,25 @@
             <form id="productForm">
                 <input type="hidden" id="editId">
                 <div class="form-group"><label>اسم المنتج *</label><input type="text" id="pName" required></div>
-                
                 <div class="form-group">
                     <label>صورة المنتج *</label>
                     <div class="upload-options">
-                        <label>
-                            <input type="radio" name="imageSource" value="url" checked onchange="toggleImageSource()">
-                            <span>🔗 استخدام رابط الصورة</span>
-                        </label>
-                        <label>
-                            <input type="radio" name="imageSource" value="upload" onchange="toggleImageSource()">
-                            <span>📤 رفع صورة من الجهاز</span>
-                        </label>
+                        <label><input type="radio" name="imageSource" value="url" checked onchange="toggleImageSource()"><span> استخدام رابط الصورة</span></label>
+                        <label><input type="radio" name="imageSource" value="upload" onchange="toggleImageSource()"><span>📤 رفع صورة من الجهاز</span></label>
                     </div>
-                    <div id="urlInput">
-                        <input type="url" id="pImage" placeholder="https://example.com/image.jpg">
-                    </div>
+                    <div id="urlInput"><input type="url" id="pImage" placeholder="https://example.com/image.jpg"></div>
                     <div id="uploadInput" style="display:none;">
                         <input type="file" id="pImageFile" accept="image/*" onchange="previewImage(this)">
                         <img id="imagePreview" class="image-preview" style="display:none;">
-                        <div class="upload-progress" id="uploadProgress">
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="progressFill"></div>
-                            </div>
-                            <small id="progressText">جاري الرفع...</small>
-                        </div>
                     </div>
                 </div>
-
                 <div class="form-group"><label>القسم / التصنيف *</label><select id="pCategory" required><option value="">-- اختر القسم --</option></select></div>
                 <div class="form-group"><label>السعر الجديد (د.إ) *</label><input type="number" id="pPrice" required step="0.01"></div>
                 <div class="form-group"><label>السعر القديم قبل الخصم (اختياري)</label><input type="number" id="pOldPrice" step="0.01"></div>
-                
                 <div class="form-group">
                     <label>ترتيب العرض (الرقم الأصغر يظهر أولاً) *</label>
                     <input type="number" id="pOrder" value="100" min="1" required>
-                    <small>المنتجات ذات الرقم الأصغر تظهر أولاً في المتجر</small>
                 </div>
-
                 <div class="form-group">
                     <label>موقع العرض في المتجر</label>
                     <select id="pDisplayLocation">
@@ -137,32 +117,26 @@
                         <option value="hidden">مخفي (لا يظهر)</option>
                     </select>
                 </div>
-
                 <div class="checkbox-group">
                     <input type="checkbox" id="pIsNew">
                     <label for="pIsNew">🆕 وضع علامة "جديد" على المنتج</label>
                 </div>
-
                 <div class="checkbox-group">
                     <input type="checkbox" id="pIsSale">
                     <label for="pIsSale">🔥 تفعيل عرض على المنتج</label>
                 </div>
-
                 <div id="saleOptionsGroup" style="display:none;">
                     <div class="sale-options">
                         <div class="form-group">
                             <label>نسبة الخصم % *</label>
                             <input type="number" id="pDiscountPercent" min="1" max="99" placeholder="مثال: 5">
-                            <small>أدخل نسبة الخصم (1-99)</small>
                         </div>
                         <div class="form-group">
                             <label>تاريخ انتهاء العرض (اختياري)</label>
                             <input type="date" id="pSaleEndDate">
-                            <small>اتركه فارغاً إذا لا يوجد تاريخ انتهاء</small>
                         </div>
                     </div>
                 </div>
-
                 <div class="checkbox-group">
                     <input type="checkbox" id="pHasColors">
                     <label for="pHasColors">تفعيل اختيار الألوان لهذا المنتج؟</label>
@@ -171,7 +145,6 @@
                     <label>الألوان المتاحة (افصل بينها بفاصلة)</label>
                     <input type="text" id="pColors" placeholder="أحمر, أسود, أبيض">
                 </div>
-
                 <button type="submit" class="btn" id="submitBtn">حفظ المنتج</button>
                 <button type="button" class="btn" id="cancelBtn" style="background:#6c757d; display:none; margin-top:10px;" onclick="cancelEdit()">إلغاء التعديل</button>
             </form>
@@ -179,19 +152,14 @@
             <div id="productsList"></div>
         </div>
 
-        <!-- تبويب الأقسام الهرمية -->
+        <!-- تبويب الأقسام -->
         <div id="categories-tab" class="tab-content">
             <h2>إدارة الأقسام (3 مستويات)</h2>
-            
             <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-right: 4px solid #ffc107;">
-                <strong>💡 مثال على الهيكل:</strong><br>
-                المستوى 1: هواتف<br>
-                المستوى 2: هواتف آبل<br>
-                المستوى 3: آيفون 18
+                <strong>💡 مثال:</strong> المستوى 1: هواتف | المستوى 2: هواتف آبل | المستوى 3: آيفون 18
             </div>
-
             <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                <h3>➕ إضافة قسم جديد</h3>
+                <h3> إضافة قسم جديد</h3>
                 <form id="categoryForm">
                     <div class="form-group">
                         <label>المستوى *</label>
@@ -203,9 +171,7 @@
                     </div>
                     <div class="form-group">
                         <label>القسم الأب (اختياري للمستوى 1)</label>
-                        <select id="parentCategory">
-                            <option value="">-- لا يوجد (قسم رئيسي) --</option>
-                        </select>
+                        <select id="parentCategory"><option value="">-- لا يوجد (قسم رئيسي) --</option></select>
                     </div>
                     <div class="form-group">
                         <label>اسم القسم *</label>
@@ -214,15 +180,11 @@
                     <div class="form-group">
                         <label>ترتيب العرض (الرقم الأصغر يظهر أولاً) *</label>
                         <input type="number" id="catOrder" value="100" min="1" required>
-                        <small>الأقسام ذات الرقم الأصغر تظهر أولاً</small>
                     </div>
                     <button type="submit" class="btn">إضافة القسم</button>
                 </form>
             </div>
-
-            <div class="section-title">
-                <h3>الهيكل الهرمي للأقسام</h3>
-            </div>
+            <div class="section-title"><h3>الهيكل الهرمي للأقسام</h3></div>
             <div id="categoriesList"></div>
         </div>
 
@@ -240,18 +202,10 @@
                 <div class="form-group">
                     <label>صورة البنر *</label>
                     <div class="upload-options">
-                        <label>
-                            <input type="radio" name="bannerImageSource" value="url" checked onchange="toggleBannerImageSource()">
-                            <span>🔗 استخدام رابط الصورة</span>
-                        </label>
-                        <label>
-                            <input type="radio" name="bannerImageSource" value="upload" onchange="toggleBannerImageSource()">
-                            <span>📤 رفع صورة من الجهاز</span>
-                        </label>
+                        <label><input type="radio" name="bannerImageSource" value="url" checked onchange="toggleBannerImageSource()"><span>🔗 استخدام رابط الصورة</span></label>
+                        <label><input type="radio" name="bannerImageSource" value="upload" onchange="toggleBannerImageSource()"><span>📤 رفع صورة من الجهاز</span></label>
                     </div>
-                    <div id="bannerUrlInput">
-                        <input type="url" id="bImageUrl" placeholder="https://example.com/banner.jpg">
-                    </div>
+                    <div id="bannerUrlInput"><input type="url" id="bImageUrl" placeholder="https://example.com/banner.jpg"></div>
                     <div id="bannerUploadInput" style="display:none;">
                         <input type="file" id="bImageFile" accept="image/*" onchange="previewBannerImage(this)">
                         <img id="bannerImagePreview" class="image-preview" style="display:none;">
@@ -259,12 +213,12 @@
                 </div>
                 <div class="form-group"><label>رابط الوجهة عند الضغط (اختياري)</label><input type="url" id="bLink" placeholder="https://..."></div>
                 <div class="form-group">
-                    <label>ترتيب العرض (الرقم الأصغر يظهر أولاً)</label>
+                    <label>ترتيب العرض</label>
                     <input type="number" id="bOrder" value="100" min="1">
                 </div>
                 <div class="checkbox-group">
                     <input type="checkbox" id="bIsActive" checked>
-                    <label for="bIsActive">تفعيل البنر (إظهاره في المتجر)</label>
+                    <label for="bIsActive">تفعيل البنر</label>
                 </div>
                 <button type="submit" class="btn">إضافة البنر</button>
             </form>
@@ -276,6 +230,135 @@
         <div id="orders-tab" class="tab-content">
             <h2>الطلبات الواردة (<span id="ordersCount">0</span>)</h2>
             <div id="ordersList"></div>
+        </div>
+
+        <!-- تبويب الإعدادات -->
+        <div id="settings-tab" class="tab-content">
+            <h2>⚙️ إعدادات المتجر</h2>
+            <div style="background:#e3f2fd; padding:15px; border-radius:8px; margin-bottom:20px; border-right:4px solid #2196F3;">
+                <strong>💡 ملاحظة:</strong> جميع التغييرات ستظهر فوراً في المتجر بعد الحفظ
+            </div>
+
+            <form id="settingsForm">
+                <!-- الإعدادات العامة -->
+                <div class="settings-section">
+                    <h3>🎨 الإعدادات العامة</h3>
+                    <div class="form-group">
+                        <label>اللون الرئيسي للمتجر</label>
+                        <input type="color" id="sPrimaryColor" value="#D4AF37">
+                    </div>
+                    <div class="form-group">
+                        <label>اسم المتجر</label>
+                        <input type="text" id="sStoreName" value="شرف DG">
+                    </div>
+                    <div class="form-group">
+                        <label>رقم الواتساب</label>
+                        <input type="text" id="sWhatsapp" value="+971592152484">
+                    </div>
+                    <div class="form-group">
+                        <label>البريد الإلكتروني</label>
+                        <input type="email" id="sEmail" value="info@sharafdg.com">
+                    </div>
+                </div>
+
+                <!-- نافذة الترحيب -->
+                <div class="settings-section">
+                    <h3>🎁 نافذة الترحيب للزوار الجدد</h3>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="sWelcomeEnabled" checked>
+                        <label for="sWelcomeEnabled">تفعيل نافذة الترحيب</label>
+                    </div>
+                    <div class="form-group">
+                        <label>نسبة الخصم %</label>
+                        <input type="number" id="sWelcomeDiscount" min="1" max="100" value="10">
+                    </div>
+                    <div class="form-group">
+                        <label>كود الخصم</label>
+                        <input type="text" id="sWelcomeCode" value="WELCOME10">
+                    </div>
+                </div>
+
+                <!-- الشحن المجاني -->
+                <div class="settings-section">
+                    <h3>🚚 الشحن المجاني</h3>
+                    <div class="form-group">
+                        <label>الحد الأدنى للشحن المجاني (د.إ)</label>
+                        <input type="number" id="sFreeShipping" value="500" min="0">
+                    </div>
+                </div>
+
+                <!-- العداد التنازلي -->
+                <div class="settings-section">
+                    <h3> العداد التنازلي للعروض</h3>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="sCountdownEnabled" checked>
+                        <label for="sCountdownEnabled">تفعيل العداد التنازلي</label>
+                    </div>
+                    <div class="form-group">
+                        <label>نص العداد</label>
+                        <input type="text" id="sCountdownText" value="ينتهي العرض خلال">
+                    </div>
+                </div>
+
+                <!-- الإشعارات الفورية -->
+                <div class="settings-section">
+                    <h3> الإشعارات الفورية</h3>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="sNotificationsEnabled" checked>
+                        <label for="sNotificationsEnabled">تفعيل الإشعارات الفورية</label>
+                    </div>
+                    <div class="form-group">
+                        <label>الفاصل الزمني بين الإشعارات (ثانية)</label>
+                        <input type="number" id="sNotifInterval" value="15" min="5">
+                    </div>
+                    <div class="form-group">
+                        <label>الإشعارات (كل إشعار في سطر، افصل بين الاسم والمنتج بـ |)</label>
+                        <textarea id="sNotifications" rows="6" placeholder="أحمد من دبي|آيفون 18 برو">أحمد من دبي|آيفون 18 برو
+فاطمة من أبوظبي|سامسونج S26
+محمد من الشارقة|آيباد M4
+سارة من عجمان|سماعات AirPods
+خالد من رأس الخيمة|ساعة آبل</textarea>
+                        <small>الصيغة: الاسم|المنتج</small>
+                    </div>
+                </div>
+
+                <!-- شارات الثقة -->
+                <div class="settings-section">
+                    <h3>🛡️ شارات الثقة</h3>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="sTrustBadgesEnabled" checked>
+                        <label for="sTrustBadgesEnabled">تفعيل شارات الثقة</label>
+                    </div>
+                </div>
+
+                <!-- وسائل التواصل -->
+                <div class="settings-section">
+                    <h3>📱 وسائل التواصل الاجتماعي</h3>
+                    <div class="form-group">
+                        <label>رابط فيسبوك</label>
+                        <input type="url" id="sFacebook" placeholder="https://facebook.com/...">
+                    </div>
+                    <div class="form-group">
+                        <label>رابط إنستغرام</label>
+                        <input type="url" id="sInstagram" placeholder="https://instagram.com/...">
+                    </div>
+                    <div class="form-group">
+                        <label>رابط تويتر</label>
+                        <input type="url" id="sTwitter" placeholder="https://twitter.com/...">
+                    </div>
+                </div>
+
+                <!-- الفوتر -->
+                <div class="settings-section">
+                    <h3>📄 الفوتر</h3>
+                    <div class="form-group">
+                        <label>نص وصف المتجر</label>
+                        <textarea id="sFooterDesc" rows="3">متجرك الإلكتروني الأول في الإمارات العربية المتحدة. نقدم لك أفضل المنتجات بأسعار منافسة.</textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn" style="padding:15px; font-size:18px; margin-top:10px;"> حفظ جميع الإعدادات</button>
+            </form>
         </div>
     </div>
     <script type="module" src="admin.js"></script>
