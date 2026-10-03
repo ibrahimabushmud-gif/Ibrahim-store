@@ -29,7 +29,8 @@
         .btn-toggle { background: #17a2b8; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-family: 'Tajawal'; margin-left: 5px; }
         .btn-toggle.inactive { background: #6c757d; }
         .btn-move { background: #6c757d; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-family: 'Tajawal'; margin: 0 2px; font-size: 12px; }
-        .btn-move:hover { background: #495057; }
+        .btn-upload { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-family: 'Tajawal'; margin-top: 10px; }
+        .btn-upload:hover { background: #0056b3; }
         .item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; background: #f9f9f9; margin-bottom: 8px; border-radius: 6px; flex-wrap: wrap; gap: 10px; }
         .login-msg { text-align: center; padding: 50px; }
         h2 { margin-top: 0; color: #333; }
@@ -51,6 +52,14 @@
         .level-2 { background: #D4AF37; color: white; }
         .level-3 { background: #FFF9E6; color: #333; border: 1px solid #D4AF37; }
         .sale-options { background: #fff3cd; padding: 15px; border-radius: 8px; margin: 15px 0; border-right: 4px solid #ffc107; }
+        .upload-options { background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 15px 0; border-right: 4px solid #2196F3; }
+        .upload-options label { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px; background: white; border-radius: 6px; margin-bottom: 10px; }
+        .upload-options input[type="radio"] { width: auto; }
+        .image-preview { max-width: 200px; max-height: 150px; margin-top: 10px; border-radius: 8px; border: 2px solid #ddd; }
+        .upload-progress { display: none; margin-top: 10px; }
+        .upload-progress.active { display: block; }
+        .progress-bar { width: 100%; height: 20px; background: #eee; border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background: #28a745; width: 0%; transition: width 0.3s; }
     </style>
 </head>
 <body>
@@ -81,7 +90,34 @@
             <form id="productForm">
                 <input type="hidden" id="editId">
                 <div class="form-group"><label>اسم المنتج *</label><input type="text" id="pName" required></div>
-                <div class="form-group"><label>رابط الصورة (URL) *</label><input type="url" id="pImage" required></div>
+                
+                <div class="form-group">
+                    <label>صورة المنتج *</label>
+                    <div class="upload-options">
+                        <label>
+                            <input type="radio" name="imageSource" value="url" checked onchange="toggleImageSource()">
+                            <span>🔗 استخدام رابط الصورة</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="imageSource" value="upload" onchange="toggleImageSource()">
+                            <span>📤 رفع صورة من الجهاز</span>
+                        </label>
+                    </div>
+                    <div id="urlInput">
+                        <input type="url" id="pImage" placeholder="https://example.com/image.jpg">
+                    </div>
+                    <div id="uploadInput" style="display:none;">
+                        <input type="file" id="pImageFile" accept="image/*" onchange="previewImage(this)">
+                        <img id="imagePreview" class="image-preview" style="display:none;">
+                        <div class="upload-progress" id="uploadProgress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+                            <small id="progressText">جاري الرفع...</small>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-group"><label>القسم / التصنيف *</label><select id="pCategory" required><option value="">-- اختر القسم --</option></select></div>
                 <div class="form-group"><label>السعر الجديد (د.إ) *</label><input type="number" id="pPrice" required step="0.01"></div>
                 <div class="form-group"><label>السعر القديم قبل الخصم (اختياري)</label><input type="number" id="pOldPrice" step="0.01"></div>
@@ -109,7 +145,7 @@
 
                 <div class="checkbox-group">
                     <input type="checkbox" id="pIsSale">
-                    <label for="pIsSale"> تفعيل عرض على المنتج</label>
+                    <label for="pIsSale">🔥 تفعيل عرض على المنتج</label>
                 </div>
 
                 <div id="saleOptionsGroup" style="display:none;">
@@ -129,7 +165,7 @@
 
                 <div class="checkbox-group">
                     <input type="checkbox" id="pHasColors">
-                    <label for="pHasColors"> تفعيل اختيار الألوان لهذا المنتج؟</label>
+                    <label for="pHasColors">تفعيل اختيار الألوان لهذا المنتج؟</label>
                 </div>
                 <div class="form-group" id="colorsInputGroup" style="display:none;">
                     <label>الألوان المتاحة (افصل بينها بفاصلة)</label>
@@ -148,7 +184,7 @@
             <h2>إدارة الأقسام (3 مستويات)</h2>
             
             <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-right: 4px solid #ffc107;">
-                <strong> مثال على الهيكل:</strong><br>
+                <strong>💡 مثال على الهيكل:</strong><br>
                 المستوى 1: هواتف<br>
                 المستوى 2: هواتف آبل<br>
                 المستوى 3: آيفون 18
@@ -201,7 +237,26 @@
                         <option value="top">الشريط الإعلاني العلوي الثابت</option>
                     </select>
                 </div>
-                <div class="form-group"><label>رابط صورة البنر (URL) *</label><input type="url" id="bImageUrl" required placeholder="https://..."></div>
+                <div class="form-group">
+                    <label>صورة البنر *</label>
+                    <div class="upload-options">
+                        <label>
+                            <input type="radio" name="bannerImageSource" value="url" checked onchange="toggleBannerImageSource()">
+                            <span>🔗 استخدام رابط الصورة</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="bannerImageSource" value="upload" onchange="toggleBannerImageSource()">
+                            <span>📤 رفع صورة من الجهاز</span>
+                        </label>
+                    </div>
+                    <div id="bannerUrlInput">
+                        <input type="url" id="bImageUrl" placeholder="https://example.com/banner.jpg">
+                    </div>
+                    <div id="bannerUploadInput" style="display:none;">
+                        <input type="file" id="bImageFile" accept="image/*" onchange="previewBannerImage(this)">
+                        <img id="bannerImagePreview" class="image-preview" style="display:none;">
+                    </div>
+                </div>
                 <div class="form-group"><label>رابط الوجهة عند الضغط (اختياري)</label><input type="url" id="bLink" placeholder="https://..."></div>
                 <div class="form-group">
                     <label>ترتيب العرض (الرقم الأصغر يظهر أولاً)</label>
