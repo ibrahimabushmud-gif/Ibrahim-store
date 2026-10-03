@@ -12,37 +12,31 @@
     <div id="topBanner"></div>
 
     <!-- Header -->
-    <header>
-        <div style="display:flex; align-items:center; gap:15px;">
-            <button onclick="toggleCategories()" style="background:none; border:none; font-size:24px; cursor:pointer; color:var(--primary-color);">☰</button>
-            <div class="logo">
-                <img src="https://s.sdgcdn.com/7/2026/04/SharafDG-Logo-AR-1.svg" alt="Sharaf DG">
-            </div>
+   <header>
+    <div style="display:flex; align-items:center; gap:10px; flex:1;">
+        <button onclick="toggleCategories()" style="background:none; border:none; font-size:22px; cursor:pointer; color:var(--primary-color); padding:5px;">☰</button>
+        <div class="logo">
+            <img src="https://s.sdgcdn.com/7/2026/04/SharafDG-Logo-AR-1.svg" alt="Sharaf DG">
         </div>
-        <div class="header-actions">
-            <div class="search-container">
-                <input type="text" id="searchInput" placeholder="🔍 ابحث عن منتج..." onkeyup="searchProducts()">
-                <div id="searchResults" class="search-results"></div>
-            </div>
-            <button onclick="toggleWishlist()" style="background:none; border:none; font-size:22px; cursor:pointer; position:relative;" title="المفضلة">
-                ❤️
-                <span class="cart-badge" id="wishlistCount" style="background:#e91e63;">0</span>
-            </button>
-            <button onclick="toggleCompare()" style="background:none; border:none; font-size:22px; cursor:pointer; position:relative;" title="المقارنة">
-                ⚖️
-                <span class="cart-badge" id="compareCount" style="background:#2196F3;">0</span>
-            </button>
-            <button onclick="toggleDarkMode()" style="background:none; border:none; font-size:22px; cursor:pointer;" title="الوضع الداكن">
-                🌙
-            </button>
-            <div class="cart-icon" onclick="toggleCart(event)">
-                🛒
-                <span class="cart-badge" id="cartCount">0</span>
-            </div>
-            <div id="userMenu"></div>
+    </div>
+    <div class="header-actions" style="display:flex; align-items:center; gap:8px;">
+        <div class="search-container" style="flex:1; max-width:400px; position:relative;">
+            <input type="text" id="searchInput" placeholder="🔍 ابحث عن منتج..." onkeyup="searchProducts()" style="width:100%; padding:8px 12px; border:2px solid #eee; border-radius:20px; font-family:'Tajawal'; font-size:14px;">
+            <div id="searchResults" class="search-results" style="position:absolute; top:100%; right:0; left:0; background:white; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.15); margin-top:10px; z-index:1000; display:none; max-height:400px; overflow-y:auto;"></div>
         </div>
-    </header>
-
+        <button onclick="toggleWishlist()" style="background:none; border:none; font-size:20px; cursor:pointer; position:relative; padding:5px;" title="المفضلة">
+            ❤️<span class="cart-badge" id="wishlistCount" style="background:#e91e63; position:absolute; top:-5px; right:-5px; width:18px; height:18px; border-radius:50%; color:white; font-size:10px; display:flex; align-items:center; justify-content:center;">0</span>
+        </button>
+        <button onclick="toggleCompare()" style="background:none; border:none; font-size:20px; cursor:pointer; position:relative; padding:5px;" title="المقارنة">
+            ⚖️<span class="cart-badge" id="compareCount" style="background:#2196F3; position:absolute; top:-5px; right:-5px; width:18px; height:18px; border-radius:50%; color:white; font-size:10px; display:flex; align-items:center; justify-content:center;">0</span>
+        </button>
+        <button onclick="toggleDarkMode()" style="background:none; border:none; font-size:20px; cursor:pointer; padding:5px;" title="الوضع الداكن">🌙</button>
+        <div class="cart-icon" onclick="toggleCart(event)" style="position:relative; cursor:pointer; font-size:22px; padding:5px;">
+            🛒<span class="cart-badge" id="cartCount" style="background:var(--danger-color); position:absolute; top:-5px; right:-5px; width:18px; height:18px; border-radius:50%; color:white; font-size:10px; display:flex; align-items:center; justify-content:center;">0</span>
+        </div>
+        <div id="userMenu"></div>
+    </div>
+</header>
     <!-- القائمة الجانبية للأقسام -->
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleCategories()"></div>
     <div class="categories-sidebar" id="categoriesSidebar"></div>
