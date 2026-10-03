@@ -7,7 +7,8 @@ import {
     deleteDoc, 
     doc, 
     updateDoc,
-    getDoc
+    getDoc,
+    setDoc // 👈 تمت الإضافة هنا
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { 
     getAuth, 
@@ -38,8 +39,10 @@ export {
     deleteDoc, 
     doc, 
     updateDoc,
-    getDoc
+    getDoc,
+    setDoc // 👈 تمت الإضافة هنا أيضاً
 };
+
 export { 
     auth, 
     createUserWithEmailAndPassword, 
