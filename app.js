@@ -1,7 +1,7 @@
 import { db, collection, getDocs } from './firebase-config.js';
 import { auth, signOut, onAuthStateChanged } from './firebase-config.js';
 
-console.log(' بدء تحميل المتجر...');
+console.log('🚀 بدء تحميل المتجر...');
 
 const ADMIN_EMAIL = 'ibrahimabushmud@gmail.com';
 let allProducts = [], allCategories = [], currentCategory = 'all';
@@ -67,7 +67,7 @@ async function loadStoreSettings() {
 }
 
 function applySettings() {
-    console.log(' تطبيق الإعدادات...');
+    console.log('🎨 تطبيق الإعدادات...');
     if (storeSettings.primaryColor) { 
         document.documentElement.style.setProperty('--primary-color', storeSettings.primaryColor); 
         document.documentElement.style.setProperty('--primary-dark', storeSettings.primaryColor); 
@@ -287,7 +287,7 @@ window.toggleCompareItem = function(productId, event) {
             return; 
         }
         compareList.push(productId); 
-        showToast('تمت الإضافة ️', '#2196F3');
+        showToast('تمت الإضافة ⚖️', '#2196F3');
     }
     localStorage.setItem('compareList', JSON.stringify(compareList)); 
     updateCompareCount();
@@ -491,7 +491,7 @@ window.addToCart = (pid, e) => {
     }
     const p = allProducts.find(x => x.id === pid);
     if (!p) { 
-        alert('️ غير موجود'); 
+        alert('⚠️ غير موجود'); 
         return; 
     }
     const qi = document.getElementById(`qty-${pid}`);
@@ -540,7 +540,7 @@ let carouselImages = [], currentSlide = 0, carouselInterval;
 
 async function loadBannersSystem() {
     try {
-        console.log('🖼️ تحميل البنرات...');
+        console.log('️ تحميل البنرات...');
         const snap = await getDocs(collection(db, "banners"));
         const tb = document.getElementById('topBanner');
         const cc = document.getElementById('carouselContainer');
@@ -715,7 +715,7 @@ async function loadCategories() {
 }
 
 function renderCategorySidebar() {
-    console.log('🎨 رسم القائمة الجانبية...');
+    console.log(' رسم القائمة الجانبية...');
     const sidebar = document.getElementById('sidebarCategories'); 
     if (!sidebar) {
         console.error('❌ sidebar غير موجود');
@@ -760,7 +760,7 @@ function renderCategorySidebar() {
             subItem.className = 'category-item'; 
             subItem.dataset.category = subCat.name; 
             subItem.style.cssText = 'padding:12px 20px 12px 40px; font-size:15px;'; 
-            subItem.innerHTML = `📂 ${subCat.name}`; 
+            subItem.innerHTML = ` ${subCat.name}`; 
             subItem.onclick = () => { filterCategory(subCat.name); }; 
             sidebar.appendChild(subItem);
             
@@ -770,7 +770,7 @@ function renderCategorySidebar() {
                 subSubItem.className = 'category-item'; 
                 subSubItem.dataset.category = subSubCat.name; 
                 subSubItem.style.cssText = 'padding:10px 20px 10px 60px; font-size:14px; color:#666;'; 
-                subSubItem.innerHTML = `📄 ${subSubCat.name}`; 
+                subSubItem.innerHTML = ` ${subSubCat.name}`; 
                 subSubItem.onclick = () => { filterCategory(subSubCat.name); }; 
                 sidebar.appendChild(subSubItem);
             });
@@ -779,7 +779,7 @@ function renderCategorySidebar() {
 }
 
 window.filterCategory = function(category) {
-    console.log(' تصفية القسم:', category);
+    console.log('🔍 تصفية القسم:', category);
     currentCategory = category;
     const sidebar = document.getElementById('categoriesSidebar');
     const overlay = document.getElementById('sidebarOverlay');
@@ -804,7 +804,7 @@ async function loadProducts() {
     console.log('📦 تحميل المنتجات...');
     try {
         const snapshot = await getDocs(collection(db, "products"));
-        console.log(' عدد المنتجات المحملة:', snapshot.size);
+        console.log('📊 عدد المنتجات المحملة:', snapshot.size);
         
         allProducts = [];
         snapshot.forEach((doc) => {
@@ -858,6 +858,9 @@ function renderSpecialSections() {
 
 function renderProductsByCategory() {
     console.log('🎯 عرض المنتجات حسب الأقسام...');
+    console.log(' عدد الأقسام:', allCategories.length);
+    console.log('📊 عدد المنتجات:', allProducts.length);
+    
     const container = document.getElementById('productsByCategory'); 
     if (!container) {
         console.error('❌ عنصر productsByCategory غير موجود!');
@@ -868,7 +871,7 @@ function renderProductsByCategory() {
     
     if (currentCategory === 'all') {
         const level1Cats = allCategories.filter(c => c.level === 1);
-        console.log(' الأقسام الرئيسية:', level1Cats.length);
+        console.log('📁 الأقسام الرئيسية:', level1Cats.length);
         
         if (level1Cats.length === 0) {
             console.log('⚠️ لا توجد أقسام، عرض كل المنتجات');
@@ -880,7 +883,7 @@ function renderProductsByCategory() {
             }
         } else {
             level1Cats.forEach(mainCat => {
-                console.log('📁 عرض القسم:', mainCat.name);
+                console.log(' عرض القسم:', mainCat.name);
                 const mainSection = document.createElement('div'); 
                 mainSection.style.marginBottom = '40px';
                 mainSection.innerHTML = `
@@ -942,7 +945,7 @@ function displaySubCategoriesWithProducts(parentName, container) {
             subSection.innerHTML = `
                 <div class="section-header" style="margin-bottom:15px;">
                     <h3 class="section-title" style="font-size:22px;">
-                         ${subCat.name}
+                        📂 ${subCat.name}
                     </h3>
                 </div>
             `;
@@ -1070,19 +1073,39 @@ window.scrollSection = (cn, d) => {
     if (c) c.scrollBy({ left: d === 'left' ? -300 : 300, behavior: 'smooth' }); 
 };
 
+// ============ بدء التشغيل بالترتيب الصحيح ============
 console.log('✅ بدء التشغيل...');
 updateWishlistCount(); 
 updateCompareCount();
 
-loadStoreSettings().then(() => {
-    console.log('✅ تم تحميل الإعدادات');
-    updateCurrencySymbols();
-    updateCartCount(); 
-    loadBannersSystem(); 
-    loadCategories(); 
-    loadProducts(); 
-    checkWelcomeModal(); 
-    showLiveNotification();
-}).catch(err => {
-    console.error('❌ خطأ في بدء التشغيل:', err);
-});
+async function initStore() {
+    try {
+        console.log('⏳ بدء تهيئة المتجر...');
+        
+        // 1. تحميل الإعدادات
+        await loadStoreSettings();
+        console.log('✅ 1. تم تحميل الإعدادات');
+        
+        updateCurrencySymbols();
+        updateCartCount(); 
+        loadBannersSystem(); 
+        
+        // 2. تحميل الأقسام أولاً (مهم جداً)
+        await loadCategories();
+        console.log('✅ 2. تم تحميل الأقسام:', allCategories.length);
+        
+        // 3. تحميل المنتجات بعد الأقسام
+        await loadProducts();
+        console.log('✅ 3. تم تحميل المنتجات:', allProducts.length);
+        
+        // 4. باقي الوظائف
+        checkWelcomeModal(); 
+        showLiveNotification();
+        
+        console.log(' اكتمل تحميل المتجر بنجاح!');
+    } catch (err) {
+        console.error('❌ خطأ في بدء التشغيل:', err);
+    }
+}
+
+initStore();
