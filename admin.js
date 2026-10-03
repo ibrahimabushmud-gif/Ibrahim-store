@@ -433,3 +433,45 @@ async function loadOrders() {
     });
     list.innerHTML = html || '<p>لا توجد طلبات</p>';
 }
+document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const data = {
+        primaryColor: document.getElementById('sPrimaryColor').value,
+        storeName: document.getElementById('sStoreName').value,
+        whatsapp: document.getElementById('sWhatsapp').value,
+        email: document.getElementById('sEmail').value,
+        welcomeEnabled: document.getElementById('sWelcomeEnabled').checked,
+        welcomeDiscount: Number(document.getElementById('sWelcomeDiscount').value),
+        welcomeCode: document.getElementById('sWelcomeCode').value,
+        freeShipping: Number(document.getElementById('sFreeShipping').value),
+        countdownEnabled: document.getElementById('sCountdownEnabled').checked,
+        countdownText: document.getElementById('sCountdownText').value,
+        notificationsEnabled: document.getElementById('sNotificationsEnabled').checked,
+        notifInterval: Number(document.getElementById('sNotifInterval').value),
+        notifications: document.getElementById('sNotifications').value,
+        trustBadgesEnabled: document.getElementById('sTrustBadgesEnabled').checked,
+        facebook: document.getElementById('sFacebook').value,
+        instagram: document.getElementById('sInstagram').value,
+        twitter: document.getElementById('sTwitter').value,
+        footerDesc: document.getElementById('sFooterDesc').value,
+        // الإعدادات الجديدة - شعار العملة
+        currencyIcon: document.getElementById('sCurrencyIcon').value,
+        currencySizeProduct: Number(document.getElementById('sCurrencySizeProduct').value),
+        currencySizeCart: Number(document.getElementById('sCurrencySizeCart').value),
+        currencySizeLarge: Number(document.getElementById('sCurrencySizeLarge').value),
+        currencyText: document.getElementById('sCurrencyText').value
+    };
+    
+    console.log('💾 حفظ الإعدادات:', data);
+    
+    try {
+        for (const [key, value] of Object.entries(data)) {
+            await setDoc(doc(db, "settings", key), { value: value });
+        }
+        alert('✅ تم حفظ جميع الإعدادات بنجاح!');
+    } catch (error) {
+        alert('❌ حدث خطأ: ' + error.message);
+        console.error(error);
+    }
+});
