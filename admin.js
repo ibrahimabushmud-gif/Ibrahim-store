@@ -3,6 +3,10 @@ import { db, collection, addDoc, getDocs, doc, deleteDoc, updateDoc } from './fi
 
 const ADMIN_EMAIL = 'ibrahimabushmud@gmail.com';
 
+// متغيرات الصور المرفوعة
+let uploadedProductImage = '';
+let uploadedBannerImage = '';
+
 // 1. التحقق من صلاحية المدير
 onAuthStateChanged(auth, (user) => {
     if (!user || user.email !== ADMIN_EMAIL) {
@@ -26,7 +30,59 @@ window.switchTab = function(tabName) {
     document.getElementById(`${tabName}-tab`).classList.add('active');
 };
 
-// 3. إدارة الأقسام الهرمية
+// 3. تبديل مصدر الصورة
+window.toggleImageSource = function() {
+    const source = document.querySelector('input[name="imageSource"]:checked').value;
+    document.getElementById('urlInput').style.display = source === 'url' ? 'block' : 'none';
+    document.getElementById('uploadInput').style.display = source === 'upload' ? 'block' : 'none';
+    if (source === 'url') {
+        document.getElementById('pImage').required = true;
+        document.getElementById('pImageFile').required = false;
+    } else {
+        document.getElementById('pImage').required = false;
+        document.getElementById('pImageFile').required = true;
+    }
+};
+
+window.toggleBannerImageSource = function() {
+    const source = document.querySelector('input[name="bannerImageSource"]:checked').value;
+    document.getElementById('bannerUrlInput').style.display = source === 'url' ? 'block' : 'none';
+    document.getElementById('bannerUploadInput').style.display = source === 'upload' ? 'block' : 'none';
+    if (source === 'url') {
+        document.getElementById('bImageUrl').required = true;
+        document.getElementById('bImageFile').required = false;
+    } else {
+        document.getElementById('bImageUrl').required = false;
+        document.getElementById('bImageFile').required = true;
+    }
+};
+
+// 4. معاينة الصورة قبل الرفع
+window.previewImage = function(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('imagePreview').src = e.target.result;
+            document.getElementById('imagePreview').style.display = 'block';
+            uploadedProductImage = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+};
+
+window.previewBannerImage = function(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('bannerImagePreview').src = e.target.result;
+            document.getElementById('bannerImagePreview').style.display = 'block';
+            uploadedBannerImage = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+};
+
+// 5. إدارة الأقسام الهرمية
 let allCategories = [];
 
 async function loadCategories() {
@@ -99,7 +155,7 @@ function displayCategoryTree() {
                         <div style="flex:1;">
                             <span class="badge-order">ترتيب: ${mainCat.order}</span>
                             <span class="level-badge level-1">مستوى 1</span>
-                            <strong style="font-size:18px;"> ${mainCat.name}</strong>
+                            <strong style="font-size:18px;">📁 ${mainCat.name}</strong>
                         </div>
                         <div class="order-controls">
                             <button class="btn-move" onclick="changeCategoryOrder('${mainCat.id}', -1)">⬆️</button>
@@ -212,7 +268,7 @@ window.deleteCategory = async (id) => {
     }
 };
 
-// 4. إدارة المنتجات
+// 6. إدارة المنتجات
 document.getElementById('pHasColors').addEventListener('change', (e) => {
     document.getElementById('colorsInputGroup').style.display = e.target.checked ? 'block' : 'none';
 });
@@ -245,7 +301,7 @@ async function loadProducts() {
                 <img src="${p.image}" class="banner-preview" style="width:50px; height:50px;">
                 <div style="flex:1;">
                     <strong>${badges.join(' ')}${p.name}</strong><br>
-                    <small>${p.price} د.إ | ${p.category} | ترتيب: ${p.order || 100} | ${p.displayLocation || 'all'}</small>
+                    <small>${p.price} د.إ | ${p.category} | ترتيب: ${p.order || 100}</small>
                 </div>
                 <div class="order-controls">
                     <button class="btn-move" onclick="changeProductOrder('${p.id}', -1)">⬆️</button>
@@ -276,9 +332,24 @@ window.changeProductOrder = async function(id, delta) {
 document.getElementById('productForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const editId = document.getElementById('editId').value;
+    
+    // تحديد مصدر الصورة
+    const imageSource = document.querySelector('input[name="imageSource"]:checked').value;
+    let imageUrl = '';
+    
+    if (imageSource === 'url') {
+        imageUrl = document.getElementById('pImage').value;
+    } else {
+        imageUrl = uploadedProductImage;
+        if (!imageUrl) {
+            alert('⚠️ الرجاء رفع صورة المنتج');
+            return;
+        }
+    }
+    
     const productData = {
         name: document.getElementById('pName').value,
-        image: document.getElementById('pImage').value,
+        image: imageUrl,
         category: document.getElementById('pCategory').value,
         price: Number(document.getElementById('pPrice').value),
         oldPrice: Number(document.getElementById('pOldPrice').value) || null,
@@ -301,6 +372,8 @@ document.getElementById('productForm').addEventListener('submit', async (e) => {
         document.getElementById('colorsInputGroup').style.display = 'none';
         document.getElementById('saleOptionsGroup').style.display = 'none';
         document.getElementById('pOrder').value = '100';
+        document.getElementById('imagePreview').style.display = 'none';
+        uploadedProductImage = '';
     }
     loadProducts();
 });
@@ -337,6 +410,8 @@ window.cancelEdit = () => {
     document.getElementById('colorsInputGroup').style.display = 'none';
     document.getElementById('saleOptionsGroup').style.display = 'none';
     document.getElementById('pOrder').value = '100';
+    document.getElementById('imagePreview').style.display = 'none';
+    uploadedProductImage = '';
 };
 
 window.deleteProduct = async (id) => {
@@ -346,7 +421,7 @@ window.deleteProduct = async (id) => {
     }
 };
 
-// 5. إدارة البنرات
+// 7. إدارة البنرات
 async function loadBanners() {
     const list = document.getElementById('bannersList');
     list.innerHTML = 'جاري التحميل...';
@@ -403,9 +478,24 @@ window.changeBannerOrder = async function(id, delta) {
 
 document.getElementById('bannerForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    
+    // تحديد مصدر صورة البنر
+    const imageSource = document.querySelector('input[name="bannerImageSource"]:checked').value;
+    let imageUrl = '';
+    
+    if (imageSource === 'url') {
+        imageUrl = document.getElementById('bImageUrl').value;
+    } else {
+        imageUrl = uploadedBannerImage;
+        if (!imageUrl) {
+            alert('️ الرجاء رفع صورة البنر');
+            return;
+        }
+    }
+    
     await addDoc(collection(db, "banners"), {
         type: document.getElementById('bType').value,
-        imageUrl: document.getElementById('bImageUrl').value,
+        imageUrl: imageUrl,
         link: document.getElementById('bLink').value || null,
         order: Number(document.getElementById('bOrder').value) || 100,
         isActive: document.getElementById('bIsActive').checked,
@@ -414,6 +504,8 @@ document.getElementById('bannerForm').addEventListener('submit', async (e) => {
     e.target.reset();
     document.getElementById('bIsActive').checked = true;
     document.getElementById('bOrder').value = '100';
+    document.getElementById('bannerImagePreview').style.display = 'none';
+    uploadedBannerImage = '';
     loadBanners();
 });
 
@@ -429,7 +521,7 @@ window.deleteBanner = async (id) => {
     }
 };
 
-// 6. إدارة الطلبات
+// 8. إدارة الطلبات
 async function loadOrders() {
     const list = document.getElementById('ordersList');
     list.innerHTML = 'جاري التحميل...';
@@ -447,8 +539,8 @@ async function loadOrders() {
                     <span style="color:#666;">${date}</span>
                 </div>
                 <div style="width:100%; font-size:14px; color:#555;">
-                    <p> ${o.customerName} | 📱 ${o.phone}</p>
-                    <p>💰 المجموع: ${o.total} د.إ | 💳 الدفع: ${o.paymentMethod === 'installment' ? 'تقسيط' : o.paymentMethod}</p>
+                    <p>👤 ${o.customerName} | 📱 ${o.phone}</p>
+                    <p> المجموع: ${o.total} د.إ | 💳 الدفع: ${o.paymentMethod === 'installment' ? 'تقسيط' : o.paymentMethod}</p>
                     <p>📦 المنتجات: ${o.items.map(i => i.name).join(', ')}</p>
                 </div>
             </div>`;
