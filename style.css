@@ -503,132 +503,398 @@ header {
     }
 }
 
-/* جوال كبير */
+/* ===== جوال كبير (768px وأقل) ===== */
 @media (max-width: 768px) {
+    
+    /* --- الهيدر --- */
     header {
-        padding: 10px 15px;
+        padding: 8px 10px !important;
+        flex-wrap: wrap;
+        gap: 8px;
     }
     
     .logo img {
-        height: 35px;
+        height: 30px !important;
     }
     
-    .logo span {
-        font-size: 18px;
+    .header-actions {
+        gap: 5px !important;
+        flex-wrap: wrap;
     }
     
-    #topBanner img {
-        max-height: 80px;
+    .header-actions button,
+    .header-actions .cart-icon {
+        font-size: 18px !important;
+        padding: 5px !important;
     }
     
-    #carouselContainer {
-        margin: 10px;
-        border-radius: 12px;
+    .cart-badge {
+        width: 16px !important;
+        height: 16px !important;
+        font-size: 10px !important;
+        top: -5px !important;
+        right: -5px !important;
     }
     
-    #carouselSlides img {
-        height: 200px;
+    /* إخفاء البحث على الجوال */
+    .search-container {
+        display: none !important;
     }
     
-    .section-title {
-        font-size: 18px;
-    }
-    
-    .nav-arrow {
-        width: 35px;
-        height: 35px;
-        font-size: 18px;
-    }
-    
-    .products-scroll {
-        gap: 12px;
-        padding: 15px 10px;
-    }
-    
-    .product-card {
-        min-width: 200px;
-        max-width: 200px;
-        padding: 12px;
-    }
-    
-    .product-image {
-        height: 160px;
-    }
-    
-    .product-title {
-        font-size: 13px;
-        height: 36px;
-    }
-    
-    .new-price {
-        font-size: 18px;
-    }
-    
-    .add-to-cart {
-        padding: 10px;
-        font-size: 14px;
-    }
-    
+    /* --- القائمة الجانبية --- */
     .categories-sidebar {
-        width: 280px;
-        right: -280px;
+        width: 85% !important;
+        max-width: 300px !important;
+        right: -100% !important;
+        transition: right 0.3s ease !important;
+        padding: 15px !important;
+        z-index: 1000 !important;
     }
     
+    .categories-sidebar.open {
+        right: 0 !important;
+    }
+    
+    .category-item {
+        padding: 12px 15px !important;
+        font-size: 14px !important;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .sidebar-overlay {
+        z-index: 999 !important;
+    }
+    
+    /* --- السلة الجانبية --- */
     .cart-drawer {
-        width: 100%;
-        max-width: 100%;
-        left: -100%;
+        width: 90% !important;
+        max-width: 350px !important;
+        left: -100% !important;
+        transition: left 0.3s ease !important;
+        padding: 15px !important;
     }
     
-    .whatsapp-float {
-        width: 50px;
-        height: 50px;
-        font-size: 24px;
-        bottom: 15px;
-        right: 15px;
+    .cart-drawer.open {
+        left: 0 !important;
     }
-}
-
-/* جوال صغير */
-@media (max-width: 480px) {
+    
+    /* --- المنتجات: تمرير أفقي على الجوال --- */
+    .products-scroll {
+        display: flex !important;
+        flex-direction: row !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        gap: 12px !important;
+        padding: 10px !important;
+        scroll-behavior: smooth !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: none !important; /* Firefox */
+    }
+    
+    .products-scroll::-webkit-scrollbar {
+        display: none !important; /* Chrome/Safari */
+    }
+    
     .product-card {
-        min-width: 170px;
-        max-width: 170px;
-        padding: 10px;
+        min-width: 160px !important;
+        max-width: 160px !important;
+        flex-shrink: 0 !important;
+        padding: 10px !important;
+        margin: 0 !important;
     }
     
     .product-image {
-        height: 140px;
+        height: 140px !important;
+        width: 100% !important;
     }
     
     .product-title {
-        font-size: 12px;
-        height: 32px;
+        font-size: 12px !important;
+        line-height: 1.3 !important;
+        height: 32px !important;
+        margin-bottom: 5px !important;
     }
     
     .new-price {
-        font-size: 16px;
+        font-size: 16px !important;
+        margin-bottom: 8px !important;
+    }
+    
+    .old-price {
+        font-size: 12px !important;
+    }
+    
+    .color-options {
+        gap: 4px !important;
+        margin: 5px 0 !important;
     }
     
     .color-btn {
-        width: 24px;
-        height: 24px;
+        width: 20px !important;
+        height: 20px !important;
+    }
+    
+    .qty-selector {
+        gap: 4px !important;
+        margin: 8px 0 !important;
     }
     
     .qty-btn {
-        width: 28px;
-        height: 28px;
-        font-size: 16px;
+        width: 26px !important;
+        height: 26px !important;
+        font-size: 13px !important;
+    }
+    
+    .qty-input {
+        width: 35px !important;
+        font-size: 12px !important;
     }
     
     .add-to-cart {
-        padding: 8px;
-        font-size: 13px;
+        padding: 8px !important;
+        font-size: 12px !important;
+        margin-top: 8px !important;
+    }
+    
+    /* --- العناوين --- */
+    .section-title {
+        font-size: 18px !important;
+        padding-right: 10px !important;
     }
     
     .section-header {
-        flex-wrap: wrap;
-        gap: 10px;
+        padding: 0 10px !important;
+        margin-bottom: 15px !important;
+    }
+    
+    .nav-arrows {
+        display: none !important;
+    }
+    
+    /* --- البنر والسلايدر --- */
+    #carouselSlides img {
+        height: 180px !important;
+    }
+    
+    #topBanner img {
+        max-height: 80px !important;
+    }
+    
+    /* --- شارات الثقة --- */
+    .trust-badges {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+        padding: 15px !important;
+        margin: 20px 10px !important;
+    }
+    
+    .trust-badge {
+        padding: 10px !important;
+    }
+    
+    .trust-icon {
+        font-size: 24px !important;
+    }
+    
+    .trust-text strong {
+        font-size: 13px !important;
+    }
+    
+    .trust-text small {
+        font-size: 11px !important;
+    }
+    
+    /* --- شهادات العملاء --- */
+    .testimonials-container {
+        grid-template-columns: 1fr !important;
+        padding: 0 15px !important;
+    }
+    
+    .testimonial-card {
+        padding: 15px !important;
+    }
+    
+    /* --- الفوتر --- */
+    footer > div > div {
+        text-align: center !important;
+    }
+    
+    /* --- زر واتساب --- */
+    .whatsapp-float {
+        width: 50px !important;
+        height: 50px !important;
+        font-size: 24px !important;
+        bottom: 15px !important;
+        right: 15px !important;
+    }
+    
+    /* --- الإشعارات --- */
+    #liveNotifications {
+        bottom: 80px !important;
+        left: 10px !important;
+    }
+    
+    #liveNotifications > div {
+        max-width: 250px !important;
+        font-size: 12px !important;
+        padding: 10px !important;
+    }
+    
+    /* --- نافذة الترحيب --- */
+    #welcomeModal > div {
+        margin: 20px !important;
+        padding: 25px 20px !important;
+    }
+    
+    #welcomeModal h2 {
+        font-size: 22px !important;
+    }
+    
+    #welcomeModal p {
+        font-size: 16px !important;
+    }
+    
+    .discount-code {
+        font-size: 24px !important;
+    }
+    
+    /* --- نافذة المقارنة --- */
+    #compareModal > div {
+        margin: 10px !important;
+        padding: 20px 15px !important;
+    }
+    
+    /* --- أزرار المفضلة والمقارنة --- */
+    .product-card > div[style*="position:absolute; top:10px; left:10px"] {
+        top: 5px !important;
+        left: 5px !important;
+    }
+    
+    .product-card > div[style*="position:absolute; top:10px; left:10px"] button {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 14px !important;
+    }
+    
+    /* --- شارات المنتج --- */
+    .product-card > div[style*="position:absolute; top:10px; right:10px"] {
+        top: 5px !important;
+        right: 5px !important;
+        padding: 3px 8px !important;
+        font-size: 10px !important;
+    }
+    
+    .product-card > div[style*="position:absolute; top:50px; right:10px"] {
+        top: 35px !important;
+        right: 5px !important;
+        padding: 2px 6px !important;
+        font-size: 10px !important;
+    }
+}
+
+/* ===== جوال صغير (480px وأقل) ===== */
+@media (max-width: 480px) {
+    
+    header {
+        padding: 6px 8px !important;
+    }
+    
+    .logo img {
+        height: 25px !important;
+    }
+    
+    .header-actions button,
+    .header-actions .cart-icon {
+        font-size: 16px !important;
+    }
+    
+    .product-card {
+        min-width: 145px !important;
+        max-width: 145px !important;
+        padding: 8px !important;
+    }
+    
+    .product-image {
+        height: 120px !important;
+    }
+    
+    .product-title {
+        font-size: 11px !important;
+        height: 28px !important;
+    }
+    
+    .new-price {
+        font-size: 14px !important;
+    }
+    
+    .add-to-cart {
+        padding: 7px !important;
+        font-size: 11px !important;
+    }
+    
+    .section-title {
+        font-size: 16px !important;
+    }
+    
+    .trust-badges {
+        grid-template-columns: 1fr 1fr !important;
+    }
+    
+    .qty-btn {
+        width: 24px !important;
+        height: 24px !important;
+    }
+}
+
+/* ===== تحسينات عامة للجوال ===== */
+@media (max-width: 768px) {
+    
+    body {
+        overflow-x: hidden !important;
+    }
+    
+    button, a, .product-card {
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+    }
+    
+    body {
+        font-size: 14px !important;
+    }
+    
+    img {
+        max-width: 100% !important;
+        height: auto !important;
+    }
+    
+    table {
+        font-size: 12px !important;
+    }
+    
+    input, select, textarea {
+        font-size: 14px !important;
+        padding: 10px !important;
+    }
+}
+
+/* ===== تابلت ===== */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .product-card {
+        min-width: 220px !important;
+        max-width: 220px !important;
+    }
+}
+
+/* ===== شاشات كبيرة ===== */
+@media (min-width: 1025px) {
+    .products-scroll {
+        display: flex !important;
+        overflow-x: auto !important;
+    }
+    
+    .product-card {
+        min-width: 250px !important;
+        max-width: 250px !important;
     }
 }
 
