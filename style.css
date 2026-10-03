@@ -806,3 +806,137 @@ header {
         grid-template-columns: 1fr;
     }
 }
+/* ============ الوضع الداكن ============ */
+body.dark-mode {
+    background: #1a1a1a;
+    color: #e0e0e0;
+}
+
+body.dark-mode header,
+body.dark-mode .product-card,
+body.dark-mode .cart-drawer,
+body.dark-mode .categories-sidebar,
+body.dark-mode .trust-badges,
+body.dark-mode .search-results,
+body.dark-mode .search-result-item,
+body.dark-mode footer {
+    background: #2d2d2d !important;
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .product-title,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4 {
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .cart-item,
+body.dark-mode .item-row {
+    background: #3d3d3d !important;
+}
+
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+    background: #3d3d3d !important;
+    color: #e0e0e0 !important;
+    border-color: #555 !important;
+}
+
+/* ============ شهادات العملاء ============ */
+.testimonials-section {
+    background: linear-gradient(135deg, var(--accent-color) 0%, #fff 100%);
+    padding: 60px 20px;
+    margin: 40px 0;
+}
+
+.testimonials-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.testimonial-card {
+    background: white;
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    transition: 0.3s;
+    border-top: 4px solid var(--primary-color);
+}
+
+.testimonial-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.testimonial-card .stars {
+    font-size: 20px;
+    margin-bottom: 15px;
+}
+
+.testimonial-card p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: #555;
+    margin-bottom: 20px;
+    font-style: italic;
+}
+
+.testimonial-author {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.author-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.testimonial-author strong {
+    display: block;
+    color: #333;
+    font-size: 15px;
+}
+
+.testimonial-author small {
+    color: #999;
+    font-size: 12px;
+}
+
+/* ============ Responsive للشهادات ============ */
+@media (max-width: 768px) {
+    .testimonials-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .testimonials-section {
+        padding: 40px 15px;
+    }
+}
+
+/* ============ تحسينات الأزرار العائمة ============ */
+.wishlist-btn-active,
+.compare-btn-active {
+    transform: scale(1.1);
+}
+
+/* ============ تحسينات للوضع الداكن على الجوال ============ */
+@media (max-width: 768px) {
+    body.dark-mode .product-card {
+        min-width: 170px !important;
+        max-width: 170px !important;
+    }
+}
