@@ -234,15 +234,29 @@ document.addEventListener('click', function(e) {
 
 // ============ المفضلة ============
 window.toggleWishlist = function() { 
-    console.log('❤️ فتح قائمة المفضلة');
+    var drawer = document.getElementById('wishlistDrawer');
+    var overlay = document.getElementById('wishlistOverlay'); 
+    
+    if (!drawer) return;
+    
+    var isOpen = drawer.classList.contains('open');
+    
+    if (isOpen) {
+        drawer.classList.remove('open');
+        if (overlay) overlay.classList.remove('show');
+    } else {
+        drawer.classList.add('open');
+        if (overlay) overlay.classList.add('show');
+        renderWishlist();
+    }
+};
+
+window.closeWishlist = function() {
     var drawer = document.getElementById('wishlistDrawer');
     var overlay = document.getElementById('wishlistOverlay'); 
     if (drawer) { 
-        drawer.classList.toggle('open'); 
-        if (overlay) overlay.classList.toggle('show'); 
-        renderWishlist(); 
-    } else {
-        console.error('❌ عنصر wishlistDrawer غير موجود');
+        drawer.classList.remove('open'); 
+        if (overlay) overlay.classList.remove('show'); 
     }
 };
 
@@ -257,19 +271,18 @@ window.toggleWishlistItem = function(productId, event) {
         showToast('تم الإزالة من المفضلة', '#e91e63'); 
     } else { 
         wishlist.push(productId); 
-        showToast('تمت الإضافة إلى المفضلة ❤️', '#e91e63'); 
+        showToast('تمت الإضافة إلى المفضلة', '#e91e63'); 
     }
     localStorage.setItem('wishlist', JSON.stringify(wishlist)); 
     updateWishlistCount();
     
-    // ✅ تحديث أيقونة القلب فقط (بدون تغيير لون الخلفية)
     var btn = document.querySelector('.wishlist-btn-' + productId);
     if (btn) {
         var isNow = wishlist.includes(productId);
         if (isNow) {
-            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#e91e63" stroke="#e91e63" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#e91e63" stroke="#e91e63" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
         } else {
-            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
         }
     }
 };
@@ -295,14 +308,11 @@ function renderWishlist() {
 
 // ============ المقارنة ============
 window.toggleCompare = function() { 
-    console.log('⚖️ فتح قائمة المقارنة');
     var modal = document.getElementById('compareModal'); 
     if (modal) { 
         modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex'; 
         if (modal.style.display === 'flex') renderCompare(); 
-    } else {
-        console.error('❌ عنصر compareModal غير موجود');
-    }
+    } 
 };
 
 window.toggleCompareItem = function(productId, event) {
@@ -316,23 +326,22 @@ window.toggleCompareItem = function(productId, event) {
         showToast('تم الإزالة من المقارنة', '#2196F3'); 
     } else {
         if (compareList.length >= 4) { 
-            alert('⚠️ 4 منتجات كحد أقصى'); 
+            alert('4 منتجات كحد أقصى'); 
             return; 
         }
         compareList.push(productId); 
-        showToast('تمت الإضافة للمقارنة ⚖️', '#2196F3');
+        showToast('تمت الإضافة للمقارنة', '#2196F3');
     }
     localStorage.setItem('compareList', JSON.stringify(compareList)); 
     updateCompareCount();
     
-    // ✅ تحديث أيقونة المقارنة
     var btn = document.querySelector('.compare-btn-' + productId);
     if (btn) {
         var isNow = compareList.includes(productId);
         if (isNow) {
-            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#2196F3" stroke="#2196F3" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>';
+            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#2196F3" stroke="#2196F3" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>';
         } else {
-            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>';
+            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>';
         }
     }
 };
@@ -511,7 +520,7 @@ window.addToCart = function(pid, e) {
     }
     var p = allProducts.find(function(x) { return x.id === pid; });
     if (!p) { 
-        alert('️ غير موجود'); 
+        alert('المنتج غير موجود'); 
         return; 
     }
     var qi = document.getElementById('qty-' + pid);
@@ -525,9 +534,8 @@ window.addToCart = function(pid, e) {
     if (ex) ex.quantity += qty; 
     else cart.push({ id: cid, productId: pid, name: p.name, price: p.price, image: p.image, color: col, quantity: qty });
     updateCartCount(); 
-    showToast('✅ تمت إضافة ' + p.name, '#27AE60');
+ showToast('تمت إضافة المنتج للسلة', '#27AE60');
 };
-
 window.changeQty = function(pid, d) { 
     var i = document.getElementById('qty-' + pid); 
     if (i) { 
@@ -543,11 +551,10 @@ window.selectColor = function(pid, cn, b) {
     document.querySelectorAll('.color-btn-' + pid).forEach(function(x) { x.classList.remove('selected'); }); 
     b.classList.add('selected'); 
 };
-
 function showToast(msg, col) {
     col = col || '#27AE60';
     var t = document.createElement('div');
-    t.style.cssText = 'position:fixed;top:100px;left:50%;transform:translateX(-50%);background:' + col + ';color:white;padding:15px 30px;border-radius:25px;z-index:3000;font-weight:bold;box-shadow:0 4px 15px rgba(0,0,0,0.2);font-family:\'Tajawal\';animation:slideDown 0.3s ease;';
+    t.style.cssText = 'position:fixed;top:100px;left:50%;transform:translateX(-50%);background:' + col + ';color:white;padding:15px 30px;border-radius:25px;z-index:3000;font-weight:bold;box-shadow:0 4px 15px rgba(0,0,0,0.2);font-family:Tajawal,sans-serif;animation:slideDown 0.3s ease;font-size:16px;';
     t.textContent = msg; 
     document.body.appendChild(t);
     setTimeout(function() { 
@@ -556,7 +563,6 @@ function showToast(msg, col) {
         setTimeout(function() { t.remove(); }, 300); 
     }, 2500);
 }
-
 // ============ البنرات ============
 async function loadBannersSystem() {
     console.log('️ تحميل البنرات...');
