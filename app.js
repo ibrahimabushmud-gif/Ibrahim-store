@@ -147,7 +147,7 @@ onAuthStateChanged(auth, function(user) {
     var userMenuEl = document.getElementById('userMenu');
     if (userMenuEl) {
         if (user) {
-            if (user.email === ADMIN_EMAIL) {
+            if (ADMIN_EMAILS.includes(user.email)) {
                 userMenuEl.innerHTML = '<a href="admin.html" style="color:var(--primary-color); text-decoration:none; font-weight:bold; margin-left:10px;">⚙️ الإدارة</a><button onclick="doLogout()" style="background:none; border:none; color:var(--danger-color); cursor:pointer;">خروج</button>';
             } else {
                 userMenuEl.innerHTML = '<span style="color:var(--text-light); font-size:14px;">مرحباً</span>';
@@ -157,7 +157,6 @@ onAuthStateChanged(auth, function(user) {
         }
     }
 });
-
 window.doLogout = function() { 
     signOut(auth).then(function() { 
         window.location.reload(); 
