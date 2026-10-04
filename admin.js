@@ -1,22 +1,22 @@
 import { auth, signOut, onAuthStateChanged } from './firebase-config.js';
 import { db, collection, addDoc, getDocs, doc, deleteDoc, updateDoc, setDoc } from './firebase-config.js';
 
-const ADMIN_EMAIL = 'ibrahimabushmud@gmail.com';
+const ADMIN_EMAILS = ['ibrahimabushmud@gmail.com', 'sharafdguaeofficial@gmail.com'];
 let uploadedProductImage = '';
 let uploadedBannerImage = '';
 
 // 1. التحقق من صلاحية المدير
 onAuthStateChanged(auth, (user) => {
-    if (!user || user.email !== ADMIN_EMAIL) {
+    if (!user || !ADMIN_EMAILS.includes(user.email)) {
         document.getElementById('loginMsg').style.display = 'block';
         document.getElementById('adminContent').style.display = 'none';
     } else {
         document.getElementById('loginMsg').style.display = 'none';
         document.getElementById('adminContent').style.display = 'block';
-        loadSettings();
-        loadCategories();
-        loadProducts();
-        loadBanners();
+        loadSettings(); 
+        loadCategories(); 
+        loadProducts(); 
+        loadBanners(); 
         loadOrders();
     }
 });
