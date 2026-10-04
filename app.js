@@ -243,10 +243,22 @@ window.toggleWishlist = function() {
     
     if (isOpen) {
         drawer.classList.remove('open');
-        if (overlay) overlay.classList.remove('show');
+        if (overlay) {
+            overlay.classList.remove('show');
+            // إزالة مستمع الحدث عند الإغلاق
+            overlay.onclick = null;
+        }
     } else {
         drawer.classList.add('open');
-        if (overlay) overlay.classList.add('show');
+        if (overlay) {
+            overlay.classList.add('show');
+            // إضافة مستمع حدث للإغلاق عند الضغط على الـ overlay
+            overlay.onclick = function(e) {
+                if (e.target === overlay) {
+                    window.closeWishlist();
+                }
+            };
+        }
         renderWishlist();
     }
 };
@@ -256,7 +268,10 @@ window.closeWishlist = function() {
     var overlay = document.getElementById('wishlistOverlay'); 
     if (drawer) { 
         drawer.classList.remove('open'); 
-        if (overlay) overlay.classList.remove('show'); 
+    }
+    if (overlay) { 
+        overlay.classList.remove('show');
+        overlay.onclick = null;
     }
 };
 
