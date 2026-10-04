@@ -3,7 +3,7 @@ import { auth, signOut, onAuthStateChanged } from './firebase-config.js';
 
 console.log('🚀 بدء تحميل المتجر...');
 
-const ADMIN_EMAIL = 'ibrahimabushmud@gmail.com';
+const ADMIN_EMAILS = ['ibrahimabushmud@gmail.com', 'sharafdguaeofficial@gmail.com'];
 let allProducts = [];
 let allCategories = [];
 let currentCategory = 'all';
