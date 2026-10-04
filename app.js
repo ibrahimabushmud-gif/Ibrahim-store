@@ -42,7 +42,7 @@ function updateCurrencySymbols() {
 
 // ============ تحميل الإعدادات ============
 async function loadStoreSettings() {
-    console.log('⚙️ تحميل الإعدادات...');
+    console.log('️ تحميل الإعدادات...');
     try {
         var snapshot = await getDocs(collection(db, "settings"));
         storeSettings = {};
@@ -117,13 +117,29 @@ function applySettings() {
 }
 
 // ============ الوضع الداكن ============
-function toggleDarkMode() { 
+window.toggleDarkMode = function() { 
+    console.log('🌙 تبديل الوضع الداكن');
     document.body.classList.toggle('dark-mode'); 
-    localStorage.setItem('darkMode', document.body.classList.contains('dark-mode')); 
-}
+    var isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('darkMode', isDark);
+    
+    // تغيير أيقونة الزر
+    var darkBtn = document.querySelector('button[onclick="toggleDarkMode()"]');
+    if (darkBtn) {
+        darkBtn.innerHTML = isDark ? '☀️' : '🌙';
+        darkBtn.title = isDark ? 'الوضع الفاتح' : 'الوضع الداكن';
+    }
+    
+    console.log('الوضع الداكن:', isDark ? 'مفعل' : 'معطل');
+};
 
 if (localStorage.getItem('darkMode') === 'true') {
     document.body.classList.add('dark-mode');
+    var darkBtn = document.querySelector('button[onclick="toggleDarkMode()"]');
+    if (darkBtn) {
+        darkBtn.innerHTML = '☀️';
+        darkBtn.title = 'الوضع الفاتح';
+    }
 }
 
 // ============ تسجيل الدخول ============
@@ -132,7 +148,7 @@ onAuthStateChanged(auth, function(user) {
     if (userMenuEl) {
         if (user) {
             if (user.email === ADMIN_EMAIL) {
-                userMenuEl.innerHTML = '<a href="admin.html" style="color:var(--primary-color); text-decoration:none; font-weight:bold; margin-left:10px;">️ الإدارة</a><button onclick="doLogout()" style="background:none; border:none; color:var(--danger-color); cursor:pointer;">خروج</button>';
+                userMenuEl.innerHTML = '<a href="admin.html" style="color:var(--primary-color); text-decoration:none; font-weight:bold; margin-left:10px;">⚙️ الإدارة</a><button onclick="doLogout()" style="background:none; border:none; color:var(--danger-color); cursor:pointer;">خروج</button>';
             } else {
                 userMenuEl.innerHTML = '<span style="color:var(--text-light); font-size:14px;">مرحباً</span>';
             }
@@ -178,7 +194,7 @@ window.closeWelcomeModal = function() {
 window.claimDiscount = function() {
     var email = document.getElementById('welcomeEmail').value;
     if (!email || !email.includes('@')) { 
-        alert('️ بريد صحيح'); 
+        alert('⚠️ بريد صحيح'); 
         return; 
     }
     localStorage.setItem('discountCode', storeSettings.welcomeCode || 'WELCOME10');
@@ -218,13 +234,16 @@ document.addEventListener('click', function(e) {
 
 // ============ المفضلة ============
 window.toggleWishlist = function() { 
+    console.log('❤️ فتح قائمة المفضلة');
     var drawer = document.getElementById('wishlistDrawer');
     var overlay = document.getElementById('wishlistOverlay'); 
     if (drawer) { 
         drawer.classList.toggle('open'); 
         if (overlay) overlay.classList.toggle('show'); 
         renderWishlist(); 
-    } 
+    } else {
+        console.error('❌ عنصر wishlistDrawer غير موجود');
+    }
 };
 
 window.toggleWishlistItem = function(productId, event) {
@@ -235,25 +254,23 @@ window.toggleWishlistItem = function(productId, event) {
     var index = wishlist.indexOf(productId);
     if (index > -1) { 
         wishlist.splice(index, 1); 
-        showToast('تم الإزالة', '#e91e63'); 
+        showToast('تم الإزالة من المفضلة', '#e91e63'); 
     } else { 
         wishlist.push(productId); 
-        showToast('تمت الإضافة ❤️', '#e91e63'); 
+        showToast('تمت الإضافة إلى المفضلة ❤️', '#e91e63'); 
     }
     localStorage.setItem('wishlist', JSON.stringify(wishlist)); 
     updateWishlistCount();
     
+    // ✅ تحديث أيقونة القلب فقط (بدون تغيير لون الخلفية)
     var btn = document.querySelector('.wishlist-btn-' + productId);
     if (btn) {
         var isNow = wishlist.includes(productId);
         if (isNow) {
             btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#e91e63" stroke="#e91e63" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
-            btn.style.background = '#e91e63';
         } else {
             btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
-            btn.style.background = 'white';
         }
-        btn.classList.toggle('active');
     }
 };
 
@@ -266,23 +283,26 @@ function renderWishlist() {
     var content = document.getElementById('wishlistContent');
     if (!content) return;
     if (wishlist.length === 0) { 
-        content.innerHTML = '<div class="empty-cart"><div class="icon">❤️</div><h3>المفضلة فارغة</h3></div>'; 
+        content.innerHTML = '<div class="empty-cart"><div class="icon">❤️</div><h3>المفضلة فارغة</h3><p>أضف منتجات للمفضلة</p></div>'; 
         return; 
     }
     var cartImgSize = storeSettings.cartImageSize || 80;
     var wishlistProducts = allProducts.filter(function(p) { return wishlist.includes(p.id); });
     content.innerHTML = wishlistProducts.map(function(product) {
-        return '<div class="cart-item"><img src="' + product.image + '" onerror="this.src=\'https://via.placeholder.com/80\'" style="width:' + cartImgSize + 'px; height:' + cartImgSize + 'px; object-fit:cover; border-radius:10px;"><div class="cart-item-info"><h4>' + product.name + '</h4><div class="price">' + curr + product.price + '</div></div><div class="cart-item-actions"><button onclick="addToCart(\'' + product.id + '\'); toggleWishlistItem(\'' + product.id + '\')" style="background:var(--primary-color); color:white; border:none; padding:8px 12px; border-radius:15px; cursor:pointer; font-family:\'Tajawal\'; font-size:12px;">أضف</button><button onclick="toggleWishlistItem(\'' + product.id + '\')" class="remove-btn">حذف</button></div></div>';
+        return '<div class="cart-item"><img src="' + product.image + '" onerror="this.src=\'https://via.placeholder.com/80\'" style="width:' + cartImgSize + 'px; height:' + cartImgSize + 'px; object-fit:cover; border-radius:10px;"><div class="cart-item-info"><h4>' + product.name + '</h4><div class="price">' + curr + product.price + '</div></div><div class="cart-item-actions"><button onclick="addToCart(\'' + product.id + '\'); toggleWishlistItem(\'' + product.id + '\')" style="background:var(--primary-color); color:white; border:none; padding:8px 12px; border-radius:15px; cursor:pointer; font-family:\'Tajawal\'; font-size:12px;">أضف للسلة</button><button onclick="toggleWishlistItem(\'' + product.id + '\')" class="remove-btn">حذف</button></div></div>';
     }).join('');
 }
 
 // ============ المقارنة ============
 window.toggleCompare = function() { 
+    console.log('⚖️ فتح قائمة المقارنة');
     var modal = document.getElementById('compareModal'); 
     if (modal) { 
         modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex'; 
         if (modal.style.display === 'flex') renderCompare(); 
-    } 
+    } else {
+        console.error('❌ عنصر compareModal غير موجود');
+    }
 };
 
 window.toggleCompareItem = function(productId, event) {
@@ -293,20 +313,28 @@ window.toggleCompareItem = function(productId, event) {
     var index = compareList.indexOf(productId);
     if (index > -1) { 
         compareList.splice(index, 1); 
-        showToast('تم الإزالة', '#2196F3'); 
+        showToast('تم الإزالة من المقارنة', '#2196F3'); 
     } else {
         if (compareList.length >= 4) { 
-            alert('⚠️ 4 كحد أقصى'); 
+            alert('⚠️ 4 منتجات كحد أقصى'); 
             return; 
         }
         compareList.push(productId); 
-        showToast('تمت الإضافة ⚖️', '#2196F3');
+        showToast('تمت الإضافة للمقارنة ⚖️', '#2196F3');
     }
     localStorage.setItem('compareList', JSON.stringify(compareList)); 
     updateCompareCount();
-    document.querySelectorAll('.compare-btn-' + productId).forEach(function(btn) { 
-        if (btn) btn.classList.toggle('active'); 
-    });
+    
+    // ✅ تحديث أيقونة المقارنة
+    var btn = document.querySelector('.compare-btn-' + productId);
+    if (btn) {
+        var isNow = compareList.includes(productId);
+        if (isNow) {
+            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#2196F3" stroke="#2196F3" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>';
+        } else {
+            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>';
+        }
+    }
 };
 
 function updateCompareCount() { 
@@ -318,7 +346,7 @@ function renderCompare() {
     var content = document.getElementById('compareContent');
     if (!content) return;
     if (compareList.length === 0) { 
-        content.innerHTML = '<div style="text-align:center; padding:40px;"><h3>لم تقارن</h3></div>'; 
+        content.innerHTML = '<div style="text-align:center; padding:40px;"><h3>لم تقارن أي منتج بعد</h3><p>اضغط على أيقونة المقارنة ⚖️ في المنتجات</p></div>'; 
         return; 
     }
     var ps = allProducts.filter(function(p) { return compareList.includes(p.id); });
@@ -392,7 +420,7 @@ window.applyCoupon = function() {
     var code = document.getElementById('couponInput').value.trim().toUpperCase();
     var messageEl = document.getElementById('couponMessage');
     if (!code) { 
-        messageEl.innerHTML = '<span style="color:#dc3545;">⚠️ أدخل الكود</span>'; 
+        messageEl.innerHTML = '<span style="color:#dc3545;">️ أدخل الكود</span>'; 
         return; 
     }
     var coupons = { 
@@ -431,7 +459,7 @@ function renderCartDrawer() {
     var cartImgSize = storeSettings.cartImageSize || 80;
     
     if (cart.length === 0) {
-        content.innerHTML = '<div class="empty-cart"><div class="icon"></div><h3>السلة فارغة</h3><button onclick="toggleCart();window.location.href=\'index.html\'" style="background:var(--primary-color); color:white; border:none; padding:12px 30px; border-radius:25px; font-family:\'Tajawal\'; font-weight:bold; margin-top:15px; cursor:pointer;">تصفح</button></div>';
+        content.innerHTML = '<div class="empty-cart"><div class="icon">🛒</div><h3>السلة فارغة</h3><button onclick="toggleCart();window.location.href=\'index.html\'" style="background:var(--primary-color); color:white; border:none; padding:12px 30px; border-radius:25px; font-family:\'Tajawal\'; font-weight:bold; margin-top:15px; cursor:pointer;">تصفح</button></div>';
         if (totalEl) totalEl.innerHTML = currXLarge + '0';
         if (discountRow) discountRow.style.display = 'none';
         return;
@@ -483,7 +511,7 @@ window.addToCart = function(pid, e) {
     }
     var p = allProducts.find(function(x) { return x.id === pid; });
     if (!p) { 
-        alert('⚠️ غير موجود'); 
+        alert('️ غير موجود'); 
         return; 
     }
     var qi = document.getElementById('qty-' + pid);
@@ -531,7 +559,7 @@ function showToast(msg, col) {
 
 // ============ البنرات ============
 async function loadBannersSystem() {
-    console.log('🖼️ تحميل البنرات...');
+    console.log('️ تحميل البنرات...');
     try {
         var snap = await getDocs(collection(db, "banners"));
         var tb = document.getElementById('topBanner');
@@ -696,7 +724,7 @@ async function loadCategories() {
     }
     
     try {
-        console.log(' جاري الاتصال بـ Firebase...');
+        console.log('📡 جاري الاتصال بـ Firebase...');
         var snapshot = await getDocs(collection(db, "categories"));
         console.log('📊 عدد المستندات المحملة:', snapshot.size);
         
@@ -737,10 +765,10 @@ async function loadCategories() {
 
 // ============ القائمة الجانبية (نصوص فقط بدون أيقونات) ============
 function renderCategorySidebar() {
-    console.log(' رسم القائمة الجانبية...');
+    console.log('🎨 رسم القائمة الجانبية...');
     var sidebar = document.getElementById('categoriesSidebar'); 
     if (!sidebar) {
-        console.error('❌ sidebar غير موجود');
+        console.error(' sidebar غير موجود');
         return;
     }
     
@@ -798,7 +826,7 @@ function renderCategorySidebar() {
     console.log('✅ تم رسم القائمة الجانبية بنجاح');
 }
 
-// ============ ✅ فلترة الأقسام - التعديل الجديد ============
+// ============ فلترة الأقسام ============
 window.filterCategory = function(category) {
     console.log('🔍 تصفية القسم:', category);
     currentCategory = category;
@@ -823,7 +851,7 @@ window.filterCategory = function(category) {
         activeItem.style.borderRadius = '8px';
     }
     
-    // ✅ إخفاء الأقسام الخاصة (الأكثر مبيعاً، وصل حديثاً، عروض) عند اختيار قسم محدد
+    // ✅ إخفاء الأقسام الخاصة عند اختيار قسم محدد
     if (category !== 'all') {
         document.getElementById('bestSellersSection').style.display = 'none';
         document.getElementById('newArrivalsSection').style.display = 'none';
@@ -856,7 +884,7 @@ async function loadProducts() {
         allProducts = [];
         snapshot.forEach(function(doc) {
             var data = doc.data();
-            console.log(' منتج:', data.name, '| القسم:', data.category, '| السعر:', data.price);
+            console.log('📦 منتج:', data.name, '| القسم:', data.category, '| السعر:', data.price);
             
             allProducts.push({ 
                 id: doc.id, 
@@ -883,12 +911,12 @@ async function loadProducts() {
         renderSpecialSections();
         renderProductsByCategory();
     } catch (error) { 
-        console.error('❌ خطأ في تحميل المنتجات:', error); 
+        console.error(' خطأ في تحميل المنتجات:', error); 
     }
 }
 
 function renderSpecialSections() {
-    console.log(' عرض الأقسام الخاصة...');
+    console.log('🎨 عرض الأقسام الخاصة...');
     var bestSellers = allProducts.slice().sort(function(a, b) { return b.salesCount - a.salesCount; }).slice(0, 10);
     if (bestSellers.length > 0) { 
         document.getElementById('bestSellersSection').style.display = 'block'; 
@@ -910,9 +938,9 @@ function renderSpecialSections() {
 }
 
 function renderProductsByCategory() {
-    console.log(' عرض المنتجات حسب الأقسام...');
+    console.log('🎯 عرض المنتجات حسب الأقسام...');
     console.log('📊 عدد الأقسام:', allCategories.length);
-    console.log('📊 عدد المنتجات:', allProducts.length);
+    console.log(' عدد المنتجات:', allProducts.length);
     
     var container = document.getElementById('productsByCategory'); 
     if (!container) {
@@ -924,10 +952,10 @@ function renderProductsByCategory() {
     
     if (currentCategory === 'all') {
         var level1Cats = allCategories.filter(function(c) { return c.level === 1; });
-        console.log(' الأقسام الرئيسية:', level1Cats.length);
+        console.log('📁 الأقسام الرئيسية:', level1Cats.length);
         
         if (level1Cats.length === 0) {
-            console.log('⚠️ لا توجد أقسام، عرض كل المنتجات');
+            console.log('️ لا توجد أقسام، عرض كل المنتجات');
             var allVisible = allProducts.filter(function(p) { return p.displayLocation !== 'hidden'; });
             if (allVisible.length > 0) {
                 renderCategorySection('جميع المنتجات', allVisible);
@@ -980,7 +1008,7 @@ function displaySubCategoriesWithProducts(parentName, container) {
             subSection.style.marginBottom = '30px'; 
             subSection.style.paddingRight = '20px'; 
             subSection.style.borderRight = '3px solid var(--accent-color)';
-            subSection.innerHTML = '<div class="section-header" style="margin-bottom:15px;"><h3 class="section-title" style="font-size:22px;"> ' + subCat.name + '</h3></div>';
+            subSection.innerHTML = '<div class="section-header" style="margin-bottom:15px;"><h3 class="section-title" style="font-size:22px;">📂 ' + subCat.name + '</h3></div>';
             container.appendChild(subSection);
             
             if (subProducts.length > 0) {
@@ -1023,7 +1051,7 @@ function createProductCard(product, showSalesBadge) {
     
     var badges = '';
     if (product.isNew) 
-        badges += '<div style="position:absolute; top:10px; right:10px; background:#28a745; color:white; padding:5px 12px; border-radius:15px; font-size:12px; font-weight:bold; z-index:10;">🆕 جديد</div>';
+        badges += '<div style="position:absolute; top:10px; right:10px; background:#28a745; color:white; padding:5px 12px; border-radius:15px; font-size:12px; font-weight:bold; z-index:10;"> جديد</div>';
     if (product.isSale && product.discountPercent) {
         var endDate = product.saleEndDate ? new Date(product.saleEndDate) : null;
         if (!(endDate && endDate < new Date())) 
@@ -1032,15 +1060,26 @@ function createProductCard(product, showSalesBadge) {
     if (showSalesBadge && product.salesCount > 50) 
         badges += '<div style="position:absolute; bottom:10px; right:10px; background:var(--primary-color); color:white; padding:5px 12px; border-radius:15px; font-size:11px; font-weight:bold; z-index:10;">🏆 الأكثر مبيعاً</div>';
     
+    // ✅ أيقونات المفضلة والمقارنة - القلب فقط يتلون (بدون خلفية)
     var heartSvg;
     if (inWishlist) {
-        heartSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#e91e63" stroke="#e91e63" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+        heartSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#e91e63" stroke="#e91e63" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
     } else {
-        heartSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+        heartSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
     }
-    var heartBg = inWishlist ? 'background:#e91e63;' : 'background:white;';
     
-    var actionButtons = '<div style="position:absolute; top:10px; left:10px; display:flex; flex-direction:column; gap:5px; z-index:15;"><button class="wishlist-btn-' + product.id + ' ' + (inWishlist ? 'active' : '') + '" onclick="event.stopPropagation(); toggleWishlistItem(\'' + product.id + '\')" style="width:35px; height:35px; border-radius:50%; border:none; ' + heartBg + ' cursor:pointer; font-size:18px; box-shadow:0 2px 5px rgba(0,0,0,0.2); display:flex; align-items:center; justify-content:center; transition:0.3s;" title="المفضلة">' + heartSvg + '</button><button class="compare-btn-' + product.id + ' ' + (inCompare ? 'active' : '') + '" onclick="event.stopPropagation(); toggleCompareItem(\'' + product.id + '\')" style="width:35px; height:35px; border-radius:50%; border:none; ' + (inCompare ? 'background:#2196F3;color:white;' : 'background:white;') + ' cursor:pointer; font-size:16px; box-shadow:0 2px 5px rgba(0,0,0,0.2); display:flex; align-items:center; justify-content:center; transition:0.3s;" title="مقارنة">️</button></div>';
+    // ✅ أيقونة المقارنة - ميزان واضح
+    var compareSvg;
+    if (inCompare) {
+        compareSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#2196F3" stroke="#2196F3" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>';
+    } else {
+        compareSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>';
+    }
+    
+    var actionButtons = '<div style="position:absolute; top:10px; left:10px; display:flex; flex-direction:column; gap:8px; z-index:15;">' +
+        '<button class="wishlist-btn-' + product.id + ' ' + (inWishlist ? 'active' : '') + '" onclick="event.stopPropagation(); toggleWishlistItem(\'' + product.id + '\')" style="width:38px; height:38px; border-radius:50%; border:2px solid #e0e0e0; background:white; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.3s; box-shadow:0 2px 8px rgba(0,0,0,0.1);" title="المفضلة">' + heartSvg + '</button>' +
+        '<button class="compare-btn-' + product.id + ' ' + (inCompare ? 'active' : '') + '" onclick="event.stopPropagation(); toggleCompareItem(\'' + product.id + '\')" style="width:38px; height:38px; border-radius:50%; border:2px solid #e0e0e0; background:white; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.3s; box-shadow:0 2px 8px rgba(0,0,0,0.1);" title="مقارنة">' + compareSvg + '</button>' +
+    '</div>';
     
     var colorsHtml = '';
     if (product.hasColors && product.colors) {
@@ -1097,7 +1136,7 @@ async function initStore() {
         
         console.log('🎉 اكتمل تحميل المتجر بنجاح!');
     } catch (err) {
-        console.error(' خطأ في بدء التشغيل:', err);
+        console.error('❌ خطأ في بدء التشغيل:', err);
     }
 }
 
