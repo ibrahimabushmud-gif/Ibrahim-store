@@ -132,7 +132,7 @@ onAuthStateChanged(auth, function(user) {
     if (userMenuEl) {
         if (user) {
             if (user.email === ADMIN_EMAIL) {
-                userMenuEl.innerHTML = '<a href="admin.html" style="color:var(--primary-color); text-decoration:none; font-weight:bold; margin-left:10px;">⚙️ الإدارة</a><button onclick="doLogout()" style="background:none; border:none; color:var(--danger-color); cursor:pointer;">خروج</button>';
+                userMenuEl.innerHTML = '<a href="admin.html" style="color:var(--primary-color); text-decoration:none; font-weight:bold; margin-left:10px;">️ الإدارة</a><button onclick="doLogout()" style="background:none; border:none; color:var(--danger-color); cursor:pointer;">خروج</button>';
             } else {
                 userMenuEl.innerHTML = '<span style="color:var(--text-light); font-size:14px;">مرحباً</span>';
             }
@@ -392,7 +392,7 @@ window.applyCoupon = function() {
     var code = document.getElementById('couponInput').value.trim().toUpperCase();
     var messageEl = document.getElementById('couponMessage');
     if (!code) { 
-        messageEl.innerHTML = '<span style="color:#dc3545;">️ أدخل الكود</span>'; 
+        messageEl.innerHTML = '<span style="color:#dc3545;">⚠️ أدخل الكود</span>'; 
         return; 
     }
     var coupons = { 
@@ -663,7 +663,7 @@ function showLiveNotification() {
         var n = notifs[idx % notifs.length];
         var el = document.createElement('div');
         el.style.cssText = 'background:white; padding:15px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.2); margin-bottom:10px; animation:slideInLeft 0.5s ease; max-width:300px; border-right:4px solid var(--primary-color);';
-        el.innerHTML = '<div style="font-size:14px; font-weight:bold; color:var(--primary-color);">️ عملية شراء</div><div style="font-size:13px; margin:5px 0;"><b>' + n.name + '</b> اشترى <b>' + n.product + '</b></div><div style="font-size:11px; color:#999;">' + n.time + '</div>';
+        el.innerHTML = '<div style="font-size:14px; font-weight:bold; color:var(--primary-color);">🛍️ عملية شراء</div><div style="font-size:13px; margin:5px 0;"><b>' + n.name + '</b> اشترى <b>' + n.product + '</b></div><div style="font-size:11px; color:#999;">' + n.time + '</div>';
         c.appendChild(el);
         setTimeout(function() { 
             el.style.opacity = '0'; 
@@ -696,7 +696,7 @@ async function loadCategories() {
     }
     
     try {
-        console.log('📡 جاري الاتصال بـ Firebase...');
+        console.log(' جاري الاتصال بـ Firebase...');
         var snapshot = await getDocs(collection(db, "categories"));
         console.log('📊 عدد المستندات المحملة:', snapshot.size);
         
@@ -737,14 +737,14 @@ async function loadCategories() {
 
 // ============ القائمة الجانبية (نصوص فقط بدون أيقونات) ============
 function renderCategorySidebar() {
-    console.log('🎨 رسم القائمة الجانبية...');
+    console.log(' رسم القائمة الجانبية...');
     var sidebar = document.getElementById('categoriesSidebar'); 
     if (!sidebar) {
         console.error('❌ sidebar غير موجود');
         return;
     }
     
-    sidebar.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:15px; border-bottom:2px solid var(--accent-color);"><h3 style="color:var(--primary-color); margin:0; font-size:20px;">جميع التصنيفات</h3><button onclick="toggleCategories()" style="background:none; border:none; font-size:24px; cursor:pointer;"></button></div>';
+    sidebar.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:15px; border-bottom:2px solid var(--accent-color);"><h3 style="color:var(--primary-color); margin:0; font-size:20px;">جميع التصنيفات</h3><button onclick="toggleCategories()" style="background:none; border:none; font-size:24px; cursor:pointer;">✕</button></div>';
     
     var allBtn = document.createElement('div'); 
     allBtn.className = 'category-item active'; 
@@ -761,7 +761,7 @@ function renderCategorySidebar() {
     }
     
     var level1Cats = allCategories.filter(function(c) { return c.level === 1; });
-    console.log(' الأقسام الرئيسية:', level1Cats.length);
+    console.log('📁 الأقسام الرئيسية:', level1Cats.length);
     
     level1Cats.forEach(function(mainCat) {
         var mainItem = document.createElement('div'); 
@@ -798,7 +798,7 @@ function renderCategorySidebar() {
     console.log('✅ تم رسم القائمة الجانبية بنجاح');
 }
 
-// ============ فلترة الأقسام ============
+// ============ ✅ فلترة الأقسام - التعديل الجديد ============
 window.filterCategory = function(category) {
     console.log('🔍 تصفية القسم:', category);
     currentCategory = category;
@@ -821,6 +821,13 @@ window.filterCategory = function(category) {
         activeItem.style.background = 'var(--primary-color)';
         activeItem.style.color = 'white';
         activeItem.style.borderRadius = '8px';
+    }
+    
+    // ✅ إخفاء الأقسام الخاصة (الأكثر مبيعاً، وصل حديثاً، عروض) عند اختيار قسم محدد
+    if (category !== 'all') {
+        document.getElementById('bestSellersSection').style.display = 'none';
+        document.getElementById('newArrivalsSection').style.display = 'none';
+        document.getElementById('flashSaleSection').style.display = 'none';
     }
     
     renderProductsByCategory();
@@ -849,7 +856,7 @@ async function loadProducts() {
         allProducts = [];
         snapshot.forEach(function(doc) {
             var data = doc.data();
-            console.log('📦 منتج:', data.name, '| القسم:', data.category, '| السعر:', data.price);
+            console.log(' منتج:', data.name, '| القسم:', data.category, '| السعر:', data.price);
             
             allProducts.push({ 
                 id: doc.id, 
@@ -881,7 +888,7 @@ async function loadProducts() {
 }
 
 function renderSpecialSections() {
-    console.log('🎨 عرض الأقسام الخاصة...');
+    console.log(' عرض الأقسام الخاصة...');
     var bestSellers = allProducts.slice().sort(function(a, b) { return b.salesCount - a.salesCount; }).slice(0, 10);
     if (bestSellers.length > 0) { 
         document.getElementById('bestSellersSection').style.display = 'block'; 
@@ -903,9 +910,9 @@ function renderSpecialSections() {
 }
 
 function renderProductsByCategory() {
-    console.log('🎯 عرض المنتجات حسب الأقسام...');
+    console.log(' عرض المنتجات حسب الأقسام...');
     console.log('📊 عدد الأقسام:', allCategories.length);
-    console.log(' عدد المنتجات:', allProducts.length);
+    console.log('📊 عدد المنتجات:', allProducts.length);
     
     var container = document.getElementById('productsByCategory'); 
     if (!container) {
@@ -917,7 +924,7 @@ function renderProductsByCategory() {
     
     if (currentCategory === 'all') {
         var level1Cats = allCategories.filter(function(c) { return c.level === 1; });
-        console.log('📁 الأقسام الرئيسية:', level1Cats.length);
+        console.log(' الأقسام الرئيسية:', level1Cats.length);
         
         if (level1Cats.length === 0) {
             console.log('⚠️ لا توجد أقسام، عرض كل المنتجات');
@@ -940,7 +947,7 @@ function renderProductsByCategory() {
     } else {
         var allCats = getAllSubCategories(currentCategory);
         var categoryProducts = allProducts.filter(function(p) { return allCats.includes(p.category) && p.displayLocation !== 'hidden'; });
-        console.log('📂 قسم محدد:', currentCategory, '| المنتجات:', categoryProducts.length);
+        console.log(' قسم محدد:', currentCategory, '| المنتجات:', categoryProducts.length);
         
         if (categoryProducts.length > 0) {
             displaySubCategoriesWithProducts(currentCategory, container);
@@ -959,7 +966,7 @@ function displaySubCategoriesWithProducts(parentName, container) {
         console.log('  -', directProducts.length, 'منتج مباشر');
         var section = document.createElement('div'); 
         section.style.marginBottom = '30px';
-        section.innerHTML = '<div class="section-header" style="margin-bottom:15px;"><h3 class="section-title" style="font-size:20px; color:#666;">📦 منتجات ' + parentName + '</h3></div><div class="products-scroll" style="padding:15px 10px;">' + directProducts.map(function(p) { return createProductCard(p); }).join('') + '</div>';
+        section.innerHTML = '<div class="section-header" style="margin-bottom:15px;"><h3 class="section-title" style="font-size:20px; color:#666;"> منتجات ' + parentName + '</h3></div><div class="products-scroll" style="padding:15px 10px;">' + directProducts.map(function(p) { return createProductCard(p); }).join('') + '</div>';
         container.appendChild(section);
     }
     
@@ -1023,7 +1030,7 @@ function createProductCard(product, showSalesBadge) {
             badges += '<div style="position:absolute; top:50px; right:10px; background:#dc3545; color:white; padding:3px 8px; border-radius:10px; font-size:11px; font-weight:bold; z-index:9;">خصم ' + product.discountPercent + '%</div>';
     }
     if (showSalesBadge && product.salesCount > 50) 
-        badges += '<div style="position:absolute; bottom:10px; right:10px; background:var(--primary-color); color:white; padding:5px 12px; border-radius:15px; font-size:11px; font-weight:bold; z-index:10;"> الأكثر مبيعاً</div>';
+        badges += '<div style="position:absolute; bottom:10px; right:10px; background:var(--primary-color); color:white; padding:5px 12px; border-radius:15px; font-size:11px; font-weight:bold; z-index:10;">🏆 الأكثر مبيعاً</div>';
     
     var heartSvg;
     if (inWishlist) {
@@ -1033,7 +1040,7 @@ function createProductCard(product, showSalesBadge) {
     }
     var heartBg = inWishlist ? 'background:#e91e63;' : 'background:white;';
     
-    var actionButtons = '<div style="position:absolute; top:10px; left:10px; display:flex; flex-direction:column; gap:5px; z-index:15;"><button class="wishlist-btn-' + product.id + ' ' + (inWishlist ? 'active' : '') + '" onclick="event.stopPropagation(); toggleWishlistItem(\'' + product.id + '\')" style="width:35px; height:35px; border-radius:50%; border:none; ' + heartBg + ' cursor:pointer; font-size:18px; box-shadow:0 2px 5px rgba(0,0,0,0.2); display:flex; align-items:center; justify-content:center; transition:0.3s;" title="المفضلة">' + heartSvg + '</button><button class="compare-btn-' + product.id + ' ' + (inCompare ? 'active' : '') + '" onclick="event.stopPropagation(); toggleCompareItem(\'' + product.id + '\')" style="width:35px; height:35px; border-radius:50%; border:none; ' + (inCompare ? 'background:#2196F3;color:white;' : 'background:white;') + ' cursor:pointer; font-size:16px; box-shadow:0 2px 5px rgba(0,0,0,0.2); display:flex; align-items:center; justify-content:center; transition:0.3s;" title="مقارنة">⚖️</button></div>';
+    var actionButtons = '<div style="position:absolute; top:10px; left:10px; display:flex; flex-direction:column; gap:5px; z-index:15;"><button class="wishlist-btn-' + product.id + ' ' + (inWishlist ? 'active' : '') + '" onclick="event.stopPropagation(); toggleWishlistItem(\'' + product.id + '\')" style="width:35px; height:35px; border-radius:50%; border:none; ' + heartBg + ' cursor:pointer; font-size:18px; box-shadow:0 2px 5px rgba(0,0,0,0.2); display:flex; align-items:center; justify-content:center; transition:0.3s;" title="المفضلة">' + heartSvg + '</button><button class="compare-btn-' + product.id + ' ' + (inCompare ? 'active' : '') + '" onclick="event.stopPropagation(); toggleCompareItem(\'' + product.id + '\')" style="width:35px; height:35px; border-radius:50%; border:none; ' + (inCompare ? 'background:#2196F3;color:white;' : 'background:white;') + ' cursor:pointer; font-size:16px; box-shadow:0 2px 5px rgba(0,0,0,0.2); display:flex; align-items:center; justify-content:center; transition:0.3s;" title="مقارنة">️</button></div>';
     
     var colorsHtml = '';
     if (product.hasColors && product.colors) {
@@ -1090,7 +1097,7 @@ async function initStore() {
         
         console.log('🎉 اكتمل تحميل المتجر بنجاح!');
     } catch (err) {
-        console.error('❌ خطأ في بدء التشغيل:', err);
+        console.error(' خطأ في بدء التشغيل:', err);
     }
 }
 
