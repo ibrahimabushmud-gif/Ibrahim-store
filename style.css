@@ -395,7 +395,7 @@ header {
 }
 
 .cart-drawer.open {
-    left: 0;
+    left: 0 !important;
 }
 
 
