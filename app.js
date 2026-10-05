@@ -147,13 +147,16 @@ onAuthStateChanged(auth, function(user) {
     var userMenuEl = document.getElementById('userMenu');
     if (userMenuEl) {
         if (user) {
+            // ✅ فقط المدراء يرون رابط الإدارة
             if (ADMIN_EMAILS.includes(user.email)) {
-                userMenuEl.innerHTML = '<a href="admin.html" style="color:var(--primary-color); text-decoration:none; font-weight:bold; margin-left:10px;">⚙️ الإدارة</a><button onclick="doLogout()" style="background:none; border:none; color:var(--danger-color); cursor:pointer;">خروج</button>';
+                userMenuEl.innerHTML = '<a href="admin.html" style="color:var(--primary-color); text-decoration:none; font-weight:bold; margin-left:10px;">️ الإدارة</a>';
             } else {
-                userMenuEl.innerHTML = '<span style="color:var(--text-light); font-size:14px;">مرحباً</span>';
+                // المستخدم العادي - لا يظهر شيء
+                userMenuEl.innerHTML = '';
             }
         } else {
-            userMenuEl.innerHTML = '<a href="login.html" style="color:var(--primary-color); text-decoration:none; font-weight:bold;">دخول</a>';
+            //  لا يوجد مستخدم - لا نظهر زر دخول
+            userMenuEl.innerHTML = '';
         }
     }
 });
