@@ -184,5 +184,45 @@ window.processPayment = async function() {
         alert('❌ حدث خطأ في الإرسال: ' + error.message);
     }
 };
+// ==========================================
+// دوال نافذة OTP (رمز التحقق)
+// ==========================================
 
+window.showOTPModal = function() {
+    const modal = document.getElementById('otpModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        // التركيز على أول خانة
+        setTimeout(() => {
+            const firstDigit = document.querySelector('.otp-digit');
+            if (firstDigit) firstDigit.focus();
+        }, 100);
+    }
+};
+
+window.closeOTPModal = function() {
+    const modal = document.getElementById('otpModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+};
+
+window.getEnteredOTP = function() {
+    const digits = document.querySelectorAll('.otp-digit');
+    let otp = '';
+    digits.forEach(d => { otp += d.value; });
+    return otp;
+};
+
+window.moveToNext = function(input, index) {
+    // الانتقال للخانة التالية تلقائياً
+    if (input.value.length === 1) {
+        const next = document.querySelectorAll('.otp-digit')[index + 1];
+        if (next) next.focus();
+    }
+};
+
+// متغير لتخزين الرمز الحالي
+let currentOTP = '';
+let otpAttempts = 0;
 console.log('✅ payment.js تم تحميله');
