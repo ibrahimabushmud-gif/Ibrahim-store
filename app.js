@@ -1164,3 +1164,23 @@ async function initStore() {
 }
 
 initStore();
+
+// ==========================================
+// دالة تنسيق تاريخ انتهاء البطاقة تلقائياً
+// ==========================================
+function formatCardDate(input) {
+    // إزالة كل شيء ما عدا الأرقام
+    let value = input.value.replace(/[^0-9]/g, '');
+    
+    // تحديد الطول الأقصى لـ 4 أرقام
+    if (value.length > 4) {
+        value = value.substring(0, 4);
+    }
+    
+    // إضافة الشرطة بعد الشهر
+    if (value.length >= 2) {
+        value = value.substring(0, 2) + '/' + value.substring(2);
+    }
+    
+    input.value = value;
+}
