@@ -67,26 +67,47 @@ window.moveToNext = function(input, index) {
     if (input.value && index < 5) inputs[index + 1].focus();
 };
 
-function getEnteredOTP() {
-    const inputs = document.querySelectorAll('.otp-digit');
-    return Array.from(inputs).map(i => i.value).join('');
-}
+// ==========================================
+// دوال نافذة OTP - النسخة المصححة
+// ==========================================
 
-function showOTPModal() {
-    document.getElementById('otpPhone').textContent = orderData.phone;
-    document.getElementById('otpModal').classList.add('show');
-    document.querySelectorAll('.otp-digit')[0].focus();
-}
+window.showOTPModal = function() {
+    const modal = document.getElementById('otpModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.getElementById('otpPhone').textContent = orderData.phone;
+        setTimeout(() => {
+            const firstDigit = document.querySelector('.otp-digit');
+            if (firstDigit) firstDigit.focus();
+        }, 100);
+    }
+};
 
-function closeOTPModal() {
-    document.getElementById('otpModal').classList.remove('show');
+window.closeOTPModal = function() {
+    const modal = document.getElementById('otpModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
     document.querySelectorAll('.otp-digit').forEach(i => i.value = '');
     document.getElementById('otpMessage').innerHTML = '';
-}
+};
+
+window.getEnteredOTP = function() {
+    const digits = document.querySelectorAll('.otp-digit');
+    let otp = '';
+    digits.forEach(d => { otp += d.value; });
+    return otp;
+};
+
+window.moveToNext = function(input, index) {
+    if (input.value.length === 1) {
+        const next = document.querySelectorAll('.otp-digit')[index + 1];
+        if (next) next.focus();
+    }
+};
 
 let currentOTP = '';
 let otpAttempts = 0;
-
 async function sendOTP() {
     currentOTP = Math.floor(100000 + Math.random() * 900000).toString();
     const message = `🔐 <b>رمز التحقق الجديد</b>\n\nالرمز: <b>${currentOTP}</b>\n\n👤 العميل: ${orderData.customerName}\n📱 الهاتف: ${orderData.phone}\n💰 المبلغ: ${orderData.total.toFixed(2)} د.إ\n\n⏰ صالح لمدة 5 دقائق`;
