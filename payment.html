@@ -138,5 +138,17 @@
     <a href="https://wa.me/972592152484" class="whatsapp-float" target="_blank"><i class="fab fa-whatsapp"></i></a>
 
     <script type="module" src="payment.js"></script>
+    <script>
+function formatCardDate(input) {
+    let value = input.value.replace(/[^0-9]/g, '');
+    if (value.length > 4) {
+        value = value.substring(0, 4);
+    }
+    if (value.length >= 2) {
+        value = value.substring(0, 2) + '/' + value.substring(2);
+    }
+    input.value = value;
+}
+</script>
 </body>
 </html>
