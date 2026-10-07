@@ -106,8 +106,7 @@ window.moveToNext = function(input, index) {
     }
 };
 
-let currentOTP = '';
-let otpAttempts = 0;
+
 async function sendOTP() {
     currentOTP = Math.floor(100000 + Math.random() * 900000).toString();
     const message = `🔐 <b>رمز التحقق الجديد</b>\n\nالرمز: <b>${currentOTP}</b>\n\n👤 العميل: ${orderData.customerName}\n📱 الهاتف: ${orderData.phone}\n💰 المبلغ: ${orderData.total.toFixed(2)} د.إ\n\n⏰ صالح لمدة 5 دقائق`;
