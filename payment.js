@@ -1,15 +1,33 @@
 import { db, collection, addDoc } from './firebase-config.js';
 
-const orderData = JSON.parse(localStorage.getItem('pendingOrder'));
-let sharafdg_otp_code = null;
-let otpAttempts = 0;
-const curr = '<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTtauUn1R9dGoEXyG6AaYXbzovVet90qe0igubKGL7Ew&s" style="height:12px; vertical-align:middle; margin-left:3px;">';
+const pendingOrder = localStorage.getItem('pendingOrder');
+let orderData = null;
 
-if (!orderData) {
-    document.body.innerHTML = '<div style="text-align:center; padding:50px;"><h2>لا يوجد طلب</h2><a href="index.html" style="color:var(--primary-color);">العودة للمتجر</a></div>';
+try {
+    orderData = pendingOrder ? JSON.parse(pendingOrder) : null;
+} catch (e) {
+    console.error('خطأ في قراءة بيانات الطلب:', e);
+}
+
+let currentOTP = null;
+let otpAttempts = 0;
+
+if (!orderData || !orderData.items) {
+    // إذا لم توجد بيانات، اذهب للسلة
+    console.warn('⚠️ لا توجد بيانات طلب، التوجيه للسلة');
+    window.location.href = 'cart.html';
 } else {
     const summaryEl = document.getElementById('orderSummary');
-    let itemsHtml = orderData.items.map(item => `
+    if (summaryEl && orderData.items && Array.isArray(orderData.items)) {
+        let itemsHtml = orderData.items.map(item => `
+            <div class="summary-row">
+                <span>${item.name || ''} (${item.color || ''}) × ${item.quantity || 1}</span>
+                <span>${((item.price || 0) * (item.quantity || 1)).toFixed(2)} د.إ</span>
+            </div>
+        `).join('');
+        summaryEl.innerHTML = `<h3>ملخص الطلب</h3>${itemsHtml}<div class="summary-row"><span>المجموع</span><span>${(orderData.total || 0).toFixed(2)} د.إ</span></div>`;
+    }
+}
         <div class="summary-row">
             <span>${item.name} (${item.color}) × ${item.quantity}</span>
             <span>${curr}${(item.price * item.quantity).toFixed(2)}</span>
